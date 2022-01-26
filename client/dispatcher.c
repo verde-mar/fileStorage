@@ -7,6 +7,8 @@
 #include <string.h>
 
 #include <check_errors.h>
+#include <limits.h>
+#include <errno.h>
 
 int dispatcher(int argc, char *argv[]){
     int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0;
@@ -48,21 +50,31 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di scrittura di un file al server */
             case 'w':
                 write_ops = 1;
-                printf("OPTARG PRIMA DI REALPATH: %s\n", optarg);
-                const char* abs_path = (const char*) realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
+
                 sleep(time);
                 //API per richiesta
-            
+                free(path);
+
                 break;
             
             /* Effettua la richiesta di scrittura dei file di una directory al server */
             case 'W': 
                 write_ops = 1;
-                const char* abs_path = realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
 
                 sleep(time);
                 //API per richiesta           
-            
+                free(path);
+
                 break;
 
             case 'D':
@@ -77,10 +89,16 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di lettura di un file al server */
             case 'r': 
                 read_ops = 1;
-                const char* abs_path = realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
+
                 sleep(time);
                 //API per richiesta
-        
+                free(path);
+
                 break;
 
             /* Effettua la richiesta di scrittura di 'R' file al server */
@@ -90,6 +108,7 @@ int dispatcher(int argc, char *argv[]){
                 sleep(time);
 
                 //API per richiesta
+                free(path);
 
                 break;
             
@@ -114,25 +133,44 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di acquisire la lock su un file al server */
             case 'l':
-                const char* abs_path = realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
+
                 sleep(time);
                 //API per richiesta
+                free(path);
+
                 break;
             
             /* Effettua la richiesta di rilasciare la lock su un file al server */
             case 'u':
-                const char* abs_path = realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
+
                 sleep(time);
                 //API per richiesta
+                free(path);
 
                 break;
             
             /* Effettua la richiesta di cancellare un file al server */
             case 'c':
-                const char* abs_path = realpath(optarg, abs_path);
+                char* path = malloc(sizeof(char)*strlen(optarg)+1);
+                char* rest = realpath(optarg, path);
+                CHECK_OPERATIONS((rest == NULL && errno == EINVAL), 
+                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n"), 
+                        return -1);
+
                 sleep(time);
                 //API per richiesta
-
+                free(path);
+                
                 break;
             
             /* Abilita le stampe sulle operazioni */
