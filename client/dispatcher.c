@@ -48,7 +48,8 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di scrittura di un file al server */
             case 'w':
                 write_ops = 1;
-                //trova il path assoluto della dir
+                printf("OPTARG PRIMA DI REALPATH: %s\n", optarg);
+                const char* abs_path = (const char*) realpath(optarg, abs_path);
                 sleep(time);
                 //API per richiesta
             
@@ -57,7 +58,7 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di scrittura dei file di una directory al server */
             case 'W': 
                 write_ops = 1;
-                //trova il path assoluto del file
+                const char* abs_path = realpath(optarg, abs_path);
 
                 sleep(time);
                 //API per richiesta           
@@ -76,7 +77,7 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di lettura di un file al server */
             case 'r': 
                 read_ops = 1;
-                //trova il path assoluto della dir
+                const char* abs_path = realpath(optarg, abs_path);
                 sleep(time);
                 //API per richiesta
         
@@ -113,14 +114,14 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di acquisire la lock su un file al server */
             case 'l':
-                //trova il path assoluto del file
+                const char* abs_path = realpath(optarg, abs_path);
                 sleep(time);
                 //API per richiesta
                 break;
             
             /* Effettua la richiesta di rilasciare la lock su un file al server */
             case 'u':
-                //trova il path assoluto del file
+                const char* abs_path = realpath(optarg, abs_path);
                 sleep(time);
                 //API per richiesta
 
@@ -128,7 +129,7 @@ int dispatcher(int argc, char *argv[]){
             
             /* Effettua la richiesta di cancellare un file al server */
             case 'c':
-                //trova il path assoluto del file
+                const char* abs_path = realpath(optarg, abs_path);
                 sleep(time);
                 //API per richiesta
 

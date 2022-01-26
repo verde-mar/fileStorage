@@ -12,6 +12,8 @@
 
 #include <unistd.h>
 
+//TODO: come strutturare le stampe per -p abilitato
+
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
     fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
