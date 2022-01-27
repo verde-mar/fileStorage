@@ -41,10 +41,11 @@ int dispatcher(int argc, char *argv[]){
                 /* Apre una connessione con il server */
                 const struct timespec abs = {0, 80900};
                 err_conn = openConnection((const char*)socketname, 100, abs);
-                CHECK_OPERATIONS(err_conn == -1, 
+                CHECK_OPERATIONS(err_conn == -1 && printer == 1, 
                     fprintf(stderr, " errore nell'apertura della connessione.\n"), 
                         return -1);
-                
+                CHECK_OPERATION(err_conn == -1,
+                        return -1);
                 break;
 
             /* Effettua la richiesta di scrittura di un file al server */
@@ -57,7 +58,11 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta
+                //openFile
+                //writeFile
+                //unlockFile
+                //closeFile
+
                 free(path);
 
                 break;
@@ -72,7 +77,11 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta           
+                //openFile
+                //writeFile
+                //unlockFile
+                //closeFile
+
                 free(path);
 
                 break;
@@ -96,7 +105,10 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta
+                //openFile
+                //readFile
+                //unlockFile
+                //closeFile
                 free(path);
 
                 break;
@@ -106,8 +118,10 @@ int dispatcher(int argc, char *argv[]){
                 //int R = strtol(optarg, NULL, 10);
                 read_ops = 1;
                 sleep(time);
-
-                //API per richiesta
+                //openFile
+                //readNFiles
+                //unlockFile
+                //closeFile
                 free(path);
 
                 break;
@@ -140,7 +154,7 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta
+                //lockFile
                 free(path);
 
                 break;
@@ -154,7 +168,7 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta
+                //unlockFile
                 free(path);
 
                 break;
@@ -168,7 +182,8 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                //API per richiesta
+                //lockFile
+                //removeFile
                 free(path);
                 
                 break;

@@ -38,8 +38,9 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
         abstime_temp.tv_nsec -= t.tv_nsec;
         success_connection = connect(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     }
-    CHECK_OPERATIONS(success_connection==-1, fprintf(stderr, "La connect non e' andata a buon fine:"), return -1); 
-
+    CHECK_OPERATIONS(success_connection==-1 && printer == 1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine:"), return -1); 
+    CHECK_OPERATION(success_connection == -1, return -1);
+    CHECK_OPERATIONS(printer == 1, fprintf(stdout, "E' stata eseguita l'operazione 'openConnection' con successo:"), return 0);
     return 0;
 }
 
