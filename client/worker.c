@@ -12,7 +12,6 @@
 
 #include <unistd.h>
 #include <socketIO.h>
-#include <utils.h>
 
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
@@ -91,7 +90,7 @@ int openFile(const char *pathname, int flags){
         perror("Allocazione non andata a buon fine.\n");
             return -1);
 
-    int byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
+    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
     CHECK_OPERATION(byte_letti == -1, return -1);
 
     return 0;

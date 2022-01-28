@@ -30,7 +30,7 @@ const char *nPath(const char* path, char *file_name){
         return NULL;
     }
     const char *new_path = calloc((strlen(path)+strlen(file_name)+2), sizeof(char));
-    CHECK_OPERATION((new_path==NULL), fprintf(stderr, "Errore sulla malloc (nPath)\n"); return NULL;);   
+    CHECK_OPERATION((new_path==NULL), fprintf(stderr, "Allocazione della calloc non andata a buon fine.\n"); return NULL;);   
 
     new_path = strcat((char*)new_path, path);
     new_path = strcat((char*)new_path, "/");

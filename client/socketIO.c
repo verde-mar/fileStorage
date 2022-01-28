@@ -35,6 +35,13 @@ int read_msg(int fd_skt, void *msg, size_t size){
     return byte_letti;
 }
 
+int write_size(int fd_skt, size_t* size){
+    int byte_scritti = writen(fd_skt, size, sizeof(size_t));
+    CHECK_OPERATION(byte_scritti==-1, fprintf(stderr, " errore sulla write_size.\n"); return -1;); 
+
+    return byte_scritti;
+}
+
 int write_msg(int fd_skt, void *msg, size_t size){
     int byte_scritti = write_size(fd_skt, &size);
     CHECK_OPERATION(byte_scritti == -1,
