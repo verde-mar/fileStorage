@@ -7,13 +7,8 @@
  */
 #ifndef _CHECK_ERRORS_
 #define _CHECK_ERRORS_
-#define CHECK_OPERATIONS(condition, operation1, operation2) \
-    if(condition){ \
-        operation1; \
-        operation2; \
+#define CHECK_OPERATION(condition, operation) \
+    if(condition) { \
+        operation; \
     }
-#define CHECK_OPERATION(condition, operation1) \
-    if(condition) \
-        operation1; 
-    
 #endif

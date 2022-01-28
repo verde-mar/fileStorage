@@ -3,6 +3,9 @@
 
 #include <time.h>
 
+#define O_CREATE 2
+#define O_LOCK 4
+
 /* Variabile globale che indica se abilitare le stampe sullo stdout per ogni operazione*/
 int printer;
 
@@ -29,5 +32,14 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
  * @return int Restituisce 0 in caso di successo, -1 in caso di fallimento
  */
 int closeConnection(const char* sockname);
+
+/**
+ * @brief DAFARE
+ * 
+ * @param pathname 
+ * @param flags 
+ * @return int 
+ */
+int openFile(const char *pathname, int flags);
 
 #endif // WORKER_H_

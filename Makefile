@@ -7,7 +7,7 @@ UTILS = ./utils
 all: cl
 
 # Librerie client
-$(CLIENT)/libclient.so: $(CLIENT)/dispatcher.o $(CLIENT)/worker.o 
+$(CLIENT)/libclient.so: $(CLIENT)/dispatcher.o $(CLIENT)/worker.o $(UTILS)/utils.o 
 	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -shared -o $@ $^
 
 # Eseguibile client
