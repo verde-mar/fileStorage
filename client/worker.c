@@ -49,6 +49,7 @@ int closeConnection(const char* sockname){
 
     close(fd_skt);
     if(socketname!=NULL) free((char*)socketname);
+    CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita la closeConnection con successo: "); return 0);
 
     return 0;
 }
@@ -81,17 +82,13 @@ int openFile(const char *pathname, int flags){
     CHECK_OPERATION(byte_scritti == -1, 
             return -1);
 
-    size_t size;
-    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
-
-    char* response = malloc(sizeof(char)*size);
-    CHECK_OPERATION(response == NULL, 
-        perror("Allocazione non andata a buon fine.\n");
-            return -1);
-
-    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 505 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s  perche' il file esiste gia':", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 606 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s il file non esiste e non e' stato specificato O_CREATE:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la openFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
@@ -116,17 +113,12 @@ int lockFile(const char* pathname){
     CHECK_OPERATION(byte_scritti == -1, 
             return -1);
 
-    size_t size;
-    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
-
-    char* response = malloc(sizeof(char)*size);
-    CHECK_OPERATION(response == NULL, 
-        perror("Allocazione non andata a buon fine.\n");
-            return -1);
-
-    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la lockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
 
     return 0;
 }
@@ -151,17 +143,13 @@ int unlockFile(const char* pathname){
     CHECK_OPERATION(byte_scritti == -1, 
             return -1);
 
-    size_t size;
-    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
-
-    char* response = malloc(sizeof(char)*size);
-    CHECK_OPERATION(response == NULL, 
-        perror("Allocazione non andata a buon fine.\n");
-            return -1);
-
-    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile  sul file %s perche' il file non e' in stato di locked:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la unlockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
 
     return 0;
 }
@@ -175,7 +163,7 @@ int removeFile(const char* pathname){
     int len = strlen(pathname)+strlen(request)+1;
     char* actual_request = malloc(sizeof(char)*(strlen(pathname)+strlen(request)+1));
     CHECK_OPERATION(actual_request == NULL, 
-        perror("Allocazione non andata a buon fine.\n");
+        perror("Allocazione non andata a buon fine:");
             return -1);
 
     actual_request = strcat(actual_request, request);
@@ -186,17 +174,41 @@ int removeFile(const char* pathname){
     CHECK_OPERATION(byte_scritti == -1, 
             return -1);
 
-    size_t size;
-    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile  sul file %s perche' il file non e' in stato di locked:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la removeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
 
-    char* response = malloc(sizeof(char)*size);
-    CHECK_OPERATION(response == NULL, 
-        perror("Allocazione non andata a buon fine.\n");
+    return 0;
+}
+
+int closeFile(const char* pathname){
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido:");
+            return -1); 
+
+    char *request = "remove;";
+    int len = strlen(pathname)+strlen(request)+1;
+    char* actual_request = malloc(sizeof(char)*(strlen(pathname)+strlen(request)+1));
+    CHECK_OPERATION(actual_request == NULL, 
+        perror("Allocazione non andata a buon fine:");
             return -1);
 
-    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
-    CHECK_OPERATION(byte_letti == -1, return -1);
+    actual_request = strcat(actual_request, request);
+    actual_request = strcat(actual_request, pathname);
+    actual_request[len] = '\0';
+    
+    int byte_scritti = write_msg(fd_skt, actual_request, strlen(actual_request)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_scritti == -1, 
+            return -1);
+
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la closeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
 
     return 0;
 }

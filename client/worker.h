@@ -34,36 +34,44 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
 int closeConnection(const char* sockname);
 
 /**
- * @brief 
+ * @brief Richiede l'apertura di un file e/o dell' acquisizione la lock
  * 
- * @param pathname Path del file
- * @param flags 
+ * @param pathname Path assoluto del file
+ * @param flags Flag che decidono se aprire e/o acquisire la lock sul file
  * @return int 0 in caso di successo -1 altrimenti
  */
 int openFile(const char *pathname, int flags);
 
 /**
- * @brief 
+ * @brief Richiede l'acquisizione della lock di un file
  * 
- * @param pathname Path del file
+ * @param pathname Path assoluto del file
  * @return int 0 in caso di successo -1 altrimenti
  */
 int lockFile(const char* pathname);
 
 /**
- * @brief 
+ * @brief Richiede il rilascio della lock di un file
  * 
- * @param pathname 
- * @return int 
+ * @param pathname Path assoluto del file
+ * @return int 0 in caso di successo -1 altrimenti
  */
 int unlockFile(const char* pathname);
 
 /**
- * @brief 
+ * @brief Richiede la rimozione di un file dal server
  * 
- * @param pathname 
- * @return int 
+ * @param pathname Path assoluto del file
+ * @return int 0 in caso di successo -1 altrimenti
  */
 int removeFile(const char* pathname);
+
+/**
+ * @brief Richiede la chiusura di un file
+ * 
+ * @param pathname Path assoluto del file
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int closeFile(const char* pathname);
 
 #endif // WORKER_H_
