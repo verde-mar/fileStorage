@@ -4,6 +4,10 @@
 #include <sys/socket.h>
 #include <sys/un.h> /* ind AF_UNIX */
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h> 
 
 #define N 100
 
@@ -18,7 +22,13 @@ int main (void) {
     bind(fd_skt,(struct sockaddr *)&sa,sizeof(sa));
     listen(fd_skt,SOMAXCONN);
     fd_c=accept(fd_skt,NULL,0);  
-
+    size_t size;
+    read(fd_c, &size, sizeof(size_t));
+    char *buffer = malloc(sizeof(char)*size);
+    read(fd_c, buffer, size);
+    printf("STRINGA RICEVUTA: %s\n", buffer);
+    int codice_errore = 101;
+    write(fd_c, &codice_errore, sizeof(int));
     return 0;
 
 }

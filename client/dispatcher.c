@@ -16,7 +16,7 @@
 int caller(const char *pathname);
 
 int dispatcher(int argc, char *argv[]){
-    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0;
+    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0;
     char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *path = NULL, *rest = NULL;
     
     /* Inizializza la variabile globale che abilita le stampe delle API */
@@ -68,11 +68,14 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
                 //writeFile
-                int err_unlock = unlockFile(rest);
+                err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " error nella unlockFile.\n");
                         return -1);
-                //closeFile
+                err_close = closeFile(rest);
+                CHECK_OPERATION(err_close == -1,
+                    fprintf(stderr, " error nella closeFile.\n");
+                        return -1);
 
                 free(path);
 
@@ -93,11 +96,14 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
                 //writeFile
-                int err_unlock = unlockFile(rest);
+                err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " error nella unlockFile.\n");
                         return -1);
-                //closeFile
+                err_close = closeFile(rest);
+                CHECK_OPERATION(err_close == -1,
+                    fprintf(stderr, " error nella closeFile.\n");
+                        return -1);
 
                 free(rest);
 
@@ -131,11 +137,14 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
                 //readFile
-                int err_unlock = unlockFile(rest);
+                err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " error nella unlockFile.\n");
                         return -1);
-                //closeFile
+                err_close = closeFile(rest);
+                CHECK_OPERATION(err_close == -1,
+                    fprintf(stderr, " error nella closeFile.\n");
+                        return -1);
                 free(rest);
 
                 break;
@@ -150,11 +159,14 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
                 //readNFiles
-                int err_unlock = unlockFile(rest);
+                err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " error nella unlockFile.\n");
                         return -1);
-                //closeFile
+                err_close = closeFile(rest);
+                CHECK_OPERATION(err_close == -1,
+                    fprintf(stderr, " error nella closeFile.\n");
+                        return -1);
                 free(rest);
 
                 break;
@@ -187,7 +199,7 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
                 sleep(time);
-                int err_lock = lockFile(rest);
+                err_lock = lockFile(rest);
                 CHECK_OPERATION(err_lock == -1,
                     fprintf(stderr, " error nella lockFile.\n");
                         return -1);
