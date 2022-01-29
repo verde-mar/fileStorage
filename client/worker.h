@@ -34,12 +34,36 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
 int closeConnection(const char* sockname);
 
 /**
- * @brief DAFARE
+ * @brief 
  * 
- * @param pathname 
+ * @param pathname Path del file
  * @param flags 
- * @return int 
+ * @return int 0 in caso di successo -1 altrimenti
  */
 int openFile(const char *pathname, int flags);
+
+/**
+ * @brief 
+ * 
+ * @param pathname Path del file
+ * @return int 0 in caso di successo -1 altrimenti
+ */
+int lockFile(const char* pathname);
+
+/**
+ * @brief 
+ * 
+ * @param pathname 
+ * @return int 
+ */
+int unlockFile(const char* pathname);
+
+/**
+ * @brief 
+ * 
+ * @param pathname 
+ * @return int 
+ */
+int removeFile(const char* pathname);
 
 #endif // WORKER_H_

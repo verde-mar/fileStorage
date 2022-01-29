@@ -95,3 +95,108 @@ int openFile(const char *pathname, int flags){
 
     return 0;
 }
+
+int lockFile(const char* pathname){
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido:");
+            return -1); 
+
+    char *request = "lock;";
+    int len = strlen(pathname)+strlen(request)+1;
+    char* actual_request = malloc(sizeof(char)*(strlen(pathname)+strlen(request)+1));
+    CHECK_OPERATION(actual_request == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    actual_request = strcat(actual_request, request);
+    actual_request = strcat(actual_request, pathname);
+    actual_request[len] = '\0';
+    
+    int byte_scritti = write_msg(fd_skt, actual_request, strlen(actual_request)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_scritti == -1, 
+            return -1);
+
+    size_t size;
+    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    char* response = malloc(sizeof(char)*size);
+    CHECK_OPERATION(response == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    return 0;
+}
+
+int unlockFile(const char* pathname){
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido:");
+            return -1); 
+
+    char *request = "unlock;";
+    int len = strlen(pathname)+strlen(request)+1;
+    char* actual_request = malloc(sizeof(char)*(strlen(pathname)+strlen(request)+1));
+    CHECK_OPERATION(actual_request == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    actual_request = strcat(actual_request, request);
+    actual_request = strcat(actual_request, pathname);
+    actual_request[len] = '\0';
+    
+    int byte_scritti = write_msg(fd_skt, actual_request, strlen(actual_request)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_scritti == -1, 
+            return -1);
+
+    size_t size;
+    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    char* response = malloc(sizeof(char)*size);
+    CHECK_OPERATION(response == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    return 0;
+}
+
+int removeFile(const char* pathname){
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido:");
+            return -1); 
+
+    char *request = "remove;";
+    int len = strlen(pathname)+strlen(request)+1;
+    char* actual_request = malloc(sizeof(char)*(strlen(pathname)+strlen(request)+1));
+    CHECK_OPERATION(actual_request == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    actual_request = strcat(actual_request, request);
+    actual_request = strcat(actual_request, pathname);
+    actual_request[len] = '\0';
+    
+    int byte_scritti = write_msg(fd_skt, actual_request, strlen(actual_request)); //TODO:testa se funziona
+    CHECK_OPERATION(byte_scritti == -1, 
+            return -1);
+
+    size_t size;
+    int byte_letti = read_size(fd_skt, &size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    char* response = malloc(sizeof(char)*size);
+    CHECK_OPERATION(response == NULL, 
+        perror("Allocazione non andata a buon fine.\n");
+            return -1);
+
+    byte_letti = read_msg(fd_skt, response, size); //TODO:testa se funziona
+    CHECK_OPERATION(byte_letti == -1, return -1);
+
+    return 0;
+}
