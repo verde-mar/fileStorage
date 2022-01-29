@@ -70,11 +70,11 @@ int dispatcher(int argc, char *argv[]){
                 //writeFile
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
-                    fprintf(stderr, " error nella unlockFile.\n");
+                    fprintf(stderr, " errore nella unlockFile.\n");
                         return -1);
                 err_close = closeFile(rest);
                 CHECK_OPERATION(err_close == -1,
-                    fprintf(stderr, " error nella closeFile.\n");
+                    fprintf(stderr, " errore nella closeFile.\n");
                         return -1);
 
                 free(path);
@@ -98,11 +98,11 @@ int dispatcher(int argc, char *argv[]){
                 //writeFile
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
-                    fprintf(stderr, " error nella unlockFile.\n");
+                    fprintf(stderr, " errore nella unlockFile.\n");
                         return -1);
                 err_close = closeFile(rest);
                 CHECK_OPERATION(err_close == -1,
-                    fprintf(stderr, " error nella closeFile.\n");
+                    fprintf(stderr, " errore nella closeFile.\n");
                         return -1);
 
                 free(rest);

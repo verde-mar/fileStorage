@@ -118,7 +118,7 @@ int lockFile(const char* pathname){
     CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
     CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
     CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la lockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la lockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
@@ -149,7 +149,7 @@ int unlockFile(const char* pathname){
     CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile  sul file %s perche' il file non e' in stato di locked:", byte_scritti, byte_letti, pathname); return -1);
     CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
     CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la unlockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la unlockFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
@@ -180,7 +180,7 @@ int removeFile(const char* pathname){
     CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile  sul file %s perche' il file non e' in stato di locked:", byte_scritti, byte_letti, pathname); return -1);
     CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s perche' il file e' stato bloccato da un altro client:", byte_scritti, byte_letti, pathname); return -1);
     CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s  perche' perche' non puoi richiederla dopo la closeFile:", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la removeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la removeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
@@ -208,7 +208,7 @@ int closeFile(const char* pathname){
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
     CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la closeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); //TODO: devi mettere i dati
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la closeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
