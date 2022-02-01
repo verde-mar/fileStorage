@@ -61,11 +61,14 @@ int dispatcher(int argc, char *argv[]){
                         return -1);
 
                 sleep(time);
-                err_caller = caller(rest);
+                err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO:writeFile
+                int err_w = writeFile(rest, "../utils/no_space");
+                CHECK_OPERATION(err_w == -1,
+                    fprintf(stderr, " errore nella writeFile.\n");
+                        return -1);
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
@@ -89,7 +92,7 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
                 sleep(time);
-                err_caller = caller(rest);
+                err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
@@ -130,11 +133,11 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
                 sleep(time);
-                err_caller = caller(rest);
+                err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO:readFile
+                //TODO:readFile -- deve prendere un buffer
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
@@ -149,14 +152,17 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di scrittura di 'R' file al server */
             case 'R':
-                //int R = strtol(optarg, NULL, 10);
+                int R = strtol(optarg, NULL, 10);
                 read_ops = 1;
                 sleep(time);
-                err_caller = caller(rest);
+                err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO:readNFiles
+                int err_R = readNFiles(R, "../utils/to_save");
+                CHECK_OPERATION(err_R == -1,
+                    fprintf(stderr, " errore nella readNFiles.\n");
+                        return -1);
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");

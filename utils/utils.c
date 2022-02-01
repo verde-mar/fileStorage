@@ -41,9 +41,40 @@ const char *nPath(const char* path, char *file_name){
     return new_path;
 }
 
-int caller(const char *pathname){
+int caller_open(const char *pathname){
     if(is_regular_file(pathname)){
         int err_open = openFile(pathname, O_CREATE | O_LOCK);
+        CHECK_OPERATION(err_open == -1, 
+            fprintf(stderr, " errore nella openFile.\n");
+                return -1);
+    } else if(is_directory(pathname)){
+        DIR *dir = opendir(pathname);
+        CHECK_OPERATION(dir == NULL, 
+            fprintf(stderr, " errore sulla opendir.\n"); 
+                return -1;);
+        
+        struct dirent *file;
+        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
+            const char *reg_pat = nPath(pathname, file->d_name);
+            CHECK_OPERATION(reg_pat==NULL,
+                int check = closedir(dir); 
+                    CHECK_OPERATION(check==-1, 
+                        fprintf(stderr, "Errore nella chiusura della directory.\n"); 
+                            return -1;) 
+                        return -1); 
+            if((strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0) && is_directory(reg_pat)){
+                caller(reg_pat);                
+            }
+        }
+        int check = closedir(dir);
+        CHECK_OPERATION((check==-1), fprintf(stderr, " errore sulla closedir.\n"); return -1;);
+    }
+    return 0;
+}
+
+int caller_write(const char *pathname){
+    if(is_regular_file(pathname)){
+        int err_open = writeFile(pathname, "../utils/no_space");
         CHECK_OPERATION(err_open == -1, 
             fprintf(stderr, " errore nella openFile.\n");
                 return -1);
