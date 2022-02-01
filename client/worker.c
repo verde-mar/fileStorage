@@ -308,10 +308,65 @@ int writeFile(const char* pathname, const char* dirname){
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
     CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
     CHECK_OPERATION(byte_letti == 808 && printer != 1, return -1);
-    CHECK_OPERATION(byte_letti == 808 && printer != 1, 
+    CHECK_OPERATION(byte_letti == 808 && printer == 1, 
         fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi fare prima la openFile: ", byte_scritti, byte_letti, pathname);
             return -1);
     CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
     CHECK_OPERATION(codice == 010 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio: ", byte_scritti, byte_letti, pathname); return 0); 
 
+    return 0;
+}
+
+int appendToFile(const char* pathname, void* buf, size_t size, const char* dirname){
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido:");
+            return -1); 
+
+    char *request = "append;";
+    int byte_scritti = 0;
+
+    if(dirname!=NULL){
+        int len = strlen(pathname)+strlen(request)+strlen(dirname)+strlen(";")+1;
+        char* actual_request = malloc(sizeof(char)*len);
+        CHECK_OPERATION(actual_request == NULL, 
+            perror("Allocazione non andata a buon fine:");
+                return -1);
+        actual_request = strcat(actual_request, request);
+        actual_request = strcat(actual_request, pathname);
+        actual_request = strcat(actual_request, ";");
+        actual_request = strcat(actual_request, dirname);
+        actual_request[len] = '\0';
+
+        byte_scritti += write_msg(fd_skt, actual_request, strlen(actual_request)); 
+        CHECK_OPERATION(byte_scritti == -1, 
+                return -1);
+        byte_scritti += write_msg(fd_skt, buf, size); 
+        CHECK_OPERATION(byte_scritti == -1, 
+                return -1);
+    } else {
+        int len = strlen(pathname)+strlen(request)+1;
+        char* actual_request = malloc(sizeof(char)*len);
+        CHECK_OPERATION(actual_request == NULL, 
+            perror("Allocazione non andata a buon fine:");
+                return -1);
+        actual_request = strcat(actual_request, request);
+        actual_request = strcat(actual_request, pathname);
+        actual_request[len] = '\0';
+
+        byte_scritti += write_msg(fd_skt, actual_request, strlen(actual_request)); 
+        CHECK_OPERATION(byte_scritti == -1, 
+                return -1);
+    }
+
+    int codice;
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(byte_letti == 808 && printer != 1, return -1);
+    CHECK_OPERATION(byte_letti == 808 && printer == 1, 
+        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi fare prima la openFile: ", byte_scritti, byte_letti, pathname);
+            return -1);
+    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(codice == 010 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio: ", byte_scritti, byte_letti, pathname); return 0); 
+    
+    return 0;
 }

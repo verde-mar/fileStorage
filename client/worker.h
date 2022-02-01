@@ -93,4 +93,15 @@ int readFile(const char* pathname, void** buf, size_t *size);
  */
 int writeFile(const char* pathname, const char* dirname);
 
+/**
+ * @brief Richiesta di scrivere in append al file 'pathname' i 'size' bytes contenuti nel buffer 'buf'
+ * 
+ * @param pathname Path assoluto del file
+ * @param buf Buffer da scrivere in append al file
+ * @param size Size di buf
+ * @param dirname Directory dove memorizzare il file espulso dal server
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int appendToFile(const char* pathname, void* buf, size_t size, const char* dirname);
+
 #endif // WORKER_H_
