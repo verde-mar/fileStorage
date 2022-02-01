@@ -360,13 +360,74 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
 
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
-    CHECK_OPERATION(byte_letti == 808 && printer != 1, return -1);
+    CHECK_OPERATION(byte_letti == -1 && printer != 1, 
+        return -1);
+    CHECK_OPERATION(byte_letti == 808 && printer != 1, 
+        return -1);
     CHECK_OPERATION(byte_letti == 808 && printer == 1, 
         fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi fare prima la openFile: ", byte_scritti, byte_letti, pathname);
             return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
-    CHECK_OPERATION(codice == 010 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio: ", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(codice == 0 && printer == 1, 
+        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); 
+            return 0); 
+    CHECK_OPERATION(codice == 010 && printer == 1, 
+        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio: ", byte_scritti, byte_letti, pathname); 
+            return 0); 
     
     return 0;
+}
+
+int readNFiles(int N, const char* dirname){
+    int byte_letti = 0, byte_scritti = 0;
+    int size, count = 0;
+    char *buf;
+    char *request = "readN;";
+    if(N>0){
+        for(int i=0; i<N; i++){
+            byte_letti += read_msg(fd_skt, size, sizeof(size_t)); 
+            CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+            CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readNFile sul file con successo ", byte_scritti, byte_letti); 
+                    return -1);
+            
+            buf = malloc(sizeof(char*)*(size));
+            CHECK_OPERATION(buf == NULL, 
+                perror("Allocazione non andata a buon fine:");
+                    return -1);
+            byte_letti += read_msg(fd_skt, *buf, sizeof(size)); 
+            CHECK_OPERATION(byte_letti == -1 && printer != 1, 
+                return -1);
+            CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file con successo: ", byte_scritti, byte_letti); 
+                    return -1);
+
+            //TODO: memorizza in una directory
+        }
+
+        CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+        CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+            fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readNFile sul file con successo ", byte_scritti, byte_letti); 
+                return -1);
+        return N;
+    } else {
+        while(byte_letti = read_msg(fd_skt, size, sizeof(size_t)) != -1){
+            buf = malloc(sizeof(char*)*(size));
+            CHECK_OPERATION(buf == NULL, 
+                perror("Allocazione non andata a buon fine:");
+                    return -1);
+            byte_letti += read_msg(fd_skt, *buf, sizeof(size)); 
+            CHECK_OPERATION(byte_letti == -1 && printer != 1, 
+                return -1);
+            CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file con successo: ", byte_scritti, byte_letti); 
+                    return -1);
+            count++;
+        }
+
+        CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+        CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+            fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readNFile sul file con successo ", byte_scritti, byte_letti); 
+                return -1);
+        return count;;
+    }
 }
