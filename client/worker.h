@@ -74,4 +74,23 @@ int removeFile(const char* pathname);
  */
 int closeFile(const char* pathname);
 
+/**
+ * @brief Legge un file dal server
+ * 
+ * @param pathname Path assoluto del file da leggere
+ * @param buf Buffer in cui memorizzare i dati letti
+ * @param size Size di buf
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int readFile(const char* pathname, void** buf, size_t *size);
+
+/**
+ * @brief Scrive un file nel server
+ * 
+ * @param pathname Path assoluto del file
+ * @param dirname Directory in cui salvare i file eliminati dal server per fare posto a pathname
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int writeFile(const char* pathname, const char* dirname);
+
 #endif // WORKER_H_
