@@ -307,6 +307,10 @@ int writeFile(const char* pathname, const char* dirname){
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
     CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+    CHECK_OPERATION(byte_letti == 808 && printer != 1, return -1);
+    CHECK_OPERATION(byte_letti == 808 && printer != 1, 
+        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi fare prima la openFile: ", byte_scritti, byte_letti, pathname);
+            return -1);
     CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); return 0); 
     CHECK_OPERATION(codice == 010 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio: ", byte_scritti, byte_letti, pathname); return 0); 
 
