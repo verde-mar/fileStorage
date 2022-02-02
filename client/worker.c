@@ -213,7 +213,7 @@ int closeFile(const char* pathname){
     return 0;
 }
 
-int readFile(const char* pathname, void** buf, size_t *size){ //pathname e' il file nel server
+int readFile(const char* pathname, void** buf, size_t *size){ 
     CHECK_OPERATION(pathname == NULL, 
         fprintf(stderr, "Parametro non valido:");
             return -1); 

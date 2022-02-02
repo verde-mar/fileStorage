@@ -65,7 +65,8 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                int err_w = writeFile(rest, "../utils/no_space");
+
+                int err_w = writeFile(rest, dirnameD);
                 CHECK_OPERATION(err_w == -1,
                     fprintf(stderr, " errore nella writeFile.\n");
                         return -1);
@@ -96,11 +97,15 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO:writeFile
+                int err_W = caller_write(rest, dirnameD);
+                CHECK_OPERATION(err_W == -1,
+                    fprintf(stderr, " errore nella unlockFile.\n");
+                        return -1);
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
                         return -1);
+
                 err_close = closeFile(rest);
                 CHECK_OPERATION(err_close == -1,
                     fprintf(stderr, " errore nella closeFile.\n");
@@ -137,7 +142,11 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO:readFile -- deve prendere un buffer
+                //TODO: readFile
+                char** buf;
+                int size;
+                int err_r = readFile(rest, buf, size);
+                //TODO: in base al valore di -d il valore restituito dal server tramite la readFile viene memorizzato in quella directory 
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
@@ -159,7 +168,7 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                int err_R = readNFiles(R, "../utils/to_save");
+                int err_R = readNFiles(R, dirnamed);
                 CHECK_OPERATION(err_R == -1,
                     fprintf(stderr, " errore nella readNFiles.\n");
                         return -1);

@@ -72,9 +72,9 @@ int caller_open(const char *pathname){
     return 0;
 }
 
-int caller_write(const char *pathname){
+int caller_write(const char *pathname, char* directory){
     if(is_regular_file(pathname)){
-        int err_open = writeFile(pathname, "../utils/no_space");
+        int err_open = writeFile(pathname, directory);
         CHECK_OPERATION(err_open == -1, 
             fprintf(stderr, " errore nella openFile.\n");
                 return -1);
