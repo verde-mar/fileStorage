@@ -12,6 +12,7 @@
 
 #include <unistd.h>
 #include <socketIO.h>
+#include <utils.h>
 
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
@@ -421,12 +422,29 @@ int readNFiles(int N, const char* dirname){
 
     if(N>0){
         for(int i=0; i<N; i++){
+            size_t size_path = -1;
+            char *path;
+
+            byte_letti += read_size(fd_skt, &size_path); 
+            CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
+            CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readNFile sul file con successo ", byte_scritti, byte_letti); 
+                    return i);
+
+            path = malloc(sizeof(char)*size);
+            byte_letti += read_msg(fd_skt, path, size); 
+            CHECK_OPERATION(byte_letti == -1 && printer != 1, 
+                return i);
+            CHECK_OPERATION(byte_letti == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file con successo: ", byte_scritti, byte_letti); 
+                    return i);
+
             byte_letti += read_size(fd_skt, &size); 
             CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
             CHECK_OPERATION(byte_letti == -1 && printer == 1, 
                 fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readNFile sul file con successo ", byte_scritti, byte_letti); 
                     return i);
-            
+
             buf = malloc(sizeof(char)*(size));
             CHECK_OPERATION(buf == NULL, 
                 perror("Allocazione non andata a buon fine:");
@@ -438,8 +456,15 @@ int readNFiles(int N, const char* dirname){
                 fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file con successo: ", byte_scritti, byte_letti); 
                     return i);
 
-            //TODO:deve prima mandare la size del path
-            //TODO:deve poi mandare il path assoluto
+            int err_save = save_on_disk(dirname, path, buf, size);
+            CHECK_OPERATION(err_save == -1 && printer != 1, 
+                return i);
+            CHECK_OPERATION(err_save == -1 && printer == 1, 
+                fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file con successo: ", byte_scritti, byte_letti); 
+                    return i);
+
+            free(path);
+            free(buf);
         }
 
         return N;

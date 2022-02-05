@@ -153,7 +153,7 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_save == -1,
                     fprintf(stderr, " errore nella save_on_disk.\n");
                         return -1);
-                if(*buf!=NULL) free(*buf); //TODO:da annotare nella relazione, il fatto che venga liberato 
+                if(*buf!=NULL) free(*buf); //TODO:da annotare nella relazione, il fatto che venga liberato in questo punto
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
