@@ -26,21 +26,6 @@ int is_directory(const char *path) {
     return S_ISDIR(path_stat.st_mode);
 }
 
-const char *nPath(const char* path, char *file_name){
-    if(!path || !file_name) {
-        errno = EINVAL;
-        return NULL;
-    }
-    const char *new_path = calloc((strlen(path)+strlen(file_name)+2), sizeof(char));
-    CHECK_OPERATION((new_path==NULL), fprintf(stderr, "Allocazione della calloc non andata a buon fine.\n"); return NULL;);   
-
-    new_path = strcat((char*)new_path, path);
-    new_path = strcat((char*)new_path, "/");
-    new_path = strcat((char*)new_path, file_name);
-
-    return new_path;
-}
-
 int caller_open(const char *pathname){
     if(is_regular_file(pathname)){
         int err_open = openFile(pathname, O_CREATE | O_LOCK);
@@ -55,15 +40,14 @@ int caller_open(const char *pathname){
         
         struct dirent *file;
         while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
-            const char *reg_pat = nPath(pathname, file->d_name);
-            CHECK_OPERATION(reg_pat==NULL,
-                int check = closedir(dir); 
-                    CHECK_OPERATION(check==-1, 
-                        fprintf(stderr, "Errore nella chiusura della directory.\n"); 
-                            return -1;) 
-                        return -1); 
-            if((strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0) && is_directory(reg_pat)){
-                caller(reg_pat);                
+            int len = strlen(pathname) + 1;
+            char *new_path = malloc(sizeof(char)*len);
+            new_path = strcat(new_path, pathname);
+            new_path = strcat(new_path, "/");
+            new_path = strcat(new_path, file->d_name);
+            new_path[len] = '\0';
+            if((strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0) && is_directory(new_path)){
+                caller_open(new_path);                
             }
         }
         int check = closedir(dir);
@@ -86,19 +70,62 @@ int caller_write(const char *pathname, char* directory){
         
         struct dirent *file;
         while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
-            const char *reg_pat = nPath(pathname, file->d_name);
-            CHECK_OPERATION(reg_pat==NULL,
-                int check = closedir(dir); 
-                    CHECK_OPERATION(check==-1, 
-                        fprintf(stderr, "Errore nella chiusura della directory.\n"); 
-                            return -1;) 
-                        return -1); 
-            if((strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0) && is_directory(reg_pat)){
-                caller(reg_pat);                
+            int len = strlen(pathname) + strlen(directory) + 1;
+            char *new_path = malloc(sizeof(char)*len);
+            new_path = strcat(new_path, pathname);
+            new_path = strcat(new_path, "/");
+            new_path = strcat(new_path, file->d_name);
+            new_path[len] = '\0';
+            if((strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0) && is_directory(new_path)){
+                caller_write(new_path, directory);                
             }
         }
         int check = closedir(dir);
         CHECK_OPERATION((check==-1), fprintf(stderr, " errore sulla closedir.\n"); return -1;);
     }
+    return 0;
+}
+
+int save_on_disk(char *dirname, const char* path, char* buf, size_t size){ 
+    char *str = NULL;
+    char *pars = (char*) path;
+    char* token = strtok_r(pars, "/", &str); //TODO:si puo' fare in maniera piu' elegante?
+    char* element;
+
+    while(token) {
+        element = token;
+        token = strtok_r(NULL, "/", &str);
+	}
+    
+    int len = strlen(dirname) + strlen(element) + 1;
+    char *new_path = malloc(sizeof(char)*len);
+    new_path = strcat(new_path, dirname);
+    new_path = strcat(new_path, "/");
+    new_path = strcat(new_path, element);
+    new_path[len] = '\0';
+
+    DIR *dir = opendir(dirname);
+    CHECK_OPERATION(dir == NULL, 
+        fprintf(stderr, " errore sulla opendir.\n"); 
+            return -1;);
+            
+    FILE *new_file = fopen(new_path, "w");
+    CHECK_OPERATION(new_file == NULL, 
+        fprintf(stderr, " errore sulla fopen.\n"); 
+            return -1;);
+
+    int err_fwrite = fwrite(buf, size, 1, new_file);
+    CHECK_OPERATION(err_fwrite == -1, 
+        fprintf(stderr, " errore sulla fwrite.\n"); 
+            return -1;);
+
+    int close_f = fclose(new_file);
+    CHECK_OPERATION(close_f == -1, 
+        fprintf(stderr, " errore sulla fclose.\n"); 
+            return -1;);
+
+    int check = closedir(dir);
+    CHECK_OPERATION((check==-1), fprintf(stderr, " errore sulla closedir.\n"); return -1;);
+
     return 0;
 }

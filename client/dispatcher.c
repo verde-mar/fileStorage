@@ -14,8 +14,8 @@
 #include <dirent.h>
 
 int dispatcher(int argc, char *argv[]){
-    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0;
-    char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *path = NULL, *rest = NULL;
+    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0, R = -1;
+    char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *rest = NULL;
     
     /* Inizializza la variabile globale che abilita le stampe delle API */
     printer = 0;
@@ -53,9 +53,8 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di scrittura di un file al server */
             case 'w':
                 write_ops = 1;
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
@@ -79,21 +78,19 @@ int dispatcher(int argc, char *argv[]){
                     fprintf(stderr, " errore nella closeFile.\n");
                         return -1);
 
-                free(path);
 
                 break;
             
             /* Effettua la richiesta di scrittura dei file di una directory al server */
             case 'W': 
                 write_ops = 1;
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
                 sleep(time);
-                err_caller = caller_open(rest);
+                err_caller = caller_open(rest); //TODO: una miglioria possibile puo' essere fare una caller generica con parametri variabili
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
@@ -131,9 +128,8 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di lettura di un file al server */
             case 'r': 
                 read_ops = 1;
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL); //siamo sicuri che ci vada NULL e non PATH?
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
@@ -142,11 +138,22 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                //TODO: readFile
-                char** buf;
-                int size;
-                int err_r = readFile(rest, buf, size);
-                //TODO: in base al valore di -d il valore restituito dal server tramite la readFile viene memorizzato in quella directory 
+                char *buf;
+                size_t size;
+                int err_r = readFile(rest, &buf, &size);
+                CHECK_OPERATION(err_r == -1,
+                    fprintf(stderr, " errore nella readFile.\n");
+                        return -1;);
+                
+                char* find_abs_dir = realpath(dirnamed, NULL);
+                CHECK_OPERATION(find_abs_dir == NULL,
+                    fprintf(stderr, " errore nella restituzione del path assoluto della directory passata come parametro.\n");
+                        return -1);
+                int err_save = save_on_disk(find_abs_dir, rest, buf, size);
+                CHECK_OPERATION(err_save == -1,
+                    fprintf(stderr, " errore nella save_on_disk.\n");
+                        return -1);
+                if(*buf!=NULL) free(*buf); //TODO:da annotare nella relazione, il fatto che venga liberato 
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
@@ -161,17 +168,18 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di scrittura di 'R' file al server */
             case 'R':
-                int R = strtol(optarg, NULL, 10);
+                R = strtol(optarg, NULL, 10);
                 read_ops = 1;
                 sleep(time);
                 err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
                     fprintf(stderr, " errore nella visione della directory.\n");
                         return -1);
-                int err_R = readNFiles(R, dirnamed);
-                CHECK_OPERATION(err_R == -1,
+                int num_file = readNFiles(R, dirnamed);
+                CHECK_OPERATION(num_file == -1,
                     fprintf(stderr, " errore nella readNFiles.\n");
                         return -1);
+                CHECK_OPERATION(printer == 1, fprintf(stdout, "Sono stati letti %d file dal server.\n", num_file));
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                     fprintf(stderr, " errore nella unlockFile.\n");
@@ -205,9 +213,8 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di acquisire la lock su un file al server */
             case 'l':
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
@@ -222,9 +229,8 @@ int dispatcher(int argc, char *argv[]){
             
             /* Effettua la richiesta di rilasciare la lock su un file al server */
             case 'u':
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);
@@ -239,9 +245,8 @@ int dispatcher(int argc, char *argv[]){
             
             /* Effettua la richiesta di cancellare un file al server */
             case 'c':
-                path = NULL;
                 rest = NULL;
-                rest = realpath(optarg, path);
+                rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
                     fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
                         return -1);

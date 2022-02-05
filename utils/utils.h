@@ -18,15 +18,6 @@ int is_regular_file(const char *path);
 int is_directory(const char *path);
 
 /**
- * @brief Restituisce il path di file_name
- * 
- * @param path Path assoluto
- * @param file_name Nome del file di cui restituire il path
- * @return const char* Path assoluto di file_name
- */
-const char *nPath(const char* path, char *file_name);
-
-/**
  * @brief Chiama la openFile ricorsivamente
  * 
  * @param path Path assoluto del file
@@ -42,5 +33,16 @@ int caller_open(const char *pathname);
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int caller_write(const char *pathname, char* directory);
+
+/**
+ * @brief Salva il file path nella directory dirname
+ * 
+ * @param dirname Path della directory in cui salvare il file
+ * @param path Path assoluto del file letto
+ * @param buf Buffer contenente i dati del file appena letto
+ * @param size Size di buf
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int save_on_disk(char *dirname, const char* path, char* buf, size_t size);
 
 #endif
