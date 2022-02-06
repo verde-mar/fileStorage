@@ -111,6 +111,6 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
  * @param dirname Directory in cui memorizzare tutti i file letti
  * @return int Numero dei file letti
  */
-int readNFiles(int N, const char* dirname);
+//int readNFiles(int N, const char* dirname);
 
 #endif // WORKER_H_
