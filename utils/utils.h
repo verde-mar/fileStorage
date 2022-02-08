@@ -32,7 +32,7 @@ int caller_open(const char *pathname);
  * @param directory Path della directory in cui salvare i file appena letti
  * @return int 0 in caso di successo, -1 altrimenti
  */
-//int caller_write(const char *pathname, char* directory);
+int caller_write(const char *pathname, char* directory);
 
 /**
  * @brief Salva il file path nella directory dirname
@@ -44,5 +44,14 @@ int caller_open(const char *pathname);
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int save_on_disk(char *dirname, const char* path, char* buf, size_t size);
+
+/**
+ * @brief Chiama ricorsivamente la funziona fun sui file contenuti in pathname
+ * 
+ * @param fun Funzione da chiamate
+ * @param pathname Path assoluto della directory
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int caller(int (*fun) (const char*), const char* pathname);
 
 #endif

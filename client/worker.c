@@ -14,9 +14,6 @@
 #include <socketIO.h>
 #include <utils.h>
 
-
-//TODO:il += nei byteletti non va bene se dopo c'e' un controllo == -1
-
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
     fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -93,11 +90,11 @@ int openFile(const char *pathname, int flags){
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 202 || codice == 505 || codice == 606) && printer != 1, return -1);
-    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s perche' il file e' stato bloccato da un altro client.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 505 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s  perche' il file esiste gia'.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 606 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la openFile sul file %s il file non esiste e non e' stato specificato O_CREATE.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la openFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(byte_scritti == -1,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
+    CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -126,17 +123,23 @@ int lockFile(const char* pathname){
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
+    errno = 0;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 303 || codice == 707 || codice == 808) && printer != 1, return -1);
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
+    CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
 
     while(codice == 202){
-        fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s perche' il file e' stato bloccato da un altro client.\n", byte_scritti, byte_letti, pathname);
-        byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+        errno = 0;
+        byte_letti += read_msg(fd_skt, &codice, sizeof(int)); 
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
     }
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s  perche' non puoi richiederla dopo la closeFile.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s  perche' il file non esiste.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 808 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la lockFile sul file %s  perche' devi chiamare prima la openFile.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION((codice == 0 || codice == 909) && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la lockFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); return 0); 
 
     return 0;
 }
@@ -165,15 +168,15 @@ int unlockFile(const char* pathname){
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
+    errno = 0;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 202 || codice == 101 || codice == 303 || codice == 707 || codice == 808) && printer != 1, return -1);
-    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' il file non e' in stato di lock.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' il file e' stato bloccato da un altro client.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' non puoi richiederla dopo la closeFile.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' il file non esiste.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 808 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la unlockFile sul file %s perche' devi chiamare prima la openFile.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la unlockFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
 
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
+    
     return 0;
 }
 
@@ -201,12 +204,12 @@ int removeFile(const char* pathname){
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 101 || codice == 202 || codice == 303 || codice == 707) && printer != 1, return -1);
-    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile  sul file %s perche' il file non e' in stato di lock.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 202 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s perche' il file e' stato bloccato da un altro client.\n", byte_scritti, byte_letti, pathname); return -1);
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s perche' non puoi richiederla dopo la closeFile.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la removeFile sul file %s perche' il file non esiste.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la removeFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -236,10 +239,12 @@ int closeFile(const char* pathname){
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 707 || codice == 808) && printer != 1, return -1);
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la closeFile sul file %s perche' il file non esiste.\n", byte_scritti, byte_letti, pathname);  return -1);
-    CHECK_OPERATION(codice == 808 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stato possibile eseguire la closeFile sul file %s perche' devi fare prima la openFile.\n", byte_scritti, byte_letti, pathname); return -1); 
-    CHECK_OPERATION(codice == 0 && printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la closeFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); return 0); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -250,7 +255,6 @@ int readFile(const char* pathname, void** buf, size_t *size){
             return -1); 
 
     /* Crea la richiesta da inviare */
-    int byte_letti = 0;
     int len = strlen(pathname)+strlen("read;")+1;
     char* actual_request = malloc(sizeof(char)*len);
     CHECK_OPERATION(actual_request == NULL, 
@@ -269,45 +273,34 @@ int readFile(const char* pathname, void** buf, size_t *size){
 
     /* Legge la risposta dal server */
     int codice;
-    byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
-    CHECK_OPERATION(byte_letti == -1 && printer == 1,
-        fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); 
-            return -1;);
+    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
 
-    /* Se l'operazione e' andata a buon fine */
     if(codice == 0){
+        errno = 0;
         byte_letti += read_size(fd_skt, size); 
-        CHECK_OPERATION(byte_letti == -1 && printer != 1, return -1);
-        CHECK_OPERATION(byte_letti == -1 && printer == 1, 
-            fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); 
-                free(actual_request);
-                    return -1);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
         
         *buf = malloc(sizeof(char)*(*size));
         CHECK_OPERATION(*buf == NULL, 
             perror("Allocazione non andata a buon fine:");
                 return -1);
-        byte_letti += read_msg(fd_skt, *buf, sizeof(*size)); 
-        CHECK_OPERATION(byte_letti == -1 && printer != 1, 
-            return -1);
-        CHECK_OPERATION(byte_letti == -1 && printer == 1, 
-            fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); 
-                free(actual_request);
-                    return -1);
 
-        CHECK_OPERATION(printer == 1, fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la readFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname));
+        byte_letti += read_msg(fd_skt, *buf, sizeof(*size)); 
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
     } 
 
-    /* Se l'operazione non e' andata a buon fine */
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo perche' il file non esiste.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo perche' il file non e' in stato di lock.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la readFile sul file %s con successo perche' non e' possibile eseguire operazioni dopo la closeFile.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-
-    CHECK_OPERATION((codice == 707 || codice == 101 || codice == 303 || codice == 808) && printer != 1, return -1);
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -337,47 +330,57 @@ int writeFile(const char* pathname, const char* dirname){
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION((byte_letti == -1 || codice == 808 || codice == 707 || codice == 101 || codice == 303) && printer != 1, return -1);
-    CHECK_OPERATION(codice == 808 && printer == 1, 
-        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi fare prima la openFile.\n", byte_scritti, byte_letti, pathname);
-            return -1);
-    CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' il file non esiste.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' il file non e' in stato di lock.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' non e' possibile eseguire operazioni dopo la closeFile.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 808 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' devi richiedere prima la openFile.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-        
-    /* Se l'operazione e' andata a buon fine */
-    CHECK_OPERATION(codice == 0 && printer == 1, 
-        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo.\n", byte_scritti, byte_letti, pathname); 
-            return 0); 
+    CHECK_OPERATION(byte_letti == -1,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
 
-    /* Se l'operazione e' andata a buon fine liberando dello spazio */
+
     if(codice == 010 && dirname != NULL){
-        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio.\n", byte_scritti, byte_letti, pathname); 
         size_t size_old, size_path;
-        char* old_file, path;
+        char *old_file, *path;
 
         /* Legge il path del file appena eliminato */
-        byte_letti = read_size(fd_skt, &size_path);
-        CHECK_OPERATION(byte_letti == -1, return -1);
+        errno = 0;
+        byte_letti += read_size(fd_skt, &size_path);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
         path = malloc(sizeof(char)*size_path);
         CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
+        errno = 0;
         byte_letti = read_msg(fd_skt, path, size_path);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
 
         /* Legge il file e lo memorizza su disco */
+        errno = 0;
         byte_letti = read_size(fd_skt, &size_old);
-        CHECK_OPERATION(byte_letti == -1, return -1);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
         old_file = malloc(sizeof(char)*size_old);
         CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
+        errno = 0;
         byte_letti = read_msg(fd_skt, old_file, size_old);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
         //TODO: scrivi su disco
+
         free(path);
         free(old_file);
     }
+
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -385,14 +388,7 @@ int writeFile(const char* pathname, const char* dirname){
 int appendToFile(const char* pathname, void* buf, size_t size, const char* dirname){
     CHECK_OPERATION(pathname == NULL, 
         fprintf(stderr, "Parametro non valido:");
-            return -1); 
-
-    char *actual_request = NULL;
-    int byte_scritti = 0, len = -1;
-
-    CHECK_OPERATION(pathname == NULL, 
-        fprintf(stderr, "Parametro non valido:");
-            return -1); 
+            return -1);
 
     /* Se la directory in cui memorizzare eventuali file eliminati dal server non e' NULL, viene inviata insieme alla richiesta di write */
     int len = strlen(pathname)+strlen("append;")+1;
@@ -413,40 +409,39 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
-    CHECK_OPERATION(((byte_letti == -1 || codice == 707 || codice == 101 || codice == 303)) && printer != 1, 
-        return -1); 
-     CHECK_OPERATION(codice == 707 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' il file non esiste.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 101 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' il file non e' in stato di lock.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 303 && printer == 1, fprintf(stderr, "Byte scritti: %d e byte letti:%d\nNon e' stata eseguita la writeFile sul file %s con successo perche' non e' possibile eseguire operazioni dopo la closeFile.\n", byte_scritti, byte_letti, pathname); 
-        return -1);
-    CHECK_OPERATION(codice == 0 && printer == 1, 
-        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo: ", byte_scritti, byte_letti, pathname); 
-            return 0); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
 
     if(codice == 010 && dirname != NULL){
-        fprintf(stdout, "Byte scritti: %d e byte letti:%d\nE' stata eseguita la writeFile sul file %s con successo, liberando dello spazio.\n", byte_scritti, byte_letti, pathname); 
         size_t size_old, size_path;
-        char* old_file, path;
+        char *old_file, *path;
 
         /* Legge il path del file appena eliminato */
-        byte_letti = read_size(fd_skt, &size_path);
+        byte_letti += read_size(fd_skt, &size_path);
         CHECK_OPERATION(byte_letti == -1, return -1);
         path = malloc(sizeof(char)*size_path);
         CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-        byte_letti = read_msg(fd_skt, path, size_path);
+        byte_letti += read_msg(fd_skt, path, size_path);
 
         /* Legge il file e lo memorizza su disco */
-        byte_letti = read_size(fd_skt, &size_old);
+        byte_letti += read_size(fd_skt, &size_old);
         CHECK_OPERATION(byte_letti == -1, return -1);
         old_file = malloc(sizeof(char)*size_old);
         CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-        byte_letti = read_msg(fd_skt, old_file, size_old);
+        byte_letti += read_msg(fd_skt, old_file, size_old);
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+            free(actual_request);
+                return -1);
+
         //TODO: scrivi su disco
         free(path);
         free(old_file);
     }
+
+    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
     
     return 0;
 }

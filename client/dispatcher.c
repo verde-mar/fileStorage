@@ -259,7 +259,7 @@ int dispatcher(int argc, char *argv[]){
 
                 sleep(time);
                 err_lock = lockFile(rest);
-                CHECK_OPERATION(err_unlock == -1,
+                CHECK_OPERATION(err_lock == -1,
                         free(rest);
                             err_conn = closeConnection(socketname);
                                 CHECK_OPERATION(err_conn == -1,
