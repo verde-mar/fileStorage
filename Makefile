@@ -2,6 +2,7 @@ CC = gcc -std=c99 -O3 -g
 CFLAGS = -Wall -pedantic -pthread
 
 CLIENT = ./client
+SERVER = ./server
 UTILS = ./utils
 
 all: cl
