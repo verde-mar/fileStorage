@@ -137,10 +137,10 @@ int save_on_disk(char *dirname, char* filename, char* buf, size_t size){
     /* Crea il file nella directory */
     FILE *new_file = fopen(path, "w");
     CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); return -1);
-
+    /* Scrive sul file */
     int err_fwrite = fwrite(buf, size, 1, new_file); 
     CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
-
+    /* Chiude il file */
     int check = fclose(new_file);
     CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella fclose.\n"); return -1);
 

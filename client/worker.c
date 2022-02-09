@@ -14,6 +14,8 @@
 #include <socketIO.h>
 #include <utils.h>
 
+#include <sys/stat.h>
+
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
     fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -326,8 +328,29 @@ int writeFile(const char* pathname, const char* dirname){
             return -1);
     free(actual_request);
 
-    
-    
+    /* Apre il file */
+    FILE *new_file = fopen(pathname, "r");
+    CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); return -1);
+
+    /* Scrive sul file */
+    struct stat st;
+    stat(pathname, &st);
+    int size = st.st_size;
+    char* buf = malloc(sizeof(char)*size);
+    int err_fwrite = fwrite(buf, size, 1, new_file); 
+    CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
+
+    /* Chiude il file */
+    int check = fclose(new_file);
+    CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella fclose.\n"); return -1);
+
+    /* Invia i dati del file */
+    errno = 0;
+    byte_scritti += write_msg(fd_skt, buf, size); 
+    CHECK_OPERATION(errno == EFAULT,
+        free(buf);
+            return -1);
+    free(buf);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
@@ -473,7 +496,8 @@ int readNFiles(int N, const char* dirname){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
     char *path, *file;
-    int codice = -1, size_path, size_file, byte_scritti = -1, byte_letti = -1;
+    int codice = -1, byte_scritti = -1, byte_letti = -1;
+    size_t size_path = -1, size_file = -1;
 
     while(N>0 || codice != 111){    
         errno = 0;   
@@ -495,7 +519,7 @@ int readNFiles(int N, const char* dirname){
         if(codice == 0){
             /* Legge la size del path del file da leggere */
             errno = 0;
-            byte_letti += read_size(fd_skt, size_path); 
+            byte_letti += read_size(fd_skt, &size_path); 
             CHECK_OPERATION(errno == EFAULT,
             fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     return -1);
@@ -513,7 +537,7 @@ int readNFiles(int N, const char* dirname){
 
             /* Legge la size del file da leggere */
             errno = 0;
-            byte_letti += read_size(fd_skt, size_file); 
+            byte_letti += read_size(fd_skt, &size_file); 
             CHECK_OPERATION(errno == EFAULT,
             fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     return -1);
@@ -530,7 +554,7 @@ int readNFiles(int N, const char* dirname){
                     return -1);   
 
             /* Salva il file su disco */
-            int check_save = save_on_disk(dirname, path, file, size_file);
+            int check_save = save_on_disk((char*)dirname, path, file, size_file);
             CHECK_OPERATION(check_save == -1,
                 fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
                     return -1);
