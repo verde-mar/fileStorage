@@ -29,15 +29,12 @@ int main (void) {
     printf("STRINGA RICEVUTA: %s\n", buffer);
     int codice_errore = 0;
     write(fd_c, &codice_errore, sizeof(int));
-    size_t sizze = 100;
-    write(fd_c, &sizze, sizeof(size_t));
-    char* buf = "ciaoooo";
-    write(fd_c, buf, sizze);
     read(fd_c, &size, sizeof(size_t));
     buffer = malloc(sizeof(char)*size);
     read(fd_c, buffer, size);
     printf("STRINGA RICEVUTA: %s\n", buffer);
-    write(fd_c, &codice_errore, sizeof(int));
+    int codice_errore_1 = 808;
+    write(fd_c, &codice_errore_1, sizeof(int));
     read(fd_c, &size, sizeof(size_t));
     buffer = malloc(sizeof(char)*size);
     read(fd_c, buffer, size);

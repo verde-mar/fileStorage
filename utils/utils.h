@@ -38,12 +38,12 @@ int caller_write(const char *pathname, char* directory);
  * @brief Salva il file path nella directory dirname
  * 
  * @param dirname Path della directory in cui salvare il file
- * @param path Path assoluto del file letto
+ * @param filename Nome del file letto
  * @param buf Buffer contenente i dati del file appena letto
  * @param size Size di buf
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int save_on_disk(char *dirname, const char* path, char* buf, size_t size);
+int save_on_disk(char *dirname, char *filename, char* buf, size_t size);
 
 /**
  * @brief Chiama ricorsivamente la funziona fun sui file contenuti in pathname

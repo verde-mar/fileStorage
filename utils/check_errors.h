@@ -28,10 +28,14 @@
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' prima della writeFile devi fare la openFile.\n", operazione); \
         } else if(codice == 707){\
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' prima della appendFile devi fare la writeFile.\n", operazione); \
+        } else if(codice == 808){\
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' e' gia' stata fatta. Puoi fare solo la appendToFile.\n", operazione); \
+        } else if(codice == 111){\
+            fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
         } else if(codice == 0){\
             fprintf(stdout, "La %s e' terminata con successo.\n", operazione); \
-        } else if(codice == 010){\
-            fprintf(stdout, "La %s e' terminata con successo, ma e' stato liberato dello spazio.", operazione); \
+        } else if(codice == 909){\
+            fprintf(stdout, "La %s e' terminata con successo, ma e' stato liberato dello spazio.\n", operazione); \
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
