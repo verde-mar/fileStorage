@@ -337,7 +337,7 @@ int writeFile(const char* pathname, const char* dirname){
     stat(pathname, &st);
     int size = st.st_size;
     char* buf = malloc(sizeof(char)*size);
-    int err_fwrite = fwrite(buf, size, 1, new_file); 
+    int err_fwrite = fread(buf, size, 1, new_file); 
     CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
 
     /* Chiude il file */
@@ -496,12 +496,13 @@ int readNFiles(int N, const char* dirname){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
     char *path, *file;
-    int codice = -1, byte_scritti = -1, byte_letti = -1;
+    int codice = -1, byte_scritti = -1, byte_letti = -1, count = 0;
     size_t size_path = -1, size_file = -1;
 
     while(N>0 || codice != 111){    
         errno = 0;   
         N--; 
+        count++;
 
         /* Invia la richiesta */
         byte_scritti = write_msg(fd_skt, "read;", (strlen("read;")+1)); 
@@ -563,8 +564,7 @@ int readNFiles(int N, const char* dirname){
             free(path); 
         } 
     }
-    CHECK_CODICE(printer, codice, "readNFiles", byte_letti, byte_scritti);
-    
+    CHECK_CODICE(printer, codice, "readNFiles", byte_letti, byte_scritti);  
 
-    return N;
+    return count;
 }

@@ -27,7 +27,7 @@ int main (void) {
     char *buffer = malloc(sizeof(char)*size);
     read(fd_c, buffer, size);
     printf("STRINGA RICEVUTA: %s\n", buffer);
-    int codice_errore = 0;
+    int codice_errore = 111;
     write(fd_c, &codice_errore, sizeof(int));
     read(fd_c, &size, sizeof(size_t));
     buffer = malloc(sizeof(char)*size);
