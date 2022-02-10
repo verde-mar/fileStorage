@@ -2,6 +2,7 @@
 #define HASH_H_
 
 #include <queue.h>
+#include <fifo.h>
 
 /**
  * @brief Tabella hash
@@ -16,7 +17,8 @@ typedef struct hashtable {
 hashtable *table;
 
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
-struct list_t *fifo_queue;
+list_c *fifo_queue;
+
 
 /* Numero massimo di file */
 int max_file;
@@ -35,5 +37,9 @@ int create_hashtable(size_t size);
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int destroy_hashtable ();
+
+int add_hashtable(char *name_file);
+
+int del_hashtable(char *name_file, node *just_deleted);
 
 #endif

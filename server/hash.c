@@ -22,6 +22,11 @@ int create_hashtable(size_t size){
         CHECK_OPERATION(err == -1, return -1);
     }
 
+    int create = create_fifo(&fifo_queue);
+    CHECK_OPERATION(create == -1,
+        fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
+            return -1);
+
     return 0;
 }
 
@@ -37,13 +42,18 @@ int destroy_hashtable (){
         }
     free(table->queue);
 
+    int del = delete_fifo(&fifo_queue);
+    CHECK_OPERATION(del == -1,
+        fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
+            return -1);
+
     /* Elimina la tabella hash */
     free(table);
 
     return 0;
 }
 
-int add_list(char *name_file){
+int add_hashtable(char *name_file){
     CHECK_OPERATION(name_file == NULL, 
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
@@ -59,19 +69,21 @@ int add_list(char *name_file){
     /* Incrementa il numero di elementi nella tabella */
     if (success == 0) table->num_file++;
 
-    //TODO: deve aggiornare anche la lista per la cache
+    /* Aggiunge l'elemento in coda alla lista FIFO */
+    int success = add_fifo(name_file);
+    CHECK_OPERATION(success == -1, 
+        fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
+            return -1);
 
     return success;
 }
 
-int remove_list(char *name_file){
-    CHECK_OPERATION(name_file == NULL, 
-        fprintf(stderr, "Parametro non valido.\n");
-            return -1);
-
+int del_hashtable(char *name_file, node *just_deleted){
     int success = 222;
+
+    if(!name_file){
     int hash = hash_function(name_file); //TODO:CREA
-    success = delete(&(table->queue[hash]), name_file);
+    success = delete(&(table->queue[hash]), name_file, &just_deleted);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);
@@ -79,7 +91,11 @@ int remove_list(char *name_file){
     /* Incrementa il numero di elementi nella tabella */
     if (success == 0) table->num_file--;
 
-    //TODO: deve aggiornare anche la lista per la cache
-
+    /* Rimuove l'elemento anche dalla coda FIFO */
+    int success = remove_fifo(name_file);
+    CHECK_OPERATION(success == -1, 
+        fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
+            return -1);
+}
     return success;
 }
