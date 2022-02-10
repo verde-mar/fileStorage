@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 
+
 int create_hashtable(size_t size){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable)*size);
@@ -17,7 +18,8 @@ int create_hashtable(size_t size){
 
     /* Inizializza le liste di trabocco*/
     for (int i = 0; i < 16; i++) {
-        table->queue[i] = create_list(); 
+        int err = create_list(&(table->queue[i])); 
+        CHECK_OPERATION(err == -1, return -1);
     }
 
     return 0;
@@ -28,7 +30,7 @@ int destroy_hashtable (){
     int destroy;
     for (int i = 0; i < 16; i++)
         if (table->queue[i]) {
-            destroy = destroy_list(table->queue[i]);
+            destroy = destroy_list(&(table->queue[i]));
             CHECK_OPERATION(destroy == -1, 
                 fprintf(stderr, "Non e' stato possibile eliminare una lista di trabocco.\n");
                     return -1);
@@ -39,4 +41,22 @@ int destroy_hashtable (){
     free(table);
 
     return 0;
+}
+
+int add_list(char *name_file){
+    CHECK_OPERATION(name_file == NULL, 
+        fprintf(stderr, "Parametro non valido.\n");
+            return -1);
+
+    int success = 222;
+    int hash = hash_function(name_file); //TODO:CREA
+    success = insert_list(&(table->queue[hash]), name_file);
+    CHECK_OPERATION(success==-1, 
+        fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
+            return -1);
+
+    /* Incrementa il numero di elementi nella tabella */
+    if (success == 0) table->num_file++;
+
+    return success;
 }

@@ -8,7 +8,7 @@
  * 
  */
 typedef struct hashtable {
-    struct list_t **queue;
+    struct list **queue;
     int num_file;
 } hashtable;
 

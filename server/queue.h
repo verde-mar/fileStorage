@@ -17,13 +17,29 @@ typedef struct node {
 } node;
 
 /**
- * @brief Lista linkata
+ * @brief Lista di trabocco
  * 
  */
 typedef struct list {
     int elements;           
-    struct node* head;    
+    struct node* tail;    
     pthread_mutex_t *mutex;  
 } list_t;
+
+/**
+ * @brief Create a list object
+ * 
+ * @param lista_trabocco 
+ * @return int 
+ */
+int create_list(list_t **lista_trabocco);
+
+/**
+ * @brief 
+ * 
+ * @param lista_trabocco 
+ * @return int 
+ */
+int destroy_list(list_t **lista_trabocco);
 
 #endif
