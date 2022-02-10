@@ -5,7 +5,7 @@
 #include <check_errors.h>
 
 int create_list(list_t **lista_trabocco){
-    *lista_trabocco = malloc(sizeof(struct list));
+    *lista_trabocco = malloc(sizeof(list_t));
     CHECK_OPERATION(*lista_trabocco == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
@@ -19,7 +19,6 @@ int create_list(list_t **lista_trabocco){
 
     return 0;
 }
-
 
 int destroy_list(list_t **lista_trabocco){
     CHECK_OPERATION(*lista_trabocco == NULL,

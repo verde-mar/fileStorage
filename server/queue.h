@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 /**
- * @brief Nodo di ciascuna lista linkata
+ * @brief Nodo di ciascuna lista di trabocco
  * 
  */
 typedef struct node {
@@ -12,7 +12,6 @@ typedef struct node {
     char *buffer;
     int open;
     struct node* next;
-    struct node* next_cache;
     pthread_mutex_t *mutex;
 } node;
 

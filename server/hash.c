@@ -48,15 +48,38 @@ int add_list(char *name_file){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
 
+    /* Aggiunge l' elemento nella tabella hash */
     int success = 222;
     int hash = hash_function(name_file); //TODO:CREA
-    success = insert_list(&(table->queue[hash]), name_file);
+    success = add(&(table->queue[hash]), name_file);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
             return -1);
 
     /* Incrementa il numero di elementi nella tabella */
     if (success == 0) table->num_file++;
+
+    //TODO: deve aggiornare anche la lista per la cache
+
+    return success;
+}
+
+int remove_list(char *name_file){
+    CHECK_OPERATION(name_file == NULL, 
+        fprintf(stderr, "Parametro non valido.\n");
+            return -1);
+
+    int success = 222;
+    int hash = hash_function(name_file); //TODO:CREA
+    success = delete(&(table->queue[hash]), name_file);
+    CHECK_OPERATION(success==-1, 
+        fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
+            return -1);
+
+    /* Incrementa il numero di elementi nella tabella */
+    if (success == 0) table->num_file--;
+
+    //TODO: deve aggiornare anche la lista per la cache
 
     return success;
 }
