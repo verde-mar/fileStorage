@@ -21,7 +21,7 @@ typedef struct node {
  */
 typedef struct list {
     int elements;           
-    struct node* tail;    
+    struct node* head;    
     pthread_mutex_t *mutex;  
 } list_t;
 

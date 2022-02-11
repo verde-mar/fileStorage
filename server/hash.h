@@ -55,4 +55,12 @@ int add_hashtable(char *name_file);
  */
 int del_hashtable(char *name_file, node *just_deleted);
 
+/**
+ * @brief Cerca un nodo
+ * 
+ * @param name_file Path del nodo da cercare
+ * @return node* Il nodo ritrovato in caso di successo, -1 altrimenti
+ */
+node* look_for_node(char* name_file);
+
 #endif
