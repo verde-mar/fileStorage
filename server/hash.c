@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 
-
 int create_hashtable(size_t size){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable)*size);
@@ -80,9 +79,13 @@ int add_hashtable(char *name_file){
 
 int del_hashtable(char *name_file, node *just_deleted){
     int success = 222;
+    int hash = 0;
 
+    /* Se vuole eliminare un nodo preciso, si calcola l'hash, altrimenti prende il primo */
     if(!name_file){
-    int hash = hash_function(name_file); //TODO:CREA
+        hash = hash_function(name_file); //TODO:CREA  
+    }
+
     success = delete(&(table->queue[hash]), name_file, &just_deleted);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
@@ -96,6 +99,5 @@ int del_hashtable(char *name_file, node *just_deleted){
     CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
             return -1);
-}
     return success;
 }

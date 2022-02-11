@@ -26,19 +26,38 @@ typedef struct list {
 } list_t;
 
 /**
- * @brief Create a list object
+ * @brief Crea una lista di trabocco
  * 
- * @param lista_trabocco 
- * @return int 
+ * @param lista_trabocco Lista di trabocco appena creata
+ * @return int 0 in caso di successo, -1 altrimenti
  */
 int create_list(list_t **lista_trabocco);
 
 /**
- * @brief 
+ * @brief Distrugge la lista di trabocco
  * 
- * @param lista_trabocco 
- * @return int 
+ * @param lista_trabocco Lista di trabocco da aggiungere
+ * @return int 0 in caso di successo, -1 altrimenti
  */
 int destroy_list(list_t **lista_trabocco);
+
+/**
+ * @brief Aggiunge un file alla lista di trabocco
+ * 
+ * @param lista_trabocco Lista di trabocco in cui aggiungere il file
+ * @param name_file Path del file da aggiungere
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int add(list_t **lista_trabocco, char* name_file);
+
+/**
+ * @brief Rimuove un elemento dalla lista di trabocco
+ * 
+ * @param lista_trabocco Lista di trabocco in cui rimuovere il file
+ * @param name_file Path del file da rimuovere
+ * @param just_deleted Nodo in cui salvare il file appena rimosso
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int delete(list_t **lista_trabocco, char* name_file, node **just_deleted);
 
 #endif

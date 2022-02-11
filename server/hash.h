@@ -38,8 +38,21 @@ int create_hashtable(size_t size);
  */
 int destroy_hashtable ();
 
+/**
+ * @brief Aggiunge un elemento alla tabella hash
+ * 
+ * @param name_file Path dell'elemento da aggiungere
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
 int add_hashtable(char *name_file);
 
+/**
+ * @brief Elimina un elemento dalla tabella hash
+ * 
+ * @param name_file Path dell'elemento da aggiungere 
+ * @param just_deleted Nodo in cui salvare l'elemento appena eliminato
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
 int del_hashtable(char *name_file, node *just_deleted);
 
 #endif
