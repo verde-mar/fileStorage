@@ -16,9 +16,6 @@ typedef struct hashtable {
 /* Tabella hash utilizzata da tutti i thread del server */
 hashtable *table;
 
-/* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
-list_c *fifo_queue;
-
 
 /* Numero massimo di file */
 int max_file;

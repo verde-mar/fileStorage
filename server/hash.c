@@ -57,54 +57,64 @@ int add_hashtable(char *name_file){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
 
-    /* Aggiunge l' elemento nella tabella hash */
-    int success = 222;
-    int hash = hash_function(name_file); //TODO:CREA
-    node* existing = look_for_node(name_file);
-    if(existing == NULL){
-        success = add(&(table->queue[hash]), name_file);
+    node *exists = look_for_node(name_file);
+    if(exists == NULL){
+         /* Aggiunge l' elemento nella tabella hash */
+        int success = 222;
+        int hash = hash_function(name_file); //TODO:CREA
+        success = add(&(table->queue[hash]), name_file); //TODO:CREA  
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
                 return -1);
+        
+        /* Incrementa il numero di elementi nella tabella se l'inserimento e' andato a buon fine */
+        if (success == 0) {
+            table->num_file++;
+
+            /* Aggiunge l'elemento in coda alla lista FIFO */
+            int succ_fifo = add_fifo(name_file); //TODO:CREA  
+            CHECK_OPERATION(succ_fifo == -1, 
+                fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
+                    return -1);
+        }
+        return success;
     }
-    /* Incrementa il numero di elementi nella tabella */
-    if (success == 0) table->num_file++;
-
-    /* Aggiunge l'elemento in coda alla lista FIFO */
-    int success = add_fifo(name_file);
-    CHECK_OPERATION(success == -1, 
-        fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
-            return -1);
-
-    table->num_file++;
-
-    return success;
+    return 0;
 }
 
 int del_hashtable(char *name_file, node *just_deleted){
     int success = 222;
     int hash = 0;
 
-    /* Se vuole eliminare un nodo preciso, si calcola l'hash, altrimenti prende il primo */
-    if(!name_file){
-        hash = hash_function(name_file); //TODO:CREA  
+    /* Se vuole eliminare un nodo preciso, ne calcola l'hash, altrimenti prende il primo */
+    if(name_file!=NULL){
+        /* Verifica se il nodo esiste */
+        node *exists = look_for_node(name_file);
+
+        /* Se il nodo esiste, ne calcola l'hash del nome */
+        if(exists!=NULL)
+            hash = hash_function(name_file); //TODO:CREA  
+        /* Se il nodo non esiste, restituisce 0, perche' e' come se fosse stato eliminato */
+        else
+            return 0;
     }
 
-    success = delete(&(table->queue[hash]), name_file, &just_deleted);
+    /* Elimina un nodo */
+    success = delete(&(table->queue[hash]), name_file, &just_deleted); //TODO:CREA  
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);
 
-    /* Incrementa il numero di elementi nella tabella */
-    if (success == 0) table->num_file--;
+    /* Se l'operazione di eliminazione e' andata a buon fine, decrementa il numero di elementi nella tabella */
+    if (success == 0) {
+        table->num_file--;
 
-    /* Rimuove l'elemento anche dalla coda FIFO */
-    int success = remove_fifo(name_file);
-    CHECK_OPERATION(success == -1, 
-        fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
-            return -1);
-
-    table->num_file--;
+        /* Rimuove l'elemento anche dalla coda FIFO */
+        int succ_fifo = remove(name_file); //TODO:CREA  
+        CHECK_OPERATION(succ_fifo == -1, 
+            fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
+                return -1);
+    }
     
     return success;
 }

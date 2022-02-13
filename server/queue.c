@@ -35,8 +35,9 @@ int destroy_list(list_t **lista_trabocco){
     return 0;
 }
 
+//TODO:testa
 int add(list_t **lista_trabocco, char* name_file){
-    CHECK_OPERATION(name_file == NULL || !(*lista_trabocco),
+    CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
     node *curr = (node*)malloc(sizeof(node));
@@ -45,21 +46,30 @@ int add(list_t **lista_trabocco, char* name_file){
             return -1);
 
     curr->path = name_file;
-    pthread_mutex_init(&(curr->mutex), NULL);
+    int m_init = pthread_mutex_init(&(curr->mutex), NULL);
+    CHECK_OPERATION(m_init == -1,
+        fprintf(stderr, "Errore nella inizializzazione della mutex.\n");
+            return -1);
     curr->open = 0;
     curr->buffer = NULL;
-    curr->next = (*lista_trabocco)->head; //va bene aggiungere cosi' in testa?
-
+    curr->next = (*lista_trabocco)->head; 
     (*lista_trabocco)->head = curr;
+
+    return 0;
 }
 
+//TODO: testa
 int delete(list_t **lista_trabocco, char* name_file, node **just_deleted){
-    //TODO: restituisce 11 se l'elemento non esiste
     node* curr, *prev = NULL;
+    curr=(*lista_trabocco)->head;
 
-    for (curr=(*lista_trabocco)->head; curr != NULL; )  {
-        
+    while (strcmp(curr->path, name_file) != 0)  {
         prev = curr;
         curr = curr->next;
     }
+
+    prev->next = curr->next;
+    *just_deleted = curr; //TODO: eh ma poi la free?
+
+    return 0;
 }

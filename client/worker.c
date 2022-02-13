@@ -491,7 +491,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     return 0;
 }
 
-int readNFiles(int N, const char* dirname){
+int readNFiles(int N, const char* dirname){ 
     CHECK_OPERATION(dirname == NULL, 
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
