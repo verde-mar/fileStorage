@@ -4,6 +4,9 @@
 
 #include <stdlib.h>
 
+//TODO: prima cosa da fare, testare le funzioni
+//TODO: seconda cosa da fare, la sincronizzazione a livello di lista di trabocco
+
 int create_hashtable(size_t size){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable)*size);
@@ -62,7 +65,7 @@ int add_hashtable(char *name_file){
          /* Aggiunge l' elemento nella tabella hash */
         int success = 222;
         int hash = hash_function(name_file); //TODO:CREA
-        success = add(&(table->queue[hash]), name_file); //TODO:CREA  
+        success = add(&(table->queue[hash]), name_file);   
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
                 return -1);
@@ -72,7 +75,7 @@ int add_hashtable(char *name_file){
             table->num_file++;
 
             /* Aggiunge l'elemento in coda alla lista FIFO */
-            int succ_fifo = add_fifo(name_file); //TODO:CREA  
+            int succ_fifo = add_fifo(name_file); 
             CHECK_OPERATION(succ_fifo == -1, 
                 fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
                     return -1);
@@ -100,7 +103,7 @@ int del_hashtable(char *name_file, node *just_deleted){
     }
 
     /* Elimina un nodo */
-    success = delete(&(table->queue[hash]), name_file, &just_deleted); //TODO:CREA  
+    success = delete(&(table->queue[hash]), name_file, &just_deleted);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);
@@ -110,7 +113,7 @@ int del_hashtable(char *name_file, node *just_deleted){
         table->num_file--;
 
         /* Rimuove l'elemento anche dalla coda FIFO */
-        int succ_fifo = remove(name_file); //TODO:CREA  
+        int succ_fifo = remove(name_file); 
         CHECK_OPERATION(succ_fifo == -1, 
             fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
                 return -1);
