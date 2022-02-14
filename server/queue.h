@@ -23,7 +23,6 @@ typedef struct list {
     int elements;           
     struct node* head;    
     pthread_mutex_t *mutex;  
-    pthread_cond_t *empty;
 } list_t;
 
 /**

@@ -19,8 +19,7 @@ typedef struct node_c {
 typedef struct list {
     int elements;           
     struct node_c* head;    
-    pthread_mutex_t *mutex;
-    pthread_cond_t *empty; 
+    pthread_mutex_t *mutex; 
 } list_c;
 
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */

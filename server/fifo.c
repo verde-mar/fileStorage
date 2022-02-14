@@ -15,10 +15,6 @@ int create_fifo(){
     CHECK_OPERATION(mutex_init == -1,
         fprintf(stderr, "Non e' stato possibile inizializzare la mutex della lista di trabocco.\n");
             return -1);
-    int cond_init = pthread_cond_init(fifo_queue->empty, NULL);
-    CHECK_OPERATION(cond_init == -1,
-        fprintf(stderr, "Non e' stato possibile inizializzare la variabile di condizione della lista di trabocco.\n");
-            return -1);
 
     fifo_queue->head = NULL;
     fifo_queue->elements = 0;
@@ -61,8 +57,6 @@ int add_fifo(char *name_file){
 
     fifo_queue->elements++;
 
-    pthread_cond_signal(fifo_queue->empty);
-
     pthread_mutex_unlock(fifo_queue->mutex);
 
     return 0;
@@ -70,9 +64,6 @@ int add_fifo(char *name_file){
 
 int del(char *name_file){
     pthread_mutex_lock(fifo_queue->mutex);
-
-    while(fifo_queue->elements == 0)
-        pthread_cond_wait(fifo_queue->empty, fifo_queue->mutex);
 
     node_c* curr, *prev;
     curr = fifo_queue->head;
@@ -108,8 +99,6 @@ int del(char *name_file){
 char* remove_fifo(){
     pthread_mutex_lock(fifo_queue->mutex);
     char* name;
-    while(fifo_queue->elements == 0)
-        pthread_cond_wait(fifo_queue->empty, fifo_queue->mutex);
 
     node_c *temp;
     temp = fifo_queue->head;

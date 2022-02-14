@@ -17,10 +17,6 @@ int create_list(list_t **lista_trabocco){
     CHECK_OPERATION(mutex_init == -1,
         fprintf(stderr, "Non e' stato possibile inizializzare la mutex della lista di trabocco.\n");
             return -1);
-    int cond_init = pthread_cond_init((*lista_trabocco)->empty, NULL);
-    CHECK_OPERATION(cond_init == -1,
-        fprintf(stderr, "Non e' stato possibile inizializzare la variabile di condizione della lista di trabocco.\n");
-            return -1);
 
     return 0;
 }
@@ -72,8 +68,6 @@ int add(list_t **lista_trabocco, char* name_file){
     curr->next = (*lista_trabocco)->head; 
     (*lista_trabocco)->head = curr;
 
-    pthread_cond_signal((*lista_trabocco)->empty);
-
     pthread_mutex_unlock((*lista_trabocco)->mutex);
 
     return 0;
@@ -84,11 +78,7 @@ node* delete(list_t **lista_trabocco, char* name_file){
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
-    
     pthread_mutex_lock((*lista_trabocco)->mutex);
-
-    while((*lista_trabocco)->elements == 0)
-        pthread_cond_wait((*lista_trabocco)->empty, (*lista_trabocco)->mutex);
 
     node* curr, *prev;
     curr = (*lista_trabocco)->head;
