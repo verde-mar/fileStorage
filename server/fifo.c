@@ -98,6 +98,7 @@ int del(char *name_file){
 
 char* remove_fifo(){
     pthread_mutex_lock(fifo_queue->mutex);
+
     char* name;
 
     node_c *temp;
@@ -105,6 +106,9 @@ char* remove_fifo(){
     node_c *current = fifo_queue->head;
     fifo_queue->head = current->next;
     name = malloc(sizeof(char)*(strlen(temp->path)+1));
+    CHECK_OPERATION(name == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+            return NULL);
     strcpy(name, temp->path);
 
     free(temp);

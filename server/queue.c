@@ -31,6 +31,7 @@ int destroy_list(list_t **lista_trabocco){
         tmp = (*lista_trabocco)->head;
         (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
         free((char*)tmp->path);
+        if(tmp->buffer != NULL) free(tmp->buffer);
         free(tmp);
     }
     
