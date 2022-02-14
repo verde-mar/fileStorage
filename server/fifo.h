@@ -43,7 +43,7 @@ int delete_fifo();
 /**
  * @brief Aggiunge un elemento nella coda FIFO
  * 
- * @param name_file Nome del file da aggiungere
+ * @param name_file Path del file da aggiungere
  * @return int 0
  */
 int add_fifo(char *name_file);
@@ -51,7 +51,7 @@ int add_fifo(char *name_file);
 /**
  * @brief Rimuove l' elemento identificato dal path della coda
  * 
- * @param name_file Nome dell'elemento da rimuovere
+ * @param name_file Path dell'elemento da rimuovere
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int del(char *name_file);
@@ -59,8 +59,8 @@ int del(char *name_file);
 /**
  * @brief Rimuove l' elemento in testa della coda
  * 
- * @return int 0
+ * @return Path dell'elemento appena eliminato
  */
-int remove_fifo();
+char* remove_fifo();
 
 #endif

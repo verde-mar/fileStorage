@@ -109,9 +109,9 @@ int del(char *name_file){
 }
 
 
-int remove_fifo(){
+char* remove_fifo(){
     pthread_mutex_lock(fifo_queue->mutex);
-
+    char* name;
     while(fifo_queue->elements == 0)
         pthread_cond_wait(fifo_queue->empty, fifo_queue->mutex);
 
@@ -119,13 +119,15 @@ int remove_fifo(){
     temp = fifo_queue->head;
     node_c *current = fifo_queue->head;
     fifo_queue->head = current->next;
+    name = malloc(sizeof(char)*(strlen(temp->path)+1));
+    strcpy(name, temp->path);
 
     free(temp);
     fifo_queue->elements--;
 
     pthread_mutex_unlock(fifo_queue->mutex);
     
-    return 0;
+    return name;
 }
 
 int main(int argc, char const *argv[])
