@@ -23,6 +23,7 @@ typedef struct list {
     int elements;           
     struct node* head;    
     pthread_mutex_t *mutex;  
+    pthread_cond_t *empty;
 } list_t;
 
 /**
@@ -56,8 +57,8 @@ int add(list_t **lista_trabocco, char* name_file);
  * @param lista_trabocco Lista di trabocco in cui rimuovere il file
  * @param name_file Path del file da rimuovere
  * @param just_deleted Nodo in cui salvare il file appena rimosso
- * @return int 0 in caso di successo, -1 altrimenti
+ * @return node Il nodo appena eliminato
  */
-int delete(list_t **lista_trabocco, char* name_file, node **just_deleted);
+node* delete(list_t **lista_trabocco, char* name_file);
 
 #endif

@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 
-//TODO: prima cosa da fare, testare le funzioni
 //TODO: seconda cosa da fare, la sincronizzazione a livello di lista di trabocco
 
 int create_hashtable(size_t size){
@@ -103,7 +102,7 @@ int del_hashtable(char *name_file, node *just_deleted){
     }
 
     /* Elimina un nodo */
-    success = delete(&(table->queue[hash]), name_file, &just_deleted);
+    success = delete(&(table->queue[hash]), name_file);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);

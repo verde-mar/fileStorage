@@ -7,9 +7,9 @@
  * @brief Nodo della lista FIFO
  * 
  */
-typedef struct node {
+typedef struct node_c {
     const char* path;
-    struct node_c* next
+    struct node_c* next;
 } node_c;
 
 /**
@@ -19,7 +19,8 @@ typedef struct node {
 typedef struct list {
     int elements;           
     struct node_c* head;    
-    pthread_mutex_t *mutex;  
+    pthread_mutex_t *mutex;
+    pthread_cond_t *empty; 
 } list_c;
 
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
@@ -28,18 +29,16 @@ list_c *fifo_queue;
 /**
  * @brief Crea la lista con ordinamento FIFO
  * 
- * @param lista_fifo Lista da allocare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int create_fifo(list_c **lista_fifo);
+int create_fifo();
 
 /**
  * @brief Elimina la lista con ordinamento FIFO
  * 
- * @param lista_fifo Lista da eliminare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int delete_fifo(list_c **lista_fifo);
+int delete_fifo();
 
 /**
  * @brief Aggiunge un elemento nella coda FIFO
@@ -55,7 +54,7 @@ int add_fifo(char *name_file);
  * @param name_file Nome dell'elemento da rimuovere
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int remove(char *name_file);
+int del(char *name_file);
 
 /**
  * @brief Rimuove l' elemento in testa della coda
