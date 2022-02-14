@@ -27,16 +27,12 @@ int create_fifo(){
 }
 
 int delete_fifo(){
-    if(fifo_queue == NULL)
-        return 0;
-    else {
-        node_c *tmp = NULL;
-        while (fifo_queue->head) {
-            tmp = fifo_queue->head;
-            fifo_queue->head = (fifo_queue->head)->next;
-            free((char*)tmp->path);
-            free(tmp);
-        }
+    node_c *tmp = NULL;
+    while (fifo_queue->head) {
+        tmp = fifo_queue->head;
+        fifo_queue->head = (fifo_queue->head)->next;
+        free((char*)tmp->path);
+        free(tmp);
     }
     
     int check_dest = pthread_mutex_destroy(fifo_queue->mutex);
@@ -128,16 +124,4 @@ char* remove_fifo(){
     pthread_mutex_unlock(fifo_queue->mutex);
     
     return name;
-}
-
-int main(int argc, char const *argv[])
-{
-    create_fifo();
-    add_fifo("cane");
-    printf("elemento della lista: %d\n", (fifo_queue->elements));
-    printf("elemento della lista: %s\n", (fifo_queue->head)->path);
-    int check = remove_fifo();
-    printf("check: %d\nelemento della lista: %d\n", check, (fifo_queue->elements));
-    
-    return 0;
 }

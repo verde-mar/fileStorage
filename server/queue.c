@@ -30,16 +30,12 @@ int destroy_list(list_t **lista_trabocco){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
 
-    if(*lista_trabocco == NULL)
-        return 0;
-    else {
-        node *tmp = NULL;
-        while ((*lista_trabocco)->head) {
-            tmp = (*lista_trabocco)->head;
-            (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
-            free((char*)tmp->path);
-            free(tmp);
-        }
+    node *tmp = NULL;
+    while ((*lista_trabocco)->head) {
+        tmp = (*lista_trabocco)->head;
+        (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
+        free((char*)tmp->path);
+        free(tmp);
     }
     
     int check_dest = pthread_mutex_destroy((*lista_trabocco)->mutex);

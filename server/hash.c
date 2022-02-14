@@ -4,8 +4,6 @@
 
 #include <stdlib.h>
 
-//TODO: seconda cosa da fare, la sincronizzazione a livello di lista di trabocco
-
 int create_hashtable(size_t size){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable)*size);
@@ -23,6 +21,7 @@ int create_hashtable(size_t size){
         CHECK_OPERATION(err == -1, return -1);
     }
 
+    /* Inizia la coda FIFO */
     int create = create_fifo(&fifo_queue);
     CHECK_OPERATION(create == -1,
         fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
@@ -43,6 +42,7 @@ int destroy_hashtable (){
         }
     free(table->queue);
 
+    /* Elimina la coda FIFO */
     int del = delete_fifo(&fifo_queue);
     CHECK_OPERATION(del == -1,
         fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
@@ -61,7 +61,7 @@ int add_hashtable(char *name_file){
 
     node *exists = look_for_node(name_file);
     if(exists == NULL){
-         /* Aggiunge l' elemento nella tabella hash */
+        /* Aggiunge l' elemento nella tabella hash */
         int success = 222;
         int hash = hash_function(name_file); //TODO:CREA
         success = add(&(table->queue[hash]), name_file);   
