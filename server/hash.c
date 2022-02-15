@@ -10,7 +10,6 @@ int create_hashtable(size_t size){
     CHECK_OPERATION(table == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1;);
-    table->num_file = 0;
 
     /* Inizializza l'array delle liste di trabocco */
     table->queue = malloc(sizeof(list_t*)*16);
@@ -54,7 +53,7 @@ int destroy_hashtable (){
     return 0;
 }
 
-int add_hashtable(char *name_file){
+int add_hashtable(char *name_file, int flags){
     CHECK_OPERATION(name_file == NULL, 
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
@@ -64,21 +63,16 @@ int add_hashtable(char *name_file){
         /* Aggiunge l' elemento nella tabella hash */
         int success = 222;
         int hash = hash_function(name_file); //TODO:CREA
-        success = add(&(table->queue[hash]), name_file);   
+        CHECK_OPERATION(flags == 4, 
+            int err_lock = set_lock(name_file);
+                CHECK_OPERATION(err_lock==-1, 
+                    fprintf(stderr, "Errore nel setting della lock del nodo.\n"); 
+                        return -1);
+                            return -1;);
+        success = add(&(table->queue[hash]), name_file, flags);   
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
                 return -1);
-        
-        /* Incrementa il numero di elementi nella tabella se l'inserimento e' andato a buon fine */
-        if (success == 0) {
-            table->num_file++;
-
-            /* Aggiunge l'elemento in coda alla lista FIFO */
-            int succ_fifo = add_fifo(name_file); 
-            CHECK_OPERATION(succ_fifo == -1, 
-                fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
-                    return -1);
-        }
         return success;
     }
     return 0;
@@ -106,17 +100,6 @@ int del_hashtable(char *name_file, node *just_deleted){
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);
-
-    /* Se l'operazione di eliminazione e' andata a buon fine, decrementa il numero di elementi nella tabella */
-    if (success == 0) {
-        table->num_file--;
-
-        /* Rimuove l'elemento anche dalla coda FIFO */
-        int succ_fifo = remove(name_file); 
-        CHECK_OPERATION(succ_fifo == -1, 
-            fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
-                return -1);
-    }
     
     return success;
 }
@@ -133,4 +116,58 @@ node* look_for_node(char* name_file){
             return(curr);
 
     return NULL;
+}
+
+int set_flag(char* name_file){
+    CHECK_OPERATION(name_file != NULL,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+
+    node* file = look_for_node(name_file);
+    CHECK_OPERATION(file == NULL, 
+        fprintf(stderr, "Il nodo cercato non esiste.\n");
+            return -1;);
+    CHECK_OPERATION(file->lock == 0,
+        fprintf(stderr, "La lock non e' stata settata.\n");
+            return -1);
+
+    file->open = 1;
+    
+    return 0;
+}
+
+int set_lock(char* name_file){
+    CHECK_OPERATION(name_file != NULL,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+    
+    node* file = look_for_node(name_file);
+    CHECK_OPERATION(file == NULL, 
+        fprintf(stderr, "Il nodo cercato non esiste.\n");
+            return -1;);
+
+    int success = set_mutex(file);
+    CHECK_OPERATION(success == -1,
+        fprintf(stderr, "Errore nel setting della mutex.\n");
+            return -1;);
+    return 0;
+    
+}
+
+int unset_lock(char* name_file){
+    CHECK_OPERATION(name_file != NULL,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+    
+    node* file = look_for_node(name_file);
+    CHECK_OPERATION(file == NULL, 
+        fprintf(stderr, "Il nodo cercato non esiste.\n");
+            return -1;);
+            
+    int success = unset_mutex(file);
+    CHECK_OPERATION(success == -1,
+        fprintf(stderr, "Errore nel setting della mutex.\n");
+            return -1;);
+    return 0;
+    
 }

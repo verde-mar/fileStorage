@@ -13,6 +13,7 @@ typedef struct node {
     int open;
     struct node* next;
     pthread_mutex_t *mutex;
+    int lock;
 } node;
 
 /**
@@ -46,9 +47,10 @@ int destroy_list(list_t **lista_trabocco);
  * 
  * @param lista_trabocco Lista di trabocco in cui aggiungere il file
  * @param name_file Path del file da aggiungere
+ * @param flags Flag che indica se creare il file e/o settare la lock
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int add(list_t **lista_trabocco, char* name_file);
+int add(list_t **lista_trabocco, char* name_file, int flags);
 
 /**
  * @brief Rimuove un elemento dalla lista di trabocco
@@ -59,5 +61,21 @@ int add(list_t **lista_trabocco, char* name_file);
  * @return node Il nodo appena eliminato
  */
 node* delete(list_t **lista_trabocco, char* name_file);
+
+/**
+ * @brief Setta la mutex del nodo
+ * 
+ * @param nodo Path del nodo di cui settare la mutex
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int set_mutex(node *nodo);
+
+/**
+ * @brief Resetta la mutex del nodo
+ * 
+ * @param nodo Path del nodo di cui resettare la mutex
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int unset_mutex(node *nodo);
 
 #endif

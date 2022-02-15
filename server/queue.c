@@ -44,32 +44,41 @@ int destroy_list(list_t **lista_trabocco){
     return 0;
 }
 
-int add(list_t **lista_trabocco, char* name_file){
+int add(list_t **lista_trabocco, char* name_file, int flags){
     CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
+    
+   
+        /* Crea il nodo da aggiungere */
+        node *curr = (node*)malloc(sizeof(node));
+        CHECK_OPERATION(curr == NULL,
+            fprintf(stderr, "Allocazione non andata a buon fine.\n");
+                return -1);
+        curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
+        strcpy((char*)curr->path, name_file);
+        int m_init = pthread_mutex_init(curr->mutex, NULL);
+        CHECK_OPERATION(m_init == -1,
+            fprintf(stderr, "Errore nella inizializzazione della mutex.\n");
+                return -1);
+        curr->open = 0;
+        curr->buffer = NULL;
 
-    /* Crea il nodo da aggiungere */
-    node *curr = (node*)malloc(sizeof(node));
-    CHECK_OPERATION(curr == NULL,
-        fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return -1);
-    curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
-    strcpy((char*)curr->path, name_file);
-    int m_init = pthread_mutex_init(curr->mutex, NULL);
-    CHECK_OPERATION(m_init == -1,
-        fprintf(stderr, "Errore nella inizializzazione della mutex.\n");
-            return -1);
-    curr->open = 0;
-    curr->buffer = NULL;
+        pthread_mutex_lock((*lista_trabocco)->mutex);
 
-    pthread_mutex_lock((*lista_trabocco)->mutex);
+        /* Aggiunge il nodo in testa alla lista di trabocco*/
+        curr->next = (*lista_trabocco)->head; 
+        (*lista_trabocco)->head = curr;
 
-    /* Aggiunge il nodo in testa alla lista di trabocco*/
-    curr->next = (*lista_trabocco)->head; 
-    (*lista_trabocco)->head = curr;
-
-    pthread_mutex_unlock((*lista_trabocco)->mutex);
+        if(flags == 4){
+            /* Setta la mutex */
+            int err_set = set_mutex(curr);
+            CHECK_OPERATION(err_set==-1,
+                fprintf(stderr, "Errore nel setaggio della mutex");
+                    return -1);
+        }
+        
+        pthread_mutex_unlock((*lista_trabocco)->mutex);
 
     return 0;
 }
@@ -105,3 +114,22 @@ node* delete(list_t **lista_trabocco, char* name_file){
     return NULL;
 }
 
+int set_mutex(node *nodo){
+    CHECK_OPERATION(!nodo,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+
+    pthread_mutex_lock(nodo->mutex);
+    nodo->lock = 1;
+    pthread_mutex_unlock(nodo->mutex);
+}
+
+int unset_mutex(node *nodo){
+    CHECK_OPERATION(!nodo,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+
+    pthread_mutex_lock(nodo->mutex);
+    nodo->lock = 0;
+    pthread_mutex_unlock(nodo->mutex);
+}

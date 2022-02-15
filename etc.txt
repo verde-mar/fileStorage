@@ -1,0 +1,15 @@
+if (success == 0) {
+        /* Rimuove l'elemento anche dalla coda FIFO */
+        int succ_fifo = remove(name_file); 
+        CHECK_OPERATION(succ_fifo == -1, 
+            fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
+                return -1);
+    }
+
+if (success == 0) {
+            /* Aggiunge l'elemento in coda alla lista FIFO */
+            int succ_fifo = add_fifo(name_file); 
+            CHECK_OPERATION(succ_fifo == -1, 
+                fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
+                    return -1);
+        }
