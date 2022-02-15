@@ -14,6 +14,7 @@ typedef struct node {
     struct node* next;
     pthread_mutex_t *mutex;
     int lock;
+    int fd_c;
 } node;
 
 /**
@@ -42,40 +43,29 @@ int create_list(list_t **lista_trabocco);
  */
 int destroy_list(list_t **lista_trabocco);
 
+//TODO: fai un metodo che ricerca un nodo specifico
 /**
- * @brief Aggiunge un file alla lista di trabocco
+ * @brief Aggiunge un elemento alla lista di trabocco specificata
  * 
- * @param lista_trabocco Lista di trabocco in cui aggiungere il file
- * @param name_file Path del file da aggiungere
- * @param flags Flag che indica se creare il file e/o settare la lock
- * @return int 0 in caso di successo, -1 altrimenti
+ * @param lista_trabocco Lista di trabocco a cui aggiungere un elemento
+ * @param name_file Path del nodo da aggiungere
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param flags Flag che indica l'operazione da eseguire (se una create e/o una lock)
+ * @return int 0 in caso di successo
+ *            -1 in caso di generico fallimento
+ *             404 in caso di 
+ *             101 nel caso in cui il file esista gia'
  */
-int add(list_t **lista_trabocco, char* name_file, int flags);
+int add(list_t **lista_trabocco, char* name_file, int fd, int flags);
 
 /**
- * @brief Rimuove un elemento dalla lista di trabocco
+ * @brief 
  * 
- * @param lista_trabocco Lista di trabocco in cui rimuovere il file
- * @param name_file Path del file da rimuovere
- * @param just_deleted Nodo in cui salvare il file appena rimosso
- * @return node Il nodo appena eliminato
+ * @param lista_trabocco 
+ * @param name_file 
+ * @param fd 
+ * @return node* 
  */
-node* delete(list_t **lista_trabocco, char* name_file);
-
-/**
- * @brief Setta la mutex del nodo
- * 
- * @param nodo Path del nodo di cui settare la mutex
- * @return int 0 in caso di successo, -1 altrimenti
- */
-int set_mutex(node *nodo);
-
-/**
- * @brief Resetta la mutex del nodo
- * 
- * @param nodo Path del nodo di cui resettare la mutex
- * @return int 0 in caso di successo, -1 altrimenti
- */
-int unset_mutex(node *nodo);
+node* delete(list_t **lista_trabocco, char* name_file, int fd);
 
 #endif

@@ -15,7 +15,7 @@
     if(printer == 1){\
         fprintf(stderr, "Byte scritti: %d e byte letti:%d\n", byte_scritti, byte_letti); \
         if(codice == 101) {\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia' ed e' stato specificato solo O_CREATE.\n", operazione); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia'.\n", operazione); \
         } else if(codice == 202){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro client.\n", operazione); \
         } else if(codice == 303){ \
@@ -42,6 +42,10 @@
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
         fprintf(stderr, "Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \
+    }
+#define CHECK_PTHREAD(condizione) \
+    if(condizione){\
+        \
     }
 
 #endif
