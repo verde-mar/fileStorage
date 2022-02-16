@@ -74,15 +74,14 @@ int del_hashtable(char *name_file, node *just_deleted, int fd){
     CHECK_OPERATION(name_file==NULL || fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
-    int success = -1;
     int hash = 0;
 
     hash = hash_function(name_file); //TODO:CREA 
     /* Elimina un nodo */
-    success = delete(&(table->queue[hash]), name_file, fd);
-    CHECK_OPERATION(success==-1, 
+    int success = delete(&(table->queue[hash]), name_file, &just_deleted, fd);
+    CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
-            return -1);
+            return NULL);
     
     return success;
 }
@@ -100,6 +99,8 @@ int close_hashtable(char *name_file, int fd){
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella chiusura di un elemento nella tabella hash.\n"); 
             return -1);
+
+    return success;
 }
 
 int unlock_hashtable(char *name_file, int fd){
@@ -115,6 +116,8 @@ int unlock_hashtable(char *name_file, int fd){
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nel reset della lock di un elemento nella tabella hash.\n"); 
             return -1);
+
+    return success;
 }
 
 int lock_hashtable(char *name_file, int fd){
@@ -130,4 +133,7 @@ int lock_hashtable(char *name_file, int fd){
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nel set della lock di un elemento nella tabella hash.\n"); 
             return -1);
+
+    return success;
 }
+

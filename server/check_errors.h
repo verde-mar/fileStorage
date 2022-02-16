@@ -32,8 +32,6 @@
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' e' gia' stata fatta. Puoi fare solo la appendToFile.\n", operazione); \
         } else if(codice == 111){\
             fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
-        } else if(codice == 222){\
-            fprintf(stderr, "Il thread e' stato deschedulato prima che la tua richiesta fosse elaborata, riprova al prossimo avvio."); \
         } else if(codice == 0){\
             fprintf(stdout, "La %s e' terminata con successo.\n", operazione); \
         } else if(codice == 909){\
