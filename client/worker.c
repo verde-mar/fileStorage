@@ -527,7 +527,7 @@ int readNFiles(int N, const char* dirname){
             
             path = malloc(sizeof(char)*size_path);
             CHECK_OPERATION(path == NULL, 
-                fprintf(stderr, "Allocazione non andata a buon fine:"); 
+                fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
                     return -1);
 
             /* Legge il path */
@@ -545,7 +545,7 @@ int readNFiles(int N, const char* dirname){
             
             file = malloc(sizeof(char)*size_file);
             CHECK_OPERATION(file == NULL, 
-                fprintf(stderr, "Allocazione non andata a buon fine:"); 
+                fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
                     return -1);
 
             /* Legge il file */

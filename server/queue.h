@@ -68,6 +68,7 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags);
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si si cerchi  di effettuare l'operazione ma il file e' chiuso
  *             202 nel caso in cui un altro client detenga la lock
+ *             505 nel caso in cui il file non esista
  */
 int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd);
 
@@ -90,6 +91,7 @@ node* look_for_node(list_t *lista_trabocco, char* name_file);
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             505 nel caso in cui il file non esista
  */
 int close(list_t **lista_trabocco, char* name_file, int fd);
 
@@ -103,6 +105,7 @@ int close(list_t **lista_trabocco, char* name_file, int fd);
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             505 nel caso in cui il file non esista
  */
 int unlock(list_t **lista_trabocco, char* name_file, int fd);
 
@@ -116,6 +119,7 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd);
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             505 nel caso in cui il file non esista
  */
 int lock(list_t **lista_trabocco, char* name_file, int fd);
 
@@ -135,6 +139,6 @@ int set_mutex(node *nodo, int fd);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int set_unmutex(node *nodo, int fd)
+int set_unmutex(node *nodo, int fd);
 
 #endif

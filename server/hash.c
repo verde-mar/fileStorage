@@ -137,3 +137,19 @@ int lock_hashtable(char *name_file, int fd){
     return success;
 }
 
+int read_hashtable(char *name_file, char** buf, int fd){
+    CHECK_OPERATION(name_file==NULL || fd<0,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1;);
+    int success = -1;
+    int hash = 0;
+
+    hash = hash_function(name_file); //TODO:CREA 
+    /* Elimina un nodo */
+    success = reads(&(table->queue[hash]), name_file, buf, fd);
+    CHECK_OPERATION(success==-1, 
+        fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
+            return -1);
+
+    return success;
+}
