@@ -43,7 +43,15 @@ int create_list(list_t **lista_trabocco);
  */
 int destroy_list(list_t **lista_trabocco);
 
-//TODO: fai un metodo che ricerca un nodo specifico
+/**
+ * @brief Cerca un nodo in una lista di trabocco
+ * 
+ * @param lista_trabocco Lista di trabocco in cui specificare un nodo
+ * @param name_file Path del nodo da ricercare
+ * @return node Il nodo trovato
+ */
+node* look_for_node(list_t *lista_trabocco, char* name_file);
+
 /**
  * @brief Aggiunge un elemento alla lista di trabocco specificata
  * 
