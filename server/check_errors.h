@@ -41,9 +41,44 @@
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
         fprintf(stderr, "Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \
     }
-#define CHECK_PTHREAD(condizione) \
-    if(condizione){\
-        \
+#define PTHREAD_LOCK(mtx) \
+    if(pthread_mutex_lock(mtx) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+
+#define PTHREAD_UNLOCK(mtx) \
+    if(pthread_mutex_unlock(mtx) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+#define PTHREAD_INIT_LOCK(mtx) \
+    if(pthread_mutex_init(mtx, NULL) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+
+#define PTHREAD_INIT_COND(cond) \
+    if(pthread_cond_init(cond, NULL) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+#define PTHREAD_DESTROY_LOCK(mtx) \
+    if(pthread_mutex_destroy(mtx) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+
+#define PTHREAD_COND_WAIT(mtx, cond) \
+    if(pthread_cond_wait(cond, mtx) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
+    }
+
+#define PTHREAD_COND_SIGNAL(cond) \
+    if(pthread_cond_signal(cond) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        return -1;\
     }
 
 #endif

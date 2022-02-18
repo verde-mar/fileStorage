@@ -44,9 +44,9 @@ int create_list(list_t **lista_trabocco);
 int destroy_list(list_t **lista_trabocco);
 
 /**
- * @brief Aggiunge un elemento alla lista di trabocco specificata
+ * @brief Aggiunge nodo
  * 
- * @param lista_trabocco Lista di trabocco a cui aggiungere un elemento
+ * @param lista_trabocco Lista di trabocco a cui aggiungere il nodo
  * @param name_file Path del nodo da aggiungere
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param flags Flag che indica l'operazione da eseguire (se una create e/o una lock)
@@ -66,7 +66,7 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si si cerchi  di effettuare l'operazione ma il file e' chiuso
+ *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
  *             202 nel caso in cui un altro client detenga la lock
  *             505 nel caso in cui il file non esista
  */
@@ -77,12 +77,12 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
  * 
  * @param lista_trabocco Lista di trabocco in cui si trova il nodo
  * @param name_file Path del nodo ricercato
- * @return node* Nodo eliminato se trovato, altrimenti NULL
+ * @return node* Nodo trovato, altrimenti NULL
  */
 node* look_for_node(list_t *lista_trabocco, char* name_file);
 
 /**
- * @brief Setta il flag 'open' di un preciso nodo a 0
+ * @brief Setta il flag 'open' del nodo identificato da name_file a 0
  * 
  * @param lista_trabocco Lista in cui si trova il nodo
  * @param name_file Path del file ricercato
@@ -90,7 +90,7 @@ node* look_for_node(list_t *lista_trabocco, char* name_file);
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
- *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             303 nel caso in cui si riprovi a fare la closeFile dopo averla gia' fatta
  *             505 nel caso in cui il file non esista
  */
 int close(list_t **lista_trabocco, char* name_file, int fd);
@@ -104,7 +104,7 @@ int close(list_t **lista_trabocco, char* name_file, int fd);
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
- *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             303 nel caso in cui si provi a fare la unlockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
 int unlock(list_t **lista_trabocco, char* name_file, int fd);
@@ -118,7 +118,7 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd);
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
- *             303 nel caso in cui si riprovi a fare la close dopo averla gia' fatta
+ *             303 nel caso in cui si provi a fare la lockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
 int lock(list_t **lista_trabocco, char* name_file, int fd);
@@ -140,5 +140,36 @@ int set_mutex(node *nodo, int fd);
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int set_unmutex(node *nodo, int fd);
+
+/**
+ * @brief Effettua l'append di un buffer su quello del nodo identificato da name_file
+ * 
+ * @param lista_trabocco Lista in cui si trova il nodo su cui effettuare l'operazione
+ * @param name_file Path che identifica il nodo
+ * @param buf Buffer su cui effettuare la append
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @return int 0 in caso di successo
+ *            -1 in caso di generico fallimento
+ *             202 nel caso in cui la lock sia stata acquisita da un altro client
+ *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
+ *             505 nel caso in cui il file non esista
+ */
+int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd);
+
+/**
+ * @brief Effettua la write sul buffer del nodo identificato da name_file
+ * 
+ * @param lista_trabocco Lista in cui si trova il nodo su cui effettuare l'operazione
+ * @param name_file Path che identifica il nodo
+ * @param buf Buffer da scrivere sul nodo
+ * @param size_buf Size di buf
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @return int 0 in caso di successo
+ *            -1 in caso di generico fallimento
+ *             202 nel caso in cui la lock sia stata acquisita da un altro client
+ *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
+ *             505 nel caso in cui il file non esista
+ */
+int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd);
 
 #endif

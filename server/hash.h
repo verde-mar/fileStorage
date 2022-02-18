@@ -10,6 +10,9 @@
  */
 typedef struct hashtable {
     struct list **queue;
+    int curr_size;//TODO:inizializza
+    int max_size;//TODO:Inizializza
+    pthread_mutex_t *mutex_t; //TODO:inizializza
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
@@ -17,7 +20,7 @@ hashtable *table;
 
 
 /* Numero massimo di file */
-int max_file;
+int max_file; //TODO: verifica perche' e' qui e non nella struct della hastable
 
 /**
  * @brief Crea la tabella hash
@@ -112,5 +115,7 @@ int lock_hashtable(char *name_file, int fd);
  *              505 nel caso in cui il file non esista
  */
 int read_hashtable(char *name_file, char** buf, int fd);
+
+
 
 #endif
