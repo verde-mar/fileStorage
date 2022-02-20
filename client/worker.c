@@ -435,6 +435,8 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             return -1);
     free(actual_request);
 
+    //TODO: DEVI MANDA IL BUFFER DI DATI DEL FIIIIILEEEEEE
+
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
@@ -443,7 +445,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             free(actual_request);
                 return -1);
 
-    if(codice == 909 && dirname != NULL){
+    if(codice == 909 && dirname != NULL){ //TODO: devi renderlo while e deve mandare piu' richieste
         size_t size_old, size_path;
         char *old_file, *path;
 

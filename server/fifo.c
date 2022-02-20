@@ -11,30 +11,30 @@ int create_fifo(){
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
 
-    int mutex_init = pthread_mutex_init(fifo_queue->mutex, NULL);
-    CHECK_OPERATION(mutex_init == -1,
-        fprintf(stderr, "Non e' stato possibile inizializzare la mutex della lista di trabocco.\n");
-            return -1);
-
-    fifo_queue->head = NULL;
+    /* Inizializza il numero di elementi iniziali */
     fifo_queue->elements = 0;
+    /* Inizializza la testa */
+    fifo_queue->head = NULL;
+    /* Inizializza la mutex */
+    fifo_queue->mutex = malloc(sizeof(pthread_mutex_t));
+    PTHREAD_INIT_LOCK(fifo_queue->mutex);
 
     return 0;
 }
 
 int delete_fifo(){
+    /* Rimuove ogni elemento della coda */
     node_c *tmp = NULL;
     while (fifo_queue->head) {
         tmp = fifo_queue->head;
         fifo_queue->head = (fifo_queue->head)->next;
-        free((char*)tmp->path);
         free(tmp);
     }
     
-    int check_dest = pthread_mutex_destroy(fifo_queue->mutex);
-    CHECK_OPERATION(check_dest == -1,
-        fprintf(stderr, "Non e' stato possibile distruggere la mutex della lista di trabocco.\n");
-            return -1);
+    /* Distrugge la lock di ciascun nodo */
+    PTHREAD_DESTROY_LOCK(fifo_queue->mutex);
+    free(fifo_queue->mutex);
+    /* Libera la memoria occupata dalla lista di trabocco */
     free(fifo_queue);
 
     return 0;
@@ -42,6 +42,7 @@ int delete_fifo(){
 
 int add_fifo(char *name_file){
     node_c *current, *new_node; 
+    /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(node_c));
     CHECK_OPERATION(new_node == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
@@ -50,32 +51,38 @@ int add_fifo(char *name_file){
     new_node->path = name_file;
     new_node->next = NULL;
 
-    pthread_mutex_lock(fifo_queue->mutex);
+    /* Aggiunge il nuovo nodo in coda */
+    PTHREAD_LOCK(fifo_queue->mutex);
     current = fifo_queue->head;
     if (current == NULL)
         fifo_queue->head = new_node; 
-
+    else {
+        while(current->next!=NULL)
+            current = current->next;
+        current->next = new_node;
+    }
     fifo_queue->elements++;
 
-    pthread_mutex_unlock(fifo_queue->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return 0;
 }
 
 int del(char *name_file){
-    pthread_mutex_lock(fifo_queue->mutex);
-
     node_c* curr, *prev;
+    PTHREAD_LOCK(fifo_queue->mutex);
+
+    /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
     if (strcmp(curr->path, name_file) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
         fifo_queue->elements--;
-        pthread_mutex_unlock(fifo_queue->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex);
 
         return 0;
     }
-
+    /* Se non e' il primo, cerca in tutta la lista l'elemento, ed eventualmente lo elimina */
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
@@ -83,38 +90,36 @@ int del(char *name_file){
             prev->next = curr->next; 
             fifo_queue->elements--;
             free(curr);
-            pthread_mutex_unlock(fifo_queue->mutex);
+            PTHREAD_UNLOCK(fifo_queue->mutex);
 
             return 0;
         }
         prev = curr;
         curr = curr->next;
     }
-    pthread_mutex_unlock(fifo_queue->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return -1;
 }
 
-
 char* remove_fifo(){
-    pthread_mutex_lock(fifo_queue->mutex);
-
     char* name;
-
     node_c *temp;
+
+    /* Elimina la testa della lista */
+    PTHREAD_LOCK(fifo_queue->mutex);
     temp = fifo_queue->head;
     node_c *current = fifo_queue->head;
     fifo_queue->head = current->next;
-    name = malloc(sizeof(char)*(strlen(temp->path)+1));
-    CHECK_OPERATION(name == NULL,
-        fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return NULL);
-    strcpy(name, temp->path);
+
+    /* Restituisce il path del nodo appena eliminato */
+    name = (char*) temp->path;
 
     free(temp);
     fifo_queue->elements--;
 
-    pthread_mutex_unlock(fifo_queue->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
     
     return name;
 }
+

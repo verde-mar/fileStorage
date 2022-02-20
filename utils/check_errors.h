@@ -46,39 +46,43 @@
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
         fprintf(stderr, "Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \
     }
-
-#define PTHREAD_LOCK(lock) \
-    int mutex = pthread_mutex_lock(lock, NULL);\
-    if(mutex != 0){\
+#define PTHREAD_LOCK(mtx) \
+    if(pthread_mutex_lock(mtx) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
-        return -1;\
+        exit(-1);\
     }
 
-#define PTHREAD_UNLOCK(lock) \
-    int mutex = pthread_mutex_unlock(lock, NULL);\
-    if(mutex != 0){\
+#define PTHREAD_UNLOCK(mtx) \
+    if(pthread_mutex_unlock(mtx) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
-        return -1;\
+        exit(-1);\
     }
-#define PTHREAD_INIT_LOCK(lock) \
-    int mutex_init = pthread_mutex_init(lock, NULL);\
-    if(mutex_init != 0){\
+#define PTHREAD_INIT_LOCK(mtx) \
+    if(pthread_mutex_init(mtx, NULL) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
-        return -1;\
+        exit(-1);\
     }
 
 #define PTHREAD_INIT_COND(cond) \
-    int cond_init = pthread_mutex_init(cond, NULL);\
-    if(cond_init != 0){\
+    if(pthread_cond_init(cond, NULL) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
-        return -1;\
+        exit(-1);\
+    }
+#define PTHREAD_DESTROY_LOCK(mtx) \
+    if(pthread_mutex_destroy(mtx) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        exit(-1);\
     }
 
-#define PTHREAD_DESTROY_LOCK(lock) \
-    int check_dest = pthread_mutex_destroy(lock);\
-    if(check_dest != 0){\
+#define PTHREAD_COND_WAIT(mtx, cond) \
+    if(pthread_cond_wait(cond, mtx) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
-        return -1;\
+        exit(-1);\
     }
-    
+
+#define PTHREAD_COND_SIGNAL(cond) \
+    if(pthread_cond_signal(cond) != 0){\
+        fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
+        exit(-1);\
+    }
 #endif

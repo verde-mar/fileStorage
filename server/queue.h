@@ -21,7 +21,7 @@ typedef struct node {
  * @brief Lista di trabocco
  * 
  */
-typedef struct list {
+typedef struct list_hashtable {
     int elements;           
     struct node* head;    
     pthread_mutex_t *mutex;  

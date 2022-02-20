@@ -16,7 +16,7 @@ typedef struct node_c {
  * @brief Lista con ordinamento FIFO
  * 
  */
-typedef struct list {
+typedef struct list_cache {
     int elements;           
     struct node_c* head;    
     pthread_mutex_t *mutex; 

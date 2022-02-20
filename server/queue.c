@@ -13,7 +13,7 @@ int create_list(list_t **lista_trabocco){
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
 
-    /* Inizializza il numero di elementi iniziali */
+    /* Inizializza il numero di elementi */
     (*lista_trabocco)->elements = 0;
     /* Inizializza la testa */
     (*lista_trabocco)->head = NULL;
@@ -90,7 +90,6 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         fprintf(stderr, "Il nodo esiste gia'.\n");
                     return 101);
 
-    int unlock = -1;
     /* Se e' stata specificata l'operazione di creazione */
     if(flags == 2 || flags == 6){
         /* Crea il nodo da aggiungere */
@@ -210,7 +209,8 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
         prev = curr;
         curr = curr->next;
     }
-
+    *just_deleted = NULL;
+    
     /* Il nodo non e' stato trovato */
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
@@ -304,7 +304,6 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
-    int unlock = -1;
     /* Ricerca il nodo */
     node* nodo = look_for_node(*lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
@@ -335,7 +334,6 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
-    int unlock = -1;
     /* Ricerca il nodo */
     node* nodo = look_for_node(*lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
@@ -371,7 +369,6 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
-    int unlock = -1;
     /* Ricerca il nodo */
     node* nodo = look_for_node(*lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
@@ -383,11 +380,10 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
 
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
-        int len = (strlen(nodo->buffer) + size_buf) + 1; //utilizzando "dsjf" come buffer, mi dava sigfault
+        int len = (strlen(nodo->buffer) + size_buf) + 1; 
         nodo->buffer = (char*) realloc(nodo->buffer, len);
         nodo->buffer = strcat(nodo->buffer, buf);
         PTHREAD_UNLOCK(nodo->mutex);
-        printf("buf: %s\n", buf);
 
         return 0;
     } 
@@ -404,7 +400,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
     
     PTHREAD_UNLOCK(nodo->mutex);
 
-    return 0;
+    return -1;
 }
 
 int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd){
@@ -412,7 +408,6 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
-    int unlock = -1;
     /* Ricerca il nodo */
     node* nodo = look_for_node(*lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
@@ -444,3 +439,4 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
 
     return 0;
 }
+

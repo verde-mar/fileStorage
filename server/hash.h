@@ -10,17 +10,24 @@
  */
 typedef struct hashtable {
     struct list **queue;
-    int curr_size;//TODO:inizializza
-    int max_size;//TODO:Inizializza
-    pthread_mutex_t *mutex_t; //TODO:inizializza
+    int curr_size;
+    int max_size;
+    int max_file;
+    pthread_mutex_t *mutex_t;
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
 hashtable *table;
 
+/**
+ * @brief Funzione per calcolare l'hash
+ * 
+ * @param str Stringa di cui calcolare l'hash
+ * @return unsigned long Hash calcolato
+ */
+unsigned long hash_function(unsigned char *str);
 
-/* Numero massimo di file */
-int max_file; //TODO: verifica perche' e' qui e non nella struct della hastable
+//TODO:metti una funzione unica che prende dei puntatori a funzione 
 
 /**
  * @brief Crea la tabella hash

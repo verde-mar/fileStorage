@@ -5,15 +5,20 @@ CLIENT = ./client
 SERVER = ./server
 UTILS = ./utils
 
-all: cl
+#all: cl
+all: test
 
-# Librerie client
-$(CLIENT)/libclient.so: $(CLIENT)/dispatcher.o $(CLIENT)/worker.o $(UTILS)/utils.o $(CLIENT)/socketIO.o
-	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -shared -o $@ $^
+$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o 
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -shared -o $@ $^
 
-# Eseguibile client
-cl: $(CLIENT)/main.c $(CLIENT)/libclient.so
-	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -o $@ $^
+test: $(SERVER)/test.c $(SERVER)/libserver.so
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -o $@ $^
+
+#$(CLIENT)/libclient.so: $(CLIENT)/dispatcher.o $(CLIENT)/worker.o $(UTILS)/utils.o $(CLIENT)/socketIO.o
+#	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -shared -o $@ $^
+
+#cl: $(CLIENT)/main.c $(CLIENT)/libclient.so
+#	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -o $@ $^
 
 %.o: %.c %.h
-	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -c -o $@ $<
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -c -o $@ $<
