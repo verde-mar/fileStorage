@@ -307,7 +307,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
     return 0;
 }
 
-int writeFile(const char* pathname, const char* dirname){ 
+int writeFile(const char* pathname, const char* dirname){ //TODO:la funzione e' troppo lunga, vedi se riesci ad accorciarla
     CHECK_OPERATION(pathname == NULL, 
         fprintf(stderr, "Parametro non valido:");
             return -1); 
@@ -350,7 +350,7 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(errno == EFAULT,
         free(buf);
             return -1);
-    free(buf);
+    
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
@@ -358,57 +358,60 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(byte_letti == -1,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
-                return -1);
+                free(buf);
+                    return -1);
 
-    if(codice == 909 && dirname != NULL){
-        size_t size_old, size_path;
-        char *old_file, *path;
+    if(dirname != NULL){
+        while(codice == 909){
+            size_t size_old, size_path;
+            char *old_file, *path;
 
-        /* Legge il path del file appena eliminato */
-        errno = 0;
-        byte_letti += read_size(fd_skt, &size_path);
-        CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
-                return -1);
-        path = malloc(sizeof(char)*size_path);
-        CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+            /* Legge il path del file appena eliminato */
+            errno = 0;
+            byte_letti += read_size(fd_skt, &size_path);
+            CHECK_OPERATION(errno == EFAULT,
+            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                free(actual_request);
+                    return -1);
+            path = malloc(sizeof(char)*size_path);
+            CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
-        errno = 0;
-        byte_letti = read_msg(fd_skt, path, size_path);
-        CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
-                return -1);
+            errno = 0;
+            byte_letti = read_msg(fd_skt, path, size_path);
+            CHECK_OPERATION(errno == EFAULT,
+            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                free(actual_request);
+                    return -1);
 
-        /* Legge il file e lo memorizza su disco */
-        errno = 0;
-        byte_letti = read_size(fd_skt, &size_old);
-        CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
-                return -1);
-        old_file = malloc(sizeof(char)*size_old);
-        CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+            /* Legge il file e lo memorizza su disco */
+            errno = 0;
+            byte_letti = read_size(fd_skt, &size_old);
+            CHECK_OPERATION(errno == EFAULT,
+            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                free(actual_request);
+                    return -1);
+            old_file = malloc(sizeof(char)*size_old);
+            CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
-        errno = 0;
-        byte_letti = read_msg(fd_skt, old_file, size_old);
-        CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
-                return -1);
+            errno = 0;
+            byte_letti = read_msg(fd_skt, old_file, size_old);
+            CHECK_OPERATION(errno == EFAULT,
+            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                free(actual_request);
+                    return -1);
 
-        int err_save = save_on_disk((char*)dirname, optarg, old_file, size_old);
-        CHECK_OPERATION(err_save == -1, 
-            fprintf(stderr, "Errore nel salvataggio su disco");
-                free(path);
-                    free(old_file);
-                        return -1;);
+            int err_save = save_on_disk((char*)dirname, optarg, old_file, size_old);
+            CHECK_OPERATION(err_save == -1, 
+                fprintf(stderr, "Errore nel salvataggio su disco");
+                    free(path);
+                        free(old_file);
+                            return -1;);
 
-        free(path);
-        free(old_file);
+            free(path);
+            free(old_file);
+        }
     }
-
+    free(buf);
     CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
 
     return codice;

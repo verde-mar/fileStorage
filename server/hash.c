@@ -3,14 +3,16 @@
 #include <check_errors.h>
 
 #include <stdlib.h>
+#include <string.h>
 
-unsigned long hash_function(unsigned char *str){
+unsigned long hash_function(char *str){
     unsigned long hash = 5381;
-    int c;
+    int c = *str++;
 
-    while (c = *str++)
+    while (c){
         hash = (hash * 16) + c;
-
+        c = *str++;
+    }
     return hash;
 }
 
@@ -89,7 +91,7 @@ int add_hashtable(char *name_file, int fd, int flags){
     return success;    
 }
 
-int del_hashtable(char *name_file, node *just_deleted, int fd){
+int del_hashtable(char *name_file, node **just_deleted, int fd){
     CHECK_OPERATION(name_file==NULL || fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
@@ -97,10 +99,10 @@ int del_hashtable(char *name_file, node *just_deleted, int fd){
     int hash = hash_function(name_file);
 
     /* Elimina un nodo */
-    int success = delete(&(table->queue[hash]), name_file, &just_deleted, fd);
+    int success = delete(&(table->queue[hash]), name_file, just_deleted, fd);
     CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
-            return NULL);
+            return -1);
     
     return success;
 }
@@ -183,8 +185,8 @@ int append_hashtable(char* name_file, char* buf, node** deleted, int fd){
 
     table->curr_size += strlen(buf);
     if(table->curr_size > table->max_size){
-            char* to_delete = delete_fifo();
-            success = delete(&(table->queue[hash]), name_file, deleted, fd);
+            char* to_delete = remove_fifo();
+            success = delete(&(table->queue[hash]), to_delete, deleted, fd);
     }
 
     PTHREAD_UNLOCK(table->mutex_t);
@@ -212,8 +214,8 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
 
     table->curr_size += strlen(buf);
     if(table->curr_size > table->max_size){
-            char* to_delete = delete_fifo();
-            success = delete(&(table->queue[hash]), name_file, deleted, fd);
+            char* to_delete = remove_fifo();
+            success = delete(&(table->queue[hash]), to_delete, deleted, fd);
     }
 
     PTHREAD_UNLOCK(table->mutex_t);

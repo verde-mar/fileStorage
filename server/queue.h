@@ -172,4 +172,19 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
  */
 int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd);
 
+/**
+ * @brief Legge il file identificato da name_file
+ * 
+ * @param lista_trabocco Lista di trabocco in cui e' contenuto il file cercato
+ * @param name_file Path del file
+ * @param buf 
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @return int 0 in caso di successo
+ *            -1 in caso di generico fallimento
+ *             202 nel caso in cui la lock sia stata acquisita da un altro client
+ *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
+ *             505 nel caso in cui il file non esista
+ */
+int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd);
+
 #endif

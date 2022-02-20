@@ -1,18 +1,18 @@
-#include <queue.h>
-#include <fifo.h>
+#include <hash.h>
 #include <stdio.h>
 
 #include <stdlib.h>
 
 void *myfun(void *arg){
-    
+    add_hashtable((char*)arg, 1, 2);
     return NULL;
 }
 
 void *myfundelete(void *arg){
-    char *name = remove_fifo();
-    printf("nome della testa: %s\n", name);
-
+    
+    node* deleted;
+    del_hashtable((char*)arg, &deleted, 1);
+    printf("deleted: %s\n", deleted->path);
     return NULL;
 }
 
@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 {
     pthread_t tid;
     int err, status;
-    create_fifo();
+    create_hashtable(100);
 
     if((err=pthread_create(&tid, NULL, &myfun, "micio"))!=0){
         printf("errore\n");
@@ -49,7 +49,7 @@ int main(int argc, char const *argv[])
         printf("current->path: %s\n", current->path);
         current = current->next;
     }
-    delete_fifo();
+    destroy_hashtable();
 
     return 0;
 }

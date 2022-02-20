@@ -9,7 +9,7 @@
  * 
  */
 typedef struct hashtable {
-    struct list **queue;
+    list_t **queue;
     int curr_size;
     int max_size;
     int max_file;
@@ -25,7 +25,7 @@ hashtable *table;
  * @param str Stringa di cui calcolare l'hash
  * @return unsigned long Hash calcolato
  */
-unsigned long hash_function(unsigned char *str);
+unsigned long hash_function(char *str);
 
 //TODO:metti una funzione unica che prende dei puntatori a funzione 
 
@@ -69,7 +69,7 @@ int add_hashtable(char *name_file, int fd, int flags);
  *             202 nel caso in cui un altro client detenga la lock
  *             505 nel caso in cui il file non esista
  */
-int del_hashtable(char *name_file, node *just_deleted, int fd);
+int del_hashtable(char *name_file, node **just_deleted, int fd);
 
 /**
  * @brief Setta il flag open del nodo identificato da name_file

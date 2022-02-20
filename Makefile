@@ -8,7 +8,7 @@ UTILS = ./utils
 #all: cl
 all: test
 
-$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o 
+$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o $(SERVER)/hash.o 
 	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -shared -o $@ $^
 
 test: $(SERVER)/test.c $(SERVER)/libserver.so
