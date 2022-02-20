@@ -3,7 +3,6 @@
 #include <check_errors.h>
 
 #include <stdlib.h>
-#include <queue.h>
 
 unsigned long hash_function(unsigned char *str){
     unsigned long hash = 5381;

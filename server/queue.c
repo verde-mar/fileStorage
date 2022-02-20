@@ -1,8 +1,8 @@
-#include "queue.h"
+#include <queue.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "check_errors.h"
+#include <check_errors.h>
 #include <string.h>
 #include <errno.h>
 
@@ -210,7 +210,7 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
         curr = curr->next;
     }
     *just_deleted = NULL;
-    
+
     /* Il nodo non e' stato trovato */
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
