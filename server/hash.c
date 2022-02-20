@@ -10,10 +10,10 @@ unsigned long hash_function(char *str){
     int c = *str++;
 
     while (c){
-        hash = (hash * 16) + c;
+        hash += + c;
         c = *str++;
     }
-    return hash;
+    return (hash%16);
 }
 
 int create_hashtable(size_t size){
@@ -46,6 +46,7 @@ int create_hashtable(size_t size){
     /* Inizializza la size massima della tabella hash */
     table->max_size = size;
     /* Inizializza la mutex */
+    table->mutex_t = malloc(sizeof(pthread_mutex_t));
     PTHREAD_INIT_LOCK(table->mutex_t);
 
     return 0;
@@ -69,6 +70,8 @@ int destroy_hashtable (){
         fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
             return -1);
 
+    PTHREAD_DESTROY_LOCK(table->mutex_t);
+    free(table->mutex_t);
     /* Elimina la tabella hash */
     free(table);
 

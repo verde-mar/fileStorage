@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include <stdlib.h>
+#include <check_errors.h>
 
 void *myfun(void *arg){
     add_hashtable((char*)arg, 1, 2);
@@ -13,6 +14,16 @@ void *myfundelete(void *arg){
     node* deleted;
     del_hashtable((char*)arg, &deleted, 1);
     printf("deleted: %s\n", deleted->path);
+    PTHREAD_DESTROY_LOCK(deleted->mutex);
+    PTHREAD_DESTROY_COND(deleted->locked); 
+    free(deleted->mutex);
+    free(deleted->locked);
+
+    free((char*)deleted->path);
+    
+    if(deleted->buffer != NULL) free(deleted->buffer);
+
+    free(deleted);
     return NULL;
 }
 
