@@ -18,6 +18,7 @@ int create_list(list_t **lista_trabocco){
     /* Inizializza la testa */
     (*lista_trabocco)->head = NULL;
     /* Inizializza la mutex */
+    (*lista_trabocco)->mutex = malloc(sizeof(pthread_mutex_t));
     PTHREAD_INIT_LOCK((*lista_trabocco)->mutex);
 
     return 0;
@@ -34,12 +35,22 @@ int destroy_list(list_t **lista_trabocco){
     while ((*lista_trabocco)->head) {
         tmp = (*lista_trabocco)->head;
         (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
+
+        /* Libera la memoria del nodo corrente */
+        PTHREAD_DESTROY_LOCK(tmp->mutex);
+        PTHREAD_DESTROY_COND(tmp->locked); 
+        free(tmp->mutex);
+        free(tmp->locked);
+
         free((char*)tmp->path);
+        
         if(tmp->buffer != NULL) free(tmp->buffer);
+
         free(tmp);
     }
     /* Distrugge la lock di ciascun nodo */
     PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex)
+    free((*lista_trabocco)->mutex);
     /* Libera la memoria occupata dalla lista di trabocco */
     free(*lista_trabocco);
 
@@ -107,7 +118,9 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         curr->open = 1;
         curr->buffer = NULL;
         curr->fd_c = fd;
+        curr->locked = malloc(sizeof(pthread_cond_t));
         PTHREAD_INIT_COND(curr->locked);
+        curr->mutex = malloc(sizeof(pthread_mutex_t));
         PTHREAD_INIT_LOCK(curr->mutex);
 
         PTHREAD_LOCK((*lista_trabocco)->mutex);
