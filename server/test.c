@@ -11,19 +11,8 @@ void *myfun(void *arg){
 
 void *myfundelete(void *arg){
     
-    node* deleted;
-    del_hashtable((char*)arg, &deleted, 1);
-    printf("deleted: %s\n", deleted->path);
-    PTHREAD_DESTROY_LOCK(deleted->mutex);
-    PTHREAD_DESTROY_COND(deleted->locked); 
-    free(deleted->mutex);
-    free(deleted->locked);
-
-    free((char*)deleted->path);
-    
-    if(deleted->buffer != NULL) free(deleted->buffer);
-
-    free(deleted);
+    lock_hashtable((char*)arg, 1);
+    unlock_hashtable((char*)arg, 1);
     return NULL;
 }
 
@@ -55,11 +44,11 @@ int main(int argc, char const *argv[])
         pthread_join(tid2, (void*)&status);
     }
 
-    node_c* current = fifo_queue->head;
+    /*node_c* current = fifo_queue->head;
     while(current!=NULL){
         printf("current->path: %s\n", current->path);
         current = current->next;
-    }
+    }*/
     destroy_hashtable();
 
     return 0;

@@ -123,6 +123,8 @@ int lock_hashtable(char *name_file, int fd);
  */
 int read_hashtable(char *name_file, char** buf, int fd);
 
+int append_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
+int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
 #endif

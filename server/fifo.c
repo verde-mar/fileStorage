@@ -113,7 +113,7 @@ char* remove_fifo(){
     fifo_queue->head = current->next;
 
     /* Restituisce il path del nodo appena eliminato */
-    name = (char*) temp->path;
+    name = (char*)temp->path;
 
     free(temp);
     fifo_queue->elements--;

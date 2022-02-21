@@ -43,49 +43,17 @@ int destroy_list(list_t **lista_trabocco){
         free(tmp->locked);
 
         free((char*)tmp->path);
-        
+
         if(tmp->buffer != NULL) free(tmp->buffer);
 
         free(tmp);
     }
-    /* Distrugge la lock di ciascun nodo */
+    /* Distrugge la lock della lista di trabocco */
     PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex)
     free((*lista_trabocco)->mutex);
+
     /* Libera la memoria occupata dalla lista di trabocco */
     free(*lista_trabocco);
-
-    return 0;
-}
-
-int set_mutex(node *nodo, int fd){
-    CHECK_OPERATION(!nodo || fd<0,
-        fprintf(stderr, "Parametri non validi.\n");
-            return -1);
-            
-    PTHREAD_LOCK(nodo->mutex);
-
-    while(nodo->fd_c == -1){
-        PTHREAD_COND_WAIT(nodo->mutex, nodo->locked);
-    }
-
-    nodo->fd_c = fd;
-
-    PTHREAD_UNLOCK(nodo->mutex);
-
-    return 0;
-}
-
-int set_unmutex(node *nodo, int fd){
-    CHECK_OPERATION(!nodo || fd<0,
-        fprintf(stderr, "Parametri non validi.\n");
-            return -1);
-
-    PTHREAD_LOCK(nodo->mutex);
-
-    nodo->fd_c = -1;
-    PTHREAD_COND_SIGNAL(nodo->locked);
-    
-    PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
 }
@@ -96,7 +64,7 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
             return -1);
 
     /* Aggiunge il nodo in testa alla lista di trabocco, se non esiste gia' */
-    node* check_exists = look_for_node(*lista_trabocco, name_file);
+    node* check_exists = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(check_exists != NULL,
         fprintf(stderr, "Il nodo esiste gia'.\n");
                     return 101);
@@ -134,17 +102,10 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
     /* Se e' stata specificata l'operazione di acquisizione della lock */
     if(flags == 6 || flags == 4){
 
-        /* Cerca il nodo */
-        node* nodo = look_for_node(*lista_trabocco, name_file);
-        CHECK_OPERATION(nodo == NULL,
-            fprintf(stderr, "Il nodo non e' stato trovato.\n");
-                        return 505);
-
         /* Se il nodo esiste acquisisce la lock */
         int check_lock = lock(lista_trabocco, name_file, fd);
         CHECK_OPERATION(check_lock == -1,
             fprintf(stderr, "Il nodo non e' stato trovato.\n");
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
                         return 505);
 
     }
@@ -230,13 +191,15 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
     return -1;
 }
 
-node* look_for_node(list_t *lista_trabocco, char* name_file){
+node* look_for_node(list_t **lista_trabocco, char* name_file){
     node* curr;
-    PTHREAD_LOCK(lista_trabocco->mutex);
-    for (curr=lista_trabocco->head; curr != NULL; curr=curr->next)
-        if (strcmp(curr->path, name_file) == 0)
+    PTHREAD_LOCK((*lista_trabocco)->mutex);
+    for (curr=(*lista_trabocco)->head; curr != NULL; curr=curr->next)
+        if (strcmp(curr->path, name_file) == 0){
+            PTHREAD_UNLOCK((*lista_trabocco)->mutex);
             return(curr);
-    PTHREAD_UNLOCK(lista_trabocco->mutex);
+        }
+    PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     return NULL;
 }
 
@@ -246,7 +209,7 @@ int close(list_t **lista_trabocco, char* name_file, int fd){
             return -1);
 
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
@@ -255,6 +218,8 @@ int close(list_t **lista_trabocco, char* name_file, int fd){
     /* Se ha acquisito la lock e il flag open e' ad 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
         nodo->open = 0;
+        PTHREAD_UNLOCK(nodo->mutex);
+        return 0;
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
@@ -271,7 +236,7 @@ int close(list_t **lista_trabocco, char* name_file, int fd){
     
     PTHREAD_UNLOCK(nodo->mutex);
 
-    return 0;
+    return -1;
 }
 
 int unlock(list_t **lista_trabocco, char* name_file, int fd){
@@ -280,7 +245,7 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
             return -1);
 
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
@@ -288,11 +253,8 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
     PTHREAD_LOCK(nodo->mutex);
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
-        int err_unset = set_unmutex(nodo, fd);
-        CHECK_OPERATION(err_unset==-1,
-            fprintf(stderr, "Errore nel reset della mutex.\n");
-                PTHREAD_UNLOCK(nodo->mutex);
-                        return -1);
+        nodo->fd_c = -1;
+        PTHREAD_COND_SIGNAL(nodo->locked);
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
@@ -302,11 +264,10 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
     } 
     /* Il file non e' stato aperto */
     else if(nodo->open == 0){
-       PTHREAD_UNLOCK(nodo->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
 
         return 303;
     }
-    
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
@@ -316,27 +277,25 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
-
+    
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
-
+    
     PTHREAD_LOCK(nodo->mutex);
     /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
     if(nodo->fd_c == fd || nodo->fd_c == -1){
-        int err_set = set_mutex(nodo, fd);
-        CHECK_OPERATION(err_set==-1,
-            fprintf(stderr, "Errore nel set della mutex.\n");
-                PTHREAD_UNLOCK(nodo->mutex);
-                        return -1);
+        while(nodo->fd_c != -1 && nodo->fd_c != fd)
+            PTHREAD_COND_WAIT(nodo->mutex, nodo->locked);
+        
+        nodo->fd_c = fd;
     } else {
         PTHREAD_UNLOCK(nodo->mutex);
 
         return 303;
     }
-    
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
@@ -348,7 +307,7 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
             return -1);
 
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
@@ -383,7 +342,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
             return -1);
 
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
@@ -422,7 +381,7 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
             return -1);
 
     /* Ricerca il nodo */
-    node* nodo = look_for_node(*lista_trabocco, name_file);
+    node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);

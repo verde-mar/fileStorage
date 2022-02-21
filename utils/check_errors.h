@@ -69,7 +69,8 @@
         exit(-1);\
     }
 #define PTHREAD_DESTROY_LOCK(mtx) \
-    if(pthread_mutex_destroy(mtx) != 0){\
+    int err = pthread_mutex_destroy(mtx);\
+    if(err != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
         exit(-1);\
     }

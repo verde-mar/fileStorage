@@ -122,7 +122,7 @@ int close_hashtable(char *name_file, int fd){
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella chiusura di un elemento nella tabella hash.\n"); 
             return -1);
-
+    
     return success;
 }
 

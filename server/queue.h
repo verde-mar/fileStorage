@@ -79,7 +79,7 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
  * @param name_file Path del nodo ricercato
  * @return node* Nodo trovato, altrimenti NULL
  */
-node* look_for_node(list_t *lista_trabocco, char* name_file);
+node* look_for_node(list_t **lista_trabocco, char* name_file);
 
 /**
  * @brief Setta il flag 'open' del nodo identificato da name_file a 0
