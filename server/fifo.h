@@ -20,10 +20,14 @@ typedef struct list_cache {
     int elements;           
     struct node_c* head;    
     pthread_mutex_t *mutex; 
+    pthread_cond_t *cond;
 } list_c;
 
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
 list_c *fifo_queue;
+
+/* Lista di ordine FIFO utilizzata dal main e dai worker per la gestione delle richieste */
+list_c *queue_workers;
 
 /**
  * @brief Crea la lista con ordinamento FIFO

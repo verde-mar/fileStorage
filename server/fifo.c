@@ -18,6 +18,9 @@ int create_fifo(){
     /* Inizializza la mutex */
     fifo_queue->mutex = malloc(sizeof(pthread_mutex_t));
     PTHREAD_INIT_LOCK(fifo_queue->mutex);
+    /* Inizializza la variabile di condizione */
+    fifo_queue->cond = malloc(sizeof(pthread_cond_t));
+    PTHREAD_INIT_COND(fifo_queue->cond);
 
     return 0;
 }
@@ -34,6 +37,9 @@ int delete_fifo(){
     /* Distrugge la lock di ciascun nodo */
     PTHREAD_DESTROY_LOCK(fifo_queue->mutex);
     free(fifo_queue->mutex);
+    /* Distrugge la variabile di condizione di ciascun nodo */
+    PTHREAD_DESTROY_LOCK(fifo_queue->cond);
+    free(fifo_queue->cond);
     /* Libera la memoria occupata dalla lista di trabocco */
     free(fifo_queue);
 
@@ -65,6 +71,37 @@ int add_fifo(char *name_file){
     return 0;
 }
 
+int push_queue(char *request){
+    node_c *current, *new_node; 
+    /* Crea il nodo da aggiungere */
+    new_node = malloc(sizeof(node_c));
+    CHECK_OPERATION(new_node == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+            return -1);
+
+    new_node->path = request;
+    new_node->next = NULL;
+
+    /* Aggiunge il nuovo nodo in coda */
+    PTHREAD_LOCK(queue_workers->mutex);
+
+    current = fifo_queue->head;
+    if (current == NULL)
+        fifo_queue->head = new_node; 
+    else {
+        while(current->next!=NULL)
+            current = current->next;
+        current->next = new_node;
+    }
+    fifo_queue->elements++;
+
+    PTHREAD_COND_SIGNAL(queue_workers->cond);
+
+    PTHREAD_UNLOCK(queue_workers->mutex);
+
+    return 0;
+}
+
 int del(char *name_file){
     node_c* curr, *prev;
     PTHREAD_LOCK(fifo_queue->mutex);
@@ -75,8 +112,7 @@ int del(char *name_file){
         fifo_queue->head = curr->next; 
         free(curr);
         fifo_queue->elements--;
-        PTHREAD_UNLOCK(fifo_queue->mutex); //chiedi a tato se va bene che ci siano le lock nella coda fifo, anche se il metodo viene chiamato all'interno dei metodi
-        //della queue.c anche quando la queue.c prende la sua di lock
+        PTHREAD_UNLOCK(fifo_queue->mutex); 
 
         return 0;
     }
@@ -106,6 +142,7 @@ char* remove_fifo(){
 
     /* Elimina la testa della lista */
     PTHREAD_LOCK(fifo_queue->mutex);
+
     if(fifo_queue->head == NULL){
         PTHREAD_UNLOCK(fifo_queue->mutex);
         return NULL;
@@ -126,3 +163,28 @@ char* remove_fifo(){
     return name;
 }
 
+char *remove_workers(){
+    char* name;
+    node_c *temp;
+
+    /* Elimina la testa della lista */
+    PTHREAD_LOCK(fifo_queue->mutex);
+
+    while(queue_workers->elements == 0){
+        PTHREAD_COND_WAIT(queue_workers->mutex, queue_workers->cond);
+    }
+
+    temp = fifo_queue->head;
+    node_c *current = fifo_queue->head;
+    fifo_queue->head = current->next;
+
+    /* Restituisce il path del nodo appena eliminato */
+    name = (char*)temp->path;
+
+    free(temp);
+    queue_workers->elements--;
+
+    PTHREAD_UNLOCK(queue_workers->mutex);
+    
+    return name;
+}
