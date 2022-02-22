@@ -193,3 +193,61 @@ int caller(int (*fun) (const char*), const char* pathname){
 
     return 0;
 }
+
+int read_from_file(char *pathname, char** buf, int *size){
+    /* Apre il file */
+    FILE *new_file = fopen(pathname, "r");
+    CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); return -1);
+
+    /* Legge dal file */
+    struct stat st;
+    stat(pathname, &st);
+    int size = st.st_size;
+    *buf = malloc(sizeof(char)*(*size));
+    int err_fwrite = fread(*buf, *size, 1, new_file); 
+    CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
+
+    /* Chiude il file */
+    int check = fclose(new_file);
+    CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella fclose.\n"); return -1);
+
+    return 0;
+}
+
+int freed(int *byte_letti, int *byte_scritti, int *size_path, char *actual_request, char** path, char **old_file, int *size_old){
+    /* Legge il path del file appena eliminato */
+    errno = 0;
+    byte_letti += read_size(fd_skt, size_path);
+    CHECK_OPERATION(errno == EFAULT,
+    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        free(actual_request);
+            return -1);
+    *path = malloc(sizeof(char)*(*size_path));
+    CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
+    errno = 0;
+    byte_letti = read_msg(fd_skt, path, size_path);
+    CHECK_OPERATION(errno == EFAULT,
+    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        free(actual_request);
+            return -1);
+
+    /* Legge il file e lo memorizza su disco */
+    errno = 0;
+    byte_letti = read_size(fd_skt, &size_old);
+    CHECK_OPERATION(errno == EFAULT,
+    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        free(actual_request);
+            return -1);
+    *old_file = malloc(sizeof(char)*(*size_old));
+    CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
+    errno = 0;
+    byte_letti = read_msg(fd_skt, old_file, size_old);
+    CHECK_OPERATION(errno == EFAULT,
+    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        free(actual_request);
+            return -1);
+
+    return 0;
+}

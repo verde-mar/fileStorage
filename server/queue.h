@@ -123,23 +123,6 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd);
  */
 int lock(list_t **lista_trabocco, char* name_file, int fd);
 
-/**
- * @brief Funzione ausiliaria alla funzione lock
- * 
- * @param nodo Nodo di cui settare la mutex
- * @param fd File descriptor del client che ha effettuato la richiesta
- * @return int 0 in caso di successo, -1 altrimenti
- */
-int set_mutex(node *nodo, int fd);
-
-/**
- * @brief Funzione ausiliaria alla funzione unlock
- * 
- * @param nodo Nodo di cui resettare la mutex
- * @param fd File descriptor del client che ha effettuato la richiesta
- * @return int 0 in caso di successo, -1 altrimenti
- */
-int set_unmutex(node *nodo, int fd);
 
 /**
  * @brief Effettua l'append di un buffer su quello del nodo identificato da name_file
@@ -147,6 +130,9 @@ int set_unmutex(node *nodo, int fd);
  * @param lista_trabocco Lista in cui si trova il nodo su cui effettuare l'operazione
  * @param name_file Path che identifica il nodo
  * @param buf Buffer su cui effettuare la append
+ * @param size_buf Size di buf
+ * @param max_size Massima size possibile della tabella hash
+ * @param curr_size Size corrente della tabella hash
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -154,7 +140,7 @@ int set_unmutex(node *nodo, int fd);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd);
+int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int *max_size, int* curr_size, int fd);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da name_file
@@ -163,6 +149,8 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
  * @param name_file Path che identifica il nodo
  * @param buf Buffer da scrivere sul nodo
  * @param size_buf Size di buf
+ * @param max_size Massima size possibile della tabella hash
+ * @param curr_size Size corrente della tabella hash
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -170,7 +158,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
  *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int fd);
+int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int *max_size, int* curr_size, int fd);
 
 /**
  * @brief Legge il file identificato da name_file

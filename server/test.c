@@ -5,14 +5,13 @@
 #include <check_errors.h>
 
 void *myfun(void *arg){
-    add_hashtable((char*)arg, 1, 2);
+    add_hashtable((char*)arg, 1, 6);
     return NULL;
 }
 
 void *myfundelete(void *arg){
-    
-    lock_hashtable((char*)arg, 1);
-    unlock_hashtable((char*)arg, 1);
+   close_hashtable((char*)arg, 1);
+
     return NULL;
 }
 
@@ -44,11 +43,6 @@ int main(int argc, char const *argv[])
         pthread_join(tid2, (void*)&status);
     }
 
-    /*node_c* current = fifo_queue->head;
-    while(current!=NULL){
-        printf("current->path: %s\n", current->path);
-        current = current->next;
-    }*/
     destroy_hashtable();
 
     return 0;

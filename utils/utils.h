@@ -54,4 +54,14 @@ int save_on_disk(char *dirname, char *filename, char* buf, size_t size);
  */
 int caller(int (*fun) (const char*), const char* pathname);
 
+/**
+ * @brief Legge da un file su disco
+ * 
+ * @param pathname Path del file
+ * @param buf Buffer in cui memorizzare i dati del file
+ * @param size Size di buf
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int read_from_file(char *pathname, char** buf, int *size);
+
 #endif

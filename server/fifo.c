@@ -52,7 +52,6 @@ int add_fifo(char *name_file){
     new_node->next = NULL;
 
     /* Aggiunge il nuovo nodo in coda */
-    PTHREAD_LOCK(fifo_queue->mutex);
     current = fifo_queue->head;
     if (current == NULL)
         fifo_queue->head = new_node; 
@@ -62,8 +61,6 @@ int add_fifo(char *name_file){
         current->next = new_node;
     }
     fifo_queue->elements++;
-
-    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return 0;
 }
@@ -78,7 +75,8 @@ int del(char *name_file){
         fifo_queue->head = curr->next; 
         free(curr);
         fifo_queue->elements--;
-        PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex); //chiedi a tato se va bene che ci siano le lock nella coda fifo, anche se il metodo viene chiamato all'interno dei metodi
+        //della queue.c anche quando la queue.c prende la sua di lock
 
         return 0;
     }
@@ -108,6 +106,11 @@ char* remove_fifo(){
 
     /* Elimina la testa della lista */
     PTHREAD_LOCK(fifo_queue->mutex);
+    if(fifo_queue->head == NULL){
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+        return NULL;
+    }
+
     temp = fifo_queue->head;
     node_c *current = fifo_queue->head;
     fifo_queue->head = current->next;

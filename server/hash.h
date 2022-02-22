@@ -13,7 +13,6 @@ typedef struct hashtable {
     int curr_size;
     int max_size;
     int max_file;
-    pthread_mutex_t *mutex_t;
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
@@ -123,8 +122,26 @@ int lock_hashtable(char *name_file, int fd);
  */
 int read_hashtable(char *name_file, char** buf, int fd);
 
+/**
+ * @brief 
+ * 
+ * @param name_file 
+ * @param buf 
+ * @param deleted 
+ * @param fd 
+ * @return int 
+ */
 int append_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
+/**
+ * @brief 
+ * 
+ * @param name_file 
+ * @param buf 
+ * @param deleted 
+ * @param fd 
+ * @return int 
+ */
 int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
 #endif
