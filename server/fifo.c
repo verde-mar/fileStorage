@@ -163,7 +163,7 @@ char* remove_fifo(){
     return name;
 }
 
-char *remove_workers(){
+char *pop_queue(){
     char* name;
     node_c *temp;
 

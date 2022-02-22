@@ -66,4 +66,7 @@ int del(char *name_file);
  */
 char* remove_fifo();
 
+char *pop_queue();
+int push_queue(char *request);
+
 #endif

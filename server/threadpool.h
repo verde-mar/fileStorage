@@ -9,23 +9,23 @@
  * @brief Risposta da inviare al client
  */
 typedef struct risposta {
-    int fd_richiesta;           //File descriptor del client a cui rispondere
-    int errore;                 //Codice di errore da inviare al client
-    void* buffer_file;          //Eventuale buffer associato al file da inviare al client
-    size_t size_file;           //Size di buffer_file
+    int fd_richiesta;          
+    int errore;                
+    char* buffer_file; 
+    char* path;         
 } response;
 
 /**
  *  @brief Threadpool
  */
 typedef struct threadpool {
-    pthread_t* threads;         //Array di workers
-    int response_pipe;          //File descriptor della pipe su cui inviare le risposte al main
-    list_c *pending_requests;   //Coda delle richieste pendenti
+    pthread_t* threads;         
+    int response_pipe;         
+    list_c *pending_requests;   
 } threadpool_t;
 
 threadpool_t *threadpool;
 
-int create_threadpool(int num_thread);
+int create_threadpool(threadpool_t **threadpool, int num_thread, int pipe_lettura);
 
 #endif
