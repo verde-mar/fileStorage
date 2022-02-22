@@ -14,14 +14,18 @@ void *myfundelete(void *arg){
 
     return NULL;
 }
+struct threadpool {
 
+};
 int main(int argc, char const *argv[])
 {
+
+    struct threadpool t;
     pthread_t tid;
     int err, status;
     create_hashtable(100);
 
-    if((err=pthread_create(&tid, NULL, &myfun, "micio"))!=0){
+    if((err=pthread_create(&tid, NULL, &myfun, &t))!=0){
         printf("errore\n");
     } else {
         pthread_join(tid, (void*)&status);
