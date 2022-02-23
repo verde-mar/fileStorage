@@ -16,7 +16,7 @@ typedef struct node_c {
  * @brief Lista con ordinamento FIFO
  * 
  */
-typedef struct list_cache {
+typedef struct l {
     int elements;           
     struct node_c* head;    
     pthread_mutex_t *mutex; 
@@ -32,16 +32,18 @@ list_c *queue_workers;
 /**
  * @brief Crea la lista con ordinamento FIFO
  * 
- * @return int 0 in caso di successo, -1 altrimenti
+ * @param queue Coda da creare
+ * @return int int 0 in caso di successo, -1 altrimenti
  */
-int create_fifo();
+int create_fifo(list_c **queue);
 
 /**
  * @brief Elimina la lista con ordinamento FIFO
  * 
+ * @param queue Coda da eliminare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int delete_fifo();
+int delete_fifo(list_c **queue);
 
 /**
  * @brief Aggiunge un elemento nella coda FIFO
@@ -62,11 +64,17 @@ int del(char *name_file);
 /**
  * @brief Rimuove l' elemento in testa della coda
  * 
+ * @param queue Coda da cui rimuovere la testa
  * @return Path dell'elemento appena eliminato
  */
-char* remove_fifo();
+char* remove_fifo(list_c *queue);
 
-char *pop_queue();
+/**
+ * @brief Aggiunge un elemento alla coda condivisa tra il thread main e gli worker, in mutua esclusione
+ * 
+ * @param request Richiesta da aggiungere
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
 int push_queue(char *request);
 
 #endif

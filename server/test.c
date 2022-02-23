@@ -3,25 +3,20 @@
 
 #include <stdlib.h>
 #include <check_errors.h>
+#include <threadpool.h>
 
 void *myfun(void *arg){
     add_hashtable((char*)arg, 1, 6);
     return NULL;
 }
 
-void *myfundelete(void *arg){
-   close_hashtable((char*)arg, 1);
 
-    return NULL;
-}
-struct threadpool {
-
-};
 int main(int argc, char const *argv[])
 {
-
-    struct threadpool t;
-    pthread_t tid;
+    threadpool_t* t;
+    create_threadpool(&t, 10, 2);
+   
+    /*pthread_t tid;
     int err, status;
     create_hashtable(100);
 
@@ -39,15 +34,8 @@ int main(int argc, char const *argv[])
         pthread_join(tid1, (void*)&status);
     }
 
-    pthread_t tid2;
-    int err2;
-    if((err2=pthread_create(&tid2, NULL, &myfundelete, "cane"))!=0){
-        printf("errore\n");
-    } else {
-        pthread_join(tid2, (void*)&status);
-    }
 
-    destroy_hashtable();
-
+    destroy_hashtable();*/
+    destroy_threadpool(&t);
     return 0;
 }

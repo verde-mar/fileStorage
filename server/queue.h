@@ -93,7 +93,7 @@ node* look_for_node(list_t **lista_trabocco, char* name_file);
  *             303 nel caso in cui si riprovi a fare la closeFile dopo averla gia' fatta
  *             505 nel caso in cui il file non esista
  */
-int close(list_t **lista_trabocco, char* name_file, int fd);
+int closes(list_t **lista_trabocco, char* name_file, int fd);
 
 /**
  * @brief Resetta la variabile fd_c del nodo identificato da name_file

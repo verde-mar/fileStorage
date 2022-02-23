@@ -5,43 +5,48 @@
 #include <string.h>
 #include <stdlib.h>
 
-int create_fifo(){
-    fifo_queue = malloc(sizeof(list_c));
-    CHECK_OPERATION(fifo_queue == NULL,
+int create_fifo(list_c **queue){
+    *queue = malloc(sizeof(list_c));
+    CHECK_OPERATION((*queue) == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
 
     /* Inizializza il numero di elementi iniziali */
-    fifo_queue->elements = 0;
+    (*queue)->elements = 0;
     /* Inizializza la testa */
-    fifo_queue->head = NULL;
+    (*queue)->head = NULL;
     /* Inizializza la mutex */
-    fifo_queue->mutex = malloc(sizeof(pthread_mutex_t));
-    PTHREAD_INIT_LOCK(fifo_queue->mutex);
+    (*queue)->mutex = malloc(sizeof(pthread_mutex_t));
+    CHECK_OPERATION((*queue)->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_LOCK((*queue)->mutex);
     /* Inizializza la variabile di condizione */
-    fifo_queue->cond = malloc(sizeof(pthread_cond_t));
-    PTHREAD_INIT_COND(fifo_queue->cond);
+    (*queue)->cond = malloc(sizeof(pthread_cond_t));
+    CHECK_OPERATION((*queue)->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_COND((*queue)->cond);
 
     return 0;
 }
 
-int delete_fifo(){
+
+int delete_fifo(list_c **queue){
     /* Rimuove ogni elemento della coda */
     node_c *tmp = NULL;
-    while (fifo_queue->head) {
-        tmp = fifo_queue->head;
-        fifo_queue->head = (fifo_queue->head)->next;
+    while ((*queue)->head) {
+        tmp = (*queue)->head;
+        (*queue)->head = ((*queue)->head)->next;
+
+        free((char*)tmp->path);
         free(tmp);
     }
     
     /* Distrugge la lock di ciascun nodo */
-    PTHREAD_DESTROY_LOCK(fifo_queue->mutex);
-    free(fifo_queue->mutex);
+    PTHREAD_DESTROY_LOCK((*queue)->mutex);
+    free((*queue)->mutex);
     /* Distrugge la variabile di condizione di ciascun nodo */
-    PTHREAD_DESTROY_LOCK(fifo_queue->cond);
-    free(fifo_queue->cond);
+    PTHREAD_DESTROY_COND((*queue)->cond);
+    free((*queue)->cond);
     /* Libera la memoria occupata dalla lista di trabocco */
-    free(fifo_queue);
+    free((*queue));
 
     return 0;
 }
@@ -51,7 +56,7 @@ int add_fifo(char *name_file){
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(node_c));
     CHECK_OPERATION(new_node == NULL,
-        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+        fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
             return -1);
 
     new_node->path = name_file;
@@ -110,6 +115,7 @@ int del(char *name_file){
     curr = fifo_queue->head;
     if (strcmp(curr->path, name_file) == 0){
         fifo_queue->head = curr->next; 
+        free((char*)curr->path);
         free(curr);
         fifo_queue->elements--;
         PTHREAD_UNLOCK(fifo_queue->mutex); 
@@ -136,21 +142,19 @@ int del(char *name_file){
     return -1;
 }
 
-char* remove_fifo(){
+char* remove_fifo(list_c *queue){
     char* name;
     node_c *temp;
 
     /* Elimina la testa della lista */
-    PTHREAD_LOCK(fifo_queue->mutex);
+    PTHREAD_LOCK(queue->mutex);
 
-    if(fifo_queue->head == NULL){
-        PTHREAD_UNLOCK(fifo_queue->mutex);
-        return NULL;
-    }
+    while(queue->elements == 0)
+        PTHREAD_COND_WAIT(queue->mutex, queue->cond);
 
-    temp = fifo_queue->head;
-    node_c *current = fifo_queue->head;
-    fifo_queue->head = current->next;
+    temp = queue->head;
+    node_c *current = queue->head;
+    queue->head = current->next;
 
     /* Restituisce il path del nodo appena eliminato */
     name = (char*)temp->path;
@@ -158,33 +162,7 @@ char* remove_fifo(){
     free(temp);
     fifo_queue->elements--;
 
-    PTHREAD_UNLOCK(fifo_queue->mutex);
-    
-    return name;
-}
-
-char *pop_queue(){
-    char* name;
-    node_c *temp;
-
-    /* Elimina la testa della lista */
-    PTHREAD_LOCK(fifo_queue->mutex);
-
-    while(queue_workers->elements == 0){
-        PTHREAD_COND_WAIT(queue_workers->mutex, queue_workers->cond);
-    }
-
-    temp = fifo_queue->head;
-    node_c *current = fifo_queue->head;
-    fifo_queue->head = current->next;
-
-    /* Restituisce il path del nodo appena eliminato */
-    name = (char*)temp->path;
-
-    free(temp);
-    queue_workers->elements--;
-
-    PTHREAD_UNLOCK(queue_workers->mutex);
+    PTHREAD_UNLOCK(queue->mutex);
     
     return name;
 }

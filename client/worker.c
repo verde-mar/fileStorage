@@ -65,7 +65,7 @@ int openFile(const char *pathname, int flags){
     /* Determina il tipo di richiesta da effettuare in base al valore di flags */
     char *request = NULL;
     if(flags == 6){
-        request = "create;lock;";
+        request = "open";
     } else if(flags == 2){
         request = "create;";
     } else if(flags == 4){
@@ -494,7 +494,7 @@ int readNFiles(int N, const char* dirname){
         count++;
 
         /* Invia la richiesta */
-        byte_scritti = write_msg(fd_skt, "read;", (strlen("read;")+1)); 
+        byte_scritti = write_msg(fd_skt, "readN;", (strlen("readN;")+1)); 
         CHECK_OPERATION(errno == EFAULT,
             fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
                 return -1);

@@ -21,6 +21,7 @@ int create_list(list_t **lista_trabocco){
     (*lista_trabocco)->head = NULL;
     /* Inizializza la mutex */
     (*lista_trabocco)->mutex = malloc(sizeof(pthread_mutex_t));
+    CHECK_OPERATION((*lista_trabocco)->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
     PTHREAD_INIT_LOCK((*lista_trabocco)->mutex);
 
     return 0;
@@ -107,7 +108,7 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
     }
 
     /* Se e' stata specificata l'operazione di acquisizione della lock */
-    if(flags == 6 || flags == 4){
+    if(flags == 6){
 
         /* Se il nodo esiste acquisisce la lock */
         int check_lock = lock(lista_trabocco, name_file, fd);
@@ -118,14 +119,13 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
     }
 
     /* Se non e' stata specificata nessuna operazione valida, allora restituisce un errore */
-    CHECK_OPERATION((flags!=2 && flags!=4) && flags !=6, 
+    CHECK_OPERATION(flags!=2 && flags !=6, 
         fprintf(stderr, "Flag non validi.\n");
             return 404;);
     
     return 0;
 }
 
-//TODO: puoi abbreviarla usando la look_for_node
 int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
@@ -149,7 +149,18 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
                     si procede con l'eliminazione */
             if(curr->open == 1 && curr->fd_c == fd){
                 prev->next = curr->next; 
-                *just_deleted = curr;
+                if(*just_deleted != NULL) //TODO: questo controllo e' corretto?
+                    *just_deleted = curr;
+                else {
+                    PTHREAD_DESTROY_LOCK(curr->mutex);
+                    PTHREAD_DESTROY_COND(curr->locked); 
+                    free(curr->locked);
+                    free(curr->mutex);
+                    free((char*)curr->path);
+                    if(curr->buffer)
+                        free(curr->buffer); 
+                    free(curr);
+                }
                 int success = del(name_file);
                 CHECK_OPERATION(success==-1, 
                     fprintf(stderr, "Errore nell'inserimento di un elemento nella coda fifo.\n"); 
@@ -199,7 +210,7 @@ node* look_for_node(list_t **lista_trabocco, char* name_file){
     return NULL;
 }
 
-int close(list_t **lista_trabocco, char* name_file, int fd){
+int closes(list_t **lista_trabocco, char* name_file, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -349,7 +360,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
     if(size_buf<=*max_size){
         *curr_size += size_buf;
         if(*curr_size > *max_size){
-            char* to_delete = remove_fifo();
+            char* to_delete = remove_fifo(fifo_queue);
             if(to_delete){
                 int delete = del(name_file);
                 CHECK_OPERATION(delete == -1, PTHREAD_UNLOCK(fifo_queue->mutex); return -1);
@@ -406,7 +417,7 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
     if(size_buf<=*max_size){
         *curr_size += size_buf;
         if(*curr_size > *max_size){
-            char* to_delete = remove_fifo();
+            char* to_delete = remove_fifo(fifo_queue);
             if(to_delete){
                 int delete = del(name_file);
                 CHECK_OPERATION(delete == -1, PTHREAD_UNLOCK(fifo_queue->mutex); return -1);
@@ -447,4 +458,3 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
 
     return 0;
 }
-

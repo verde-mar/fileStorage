@@ -123,24 +123,32 @@ int lock_hashtable(char *name_file, int fd);
 int read_hashtable(char *name_file, char** buf, int fd);
 
 /**
- * @brief 
+ * @brief Effettua l'append sul file identificato da name_file
  * 
- * @param name_file 
- * @param buf 
- * @param deleted 
- * @param fd 
- * @return int 
+ * @param name_file Path del file su cui eseguire l'append
+ * @param buf Buffer di cui fare l'append
+ * @param deleted Nodo in cui memorizzare un nodo eventualmente eliminato per fare spazio a buf
+ * @param fd File descriptor del client che ha richiesto l'operazione 
+ * @return int 0 in caso di successo
+ *             -1 in caso di generico fallimento
+ *              303 nel caso in cui si provi a fare la append dopo la close
+ *              505 nel caso in cui il file non esista
+ *              202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
 int append_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
 /**
- * @brief 
+ * @brief Scrive sul file identificato da name_file
  * 
- * @param name_file 
- * @param buf 
- * @param deleted 
- * @param fd 
- * @return int 
+ * @param name_file Path del file su cui eseguire la write
+ * @param buf Buffer da scrivere sul file
+ * @param deleted Nodo in cui memorizzare un nodo eventualmente eliminato per fare spazio a buf
+ * @param fd File descriptor del client che ha richiesto l'operazione 
+ * @return int 0 in caso di successo
+ *             -1 in caso di generico fallimento
+ *              303 nel caso in cui si provi a fare la append dopo la close
+ *              505 nel caso in cui il file non esista
+ *              202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
 int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
 
