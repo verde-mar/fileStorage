@@ -76,7 +76,7 @@ int add_fifo(char *name_file){
     return 0;
 }
 
-int push_queue(char *request){
+int push_queue(char *request, list_c **queue){
     node_c *current, *new_node; 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(node_c));
@@ -88,21 +88,21 @@ int push_queue(char *request){
     new_node->next = NULL;
 
     /* Aggiunge il nuovo nodo in coda */
-    PTHREAD_LOCK(queue_workers->mutex);
+    PTHREAD_LOCK((*queue)->mutex);
 
-    current = fifo_queue->head;
+    current = (*queue)->head;
     if (current == NULL)
-        fifo_queue->head = new_node; 
+        (*queue)->head = new_node; 
     else {
         while(current->next!=NULL)
             current = current->next;
         current->next = new_node;
     }
-    fifo_queue->elements++;
+    (*queue)->elements++;
 
-    PTHREAD_COND_SIGNAL(queue_workers->cond);
+    PTHREAD_COND_SIGNAL((*queue)->cond);
 
-    PTHREAD_UNLOCK(queue_workers->mutex);
+    PTHREAD_UNLOCK((*queue)->mutex);
 
     return 0;
 }
@@ -160,7 +160,7 @@ char* remove_fifo(list_c *queue){
     name = (char*)temp->path;
 
     free(temp);
-    fifo_queue->elements--;
+    queue->elements--;
 
     PTHREAD_UNLOCK(queue->mutex);
     

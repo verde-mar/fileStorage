@@ -26,8 +26,6 @@ typedef struct l {
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
 list_c *fifo_queue;
 
-/* Lista di ordine FIFO utilizzata dal main e dai worker per la gestione delle richieste */
-list_c *queue_workers;
 
 /**
  * @brief Crea la lista con ordinamento FIFO
@@ -73,8 +71,9 @@ char* remove_fifo(list_c *queue);
  * @brief Aggiunge un elemento alla coda condivisa tra il thread main e gli worker, in mutua esclusione
  * 
  * @param request Richiesta da aggiungere
+ * @param queue Coda a cui aggiungere un elemento
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int push_queue(char *request);
+int push_queue(char *request, list_c **queue);
 
 #endif

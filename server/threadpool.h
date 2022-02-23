@@ -13,7 +13,7 @@ typedef struct risposta {
     int errore;                
     char* buffer_file; 
     char* path;     
-    node_c *deleted;    
+    node *deleted;    
 } response;
 
 /**
@@ -23,6 +23,7 @@ typedef struct threadpool {
     pthread_t* threads;         
     int response_pipe;         
     list_c *pending_requests;   
+    int num_thread;
 } threadpool_t;
 
 /**

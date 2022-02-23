@@ -9,14 +9,14 @@
 static int tokenizer(char *to_token, char** operation, char** path, char** file, char **fd){
     CHECK_OPERATION((to_token==NULL), fprintf(stderr, "Stringa da tokenizzare non valida.\n"); return -1);
     char *pars = to_token, *str = NULL;
-    char* token = strtok_r(pars,  ";", &str);
-    *operation = strcpy(*operation, token);
-    token = strtok_r(pars, ";", &str);
-    *path = strcpy(*path, token);
-    token = strtok_r(pars, ";", &str);
-    *file = strcpy(*file, token);
+    char* token = strtok_r(pars, ";", &str);
+    *operation = token;
     token = strtok_r(NULL, ";", &str);
-    *fd = strcpy(*fd, token);
+    *path = token;
+    token = strtok_r(NULL, ";", &str);
+    *file = token;
+    token = strtok_r(NULL, ";", &str);
+    *fd = token;
 
     return 0;
 }
@@ -35,9 +35,10 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     risp->errore = err;
     risp->path = path;
     risp->buffer_file = buf;
+    risp->deleted = deleted;
     
     /* Scrive il puntatore della response sulla pipe delle risposte */
-    err_pipe = write(pool->response_pipe, risp, sizeof(response*)); //TODO: ma non serve una lock sulla pipe??? perche' se piu' worker vogliono scriverci :think
+    err_pipe = write(pool->response_pipe, risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe==-1, 
         return -1);
 
@@ -54,17 +55,22 @@ static void* working(void* pool){
     CHECK_OPERATION(!(pool), fprintf(stderr, "Parametri non validi.\n"); return (void*)NULL);
     threadpool_t **threadpool = (threadpool_t**) pool;
 
-    /* Preleva una richiesta dalla coda richieste */
+
+    /* Preleva una richiesta dalla coda  delle richieste */
     char* req = remove_fifo((*threadpool)->pending_requests);
     CHECK_OPERATION(req == NULL, fprintf(stderr, "Errore nella pop di una richiesta.\n"); return (void*)NULL);
-    
+    printf("request: %s\n", req);
     /* Tokenizza la richiesta */
     char *operation, *path, *file, *fd;
     int err_token = tokenizer(req, &operation, &path, &file, &fd);
     CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return NULL);
-    
+    printf("operation: %s\n", operation);
+    printf("path: %s\n", path);
+    printf("file: %s\n", file);
+    printf("fd: %s\n", fd);
+
     /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
-    if(!strcmp(operation, "write")){
+    /*if(!strcmp(operation, "write")){
         node *deleted;
         int fd_c = strtol(fd, NULL, 10);
         int err_write = write_hashtable(path, file, &deleted, fd_c);
@@ -120,7 +126,7 @@ static void* working(void* pool){
         int err_invio = invia_risposta((*threadpool), err_open_create, fd_c, NULL, NULL, NULL);
         CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
     } 
-
+*/
     return (void*)NULL;
 }
 
@@ -130,6 +136,7 @@ int create_threadpool(threadpool_t** threadpool, int num_thread, int pipe_scritt
     CHECK_OPERATION(threadpool == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
     (*threadpool)->response_pipe = pipe_scrittura;
+    (*threadpool)->num_thread = num_thread;
 
     /* Inizializza la coda condivisa tra il thread main e gli worker */
     int err = create_fifo(&(*threadpool)->pending_requests); 
@@ -151,7 +158,20 @@ int create_threadpool(threadpool_t** threadpool, int num_thread, int pipe_scritt
 
 int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
+    int del = 0;
 
-    
+    for(int i = 0; i < (*threadpool)->num_thread; i++) {
+        if(pthread_join((*threadpool)->threads[i], NULL) != 0) {
+            del = delete_fifo(&(*threadpool)->pending_requests);
+            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
+        }
+    }
+    free((*threadpool)->threads);
+
+    del = delete_fifo(&(*threadpool)->pending_requests);
+    CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
+
+    free(*threadpool);
+
     return 0;
 }

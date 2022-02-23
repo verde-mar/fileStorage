@@ -5,16 +5,13 @@
 #include <check_errors.h>
 #include <threadpool.h>
 
-void *myfun(void *arg){
-    add_hashtable((char*)arg, 1, 6);
-    return NULL;
-}
-
 
 int main(int argc, char const *argv[])
 {
     threadpool_t* t;
-    create_threadpool(&t, 10, 2);
+    create_threadpool(&t, 1, 2);
+
+    push_queue((char*)argv[1], &(t->pending_requests));
    
     /*pthread_t tid;
     int err, status;
