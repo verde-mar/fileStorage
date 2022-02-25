@@ -76,4 +76,12 @@ char* remove_fifo(list_c *queue);
  */
 int push_queue(char *request, list_c **queue);
 
+/**
+ * @brief Rimuove l' elemento in testa della coda
+ * 
+ * @param queue Coda da cui rimuovere la testa
+ * @return Path dell'elemento appena eliminato
+ */
+char* pop_queue(list_c *queue);
+
 #endif

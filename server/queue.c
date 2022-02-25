@@ -295,7 +295,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
     /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
     if(nodo->fd_c == fd || nodo->fd_c == -1){
         while(nodo->fd_c != -1 && nodo->fd_c != fd)
-            PTHREAD_COND_WAIT(nodo->mutex, nodo->locked);
+            PTHREAD_COND_WAIT(nodo->locked, nodo->mutex);
         
         nodo->fd_c = fd;
     } else {

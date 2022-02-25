@@ -149,8 +149,30 @@ char* remove_fifo(list_c *queue){
     /* Elimina la testa della lista */
     PTHREAD_LOCK(queue->mutex);
 
+    temp = queue->head;
+    node_c *current = queue->head;
+    queue->head = current->next;
+
+    /* Restituisce il path del nodo appena eliminato */
+    name = (char*)temp->path;
+
+    free(temp);
+    queue->elements--;
+
+    PTHREAD_UNLOCK(queue->mutex);
+    
+    return name;
+}
+
+char* pop_queue(list_c *queue){
+    char* name;
+    node_c *temp;
+
+    /* Elimina la testa della lista */
+    PTHREAD_LOCK(queue->mutex);
+
     while(queue->elements == 0)
-        PTHREAD_COND_WAIT(queue->mutex, queue->cond);
+        PTHREAD_COND_WAIT(queue->cond, queue->mutex);
 
     temp = queue->head;
     node_c *current = queue->head;
@@ -158,6 +180,7 @@ char* remove_fifo(list_c *queue){
 
     /* Restituisce il path del nodo appena eliminato */
     name = (char*)temp->path;
+    printf("NOME DELLA RICHIESTA: %s\n", name);
 
     free(temp);
     queue->elements--;

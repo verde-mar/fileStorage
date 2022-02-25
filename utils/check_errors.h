@@ -80,7 +80,7 @@
         exit(-1);\
     }
 
-#define PTHREAD_COND_WAIT(mtx, cond) \
+#define PTHREAD_COND_WAIT(cond, mtx) \
     if(pthread_cond_wait(cond, mtx) != 0){\
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione.\nRiprova al prossimo avvio.\n");\
         exit(-1);\

@@ -51,6 +51,8 @@ int main(int argc, char const *argv[]) {
     /* Crea il threadpool */
     threadpool_t* pool;
     int err_create_pool = create_threadpool(&pool, 2, response_pipe[1]);
+    CHECK_OPERATION(err_create_pool == -1, fprintf(stderr, "Errore nella creazione del theradpool.\n"); return -1);
+
     /* Crea la tabella hash */
     int err_hash = create_hashtable(size);
     CHECK_OPERATION(err_hash == -1, fprintf(stderr, "Errore nella creazione della tabella hash.\n"); return -1);
@@ -70,10 +72,11 @@ int main(int argc, char const *argv[]) {
     //FD_SET(fd_skt, &set);
     FD_SET(signal_pipe[0], &set);
     FD_SET(response_pipe[0], &set);
-    
-    
     push_queue((char*)argv[1], &(pool->pending_requests));
     push_queue((char*)argv[2], &(pool->pending_requests));
+
+    
+
     //destroy_threadpool(&pool);
     //destroy_hashtable();
     
