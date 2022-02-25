@@ -40,6 +40,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     /* Scrive il puntatore della response sulla pipe delle risposte */
     err_pipe = write(pool->response_pipe, risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe==-1, 
+        fprintf(stdout, "La pipe delle risposte e' chiusa, quindi il thread deve terminare.\n");
         return -1);
 
     return 0;
@@ -55,78 +56,75 @@ static void* working(void* pool){
     CHECK_OPERATION(!(pool), fprintf(stderr, "Parametri non validi.\n"); return (void*)NULL);
     threadpool_t **threadpool = (threadpool_t**) pool;
 
+    while(1){
+        /* Preleva una richiesta dalla coda  delle richieste */
+        char* req = remove_fifo((*threadpool)->pending_requests);
+        /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
+        CHECK_OPERATION(req == NULL, (*threadpool)->curr_threads--;  (void*)NULL);
+        
+        /* Tokenizza la richiesta */
+        char *operation, *path, *file, *fd;
+        int err_token = tokenizer(req, &operation, &path, &file, &fd);
+        CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return NULL);
 
-    /* Preleva una richiesta dalla coda  delle richieste */
-    char* req = remove_fifo((*threadpool)->pending_requests);
-    CHECK_OPERATION(req == NULL, fprintf(stderr, "Errore nella pop di una richiesta.\n"); return (void*)NULL);
-    printf("request: %s\n", req);
-    /* Tokenizza la richiesta */
-    char *operation, *path, *file, *fd;
-    int err_token = tokenizer(req, &operation, &path, &file, &fd);
-    CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return NULL);
-    printf("operation: %s\n", operation);
-    printf("path: %s\n", path);
-    printf("file: %s\n", file);
-    printf("fd: %s\n", fd);
+        /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
+        if(!strcmp(operation, "write")){
+            node *deleted;
+            int fd_c = strtol(fd, NULL, 10);
+            int err_write = write_hashtable(path, file, &deleted, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_write, fd_c, NULL, NULL, deleted);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
 
-    /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
-    /*if(!strcmp(operation, "write")){
-        node *deleted;
-        int fd_c = strtol(fd, NULL, 10);
-        int err_write = write_hashtable(path, file, &deleted, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_write, fd_c, NULL, NULL, deleted);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-
-    } else if(!strcmp(operation, "read")){
-        int fd_c = strtol(fd, NULL, 10);
-        char *buf;
-        int err_read = read_hashtable(path, &buf, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_read, fd_c, buf, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "append")){
-        node *deleted;
-        int fd_c = strtol(fd, NULL, 10);
-        int err_append = append_hashtable(path, file, &deleted, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_append, fd_c, NULL, NULL, deleted);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "lock")){
-        int fd_c = strtol(fd, NULL, 10);
-        int err_lock = lock_hashtable(path, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_lock, fd_c, NULL, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "unlock")){
-        int fd_c = strtol(fd, NULL, 10);
-        int err_unlock = unlock_hashtable(path, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_unlock, fd_c, NULL, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "close")){
-        int fd_c = strtol(fd, NULL, 10);
-        int err_close = close_hashtable(path, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_close, fd_c, NULL, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "remove")){
-        int fd_c = strtol(fd, NULL, 10);
-        int err_rem = del_hashtable(path, NULL, fd_c); 
-        int err_invio = invia_risposta((*threadpool), err_rem, fd_c, NULL, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "readN")){
-        int fd_c = strtol(fd, NULL, 10);
-        char *buf;
-        int err_read = read_hashtable(path, &buf, fd_c);
-        int err_invio = invia_risposta((*threadpool), err_read, fd_c, buf, path, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } else if(!strcmp(operation, "create") || !strcmp(operation, "open")){
-        int fd_c = strtol(fd, NULL, 10);
-        int flags = -1;
-        if(!strcmp(operation, "create"))
-            flags = 6;
-        else    
-            flags = 2;
-        int err_open_create = add_hashtable(path, fd_c, flags); 
-        int err_invio = invia_risposta((*threadpool), err_open_create, fd_c, NULL, NULL, NULL);
-        CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore fatale nell'invio della risposta.\n"); return (void*)NULL);
-    } 
-*/
+        } else if(!strcmp(operation, "read")){
+            int fd_c = strtol(fd, NULL, 10);
+            char *buf;
+            int err_read = read_hashtable(path, &buf, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_read, fd_c, buf, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } else if(!strcmp(operation, "append")){
+            node *deleted;
+            int fd_c = strtol(fd, NULL, 10);
+            int err_append = append_hashtable(path, file, &deleted, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_append, fd_c, NULL, NULL, deleted);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } else if(!strcmp(operation, "lock")){
+            int fd_c = strtol(fd, NULL, 10);
+            int err_lock = lock_hashtable(path, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_lock, fd_c, NULL, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } else if(!strcmp(operation, "unlock")){
+            int fd_c = strtol(fd, NULL, 10);
+            int err_unlock = unlock_hashtable(path, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_unlock, fd_c, NULL, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } else if(!strcmp(operation, "close")){
+            int fd_c = strtol(fd, NULL, 10);
+            int err_close = close_hashtable(path, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_close, fd_c, NULL, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1,  return (void*)NULL);
+        } else if(!strcmp(operation, "remove")){
+            int fd_c = strtol(fd, NULL, 10);
+            int err_rem = del_hashtable(path, NULL, fd_c); 
+            int err_invio = invia_risposta((*threadpool), err_rem, fd_c, NULL, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1,  return (void*)NULL);
+        } else if(!strcmp(operation, "readN")){
+            int fd_c = strtol(fd, NULL, 10);
+            char *buf;
+            int err_read = read_hashtable(path, &buf, fd_c);
+            int err_invio = invia_risposta((*threadpool), err_read, fd_c, buf, path, NULL);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } else if(!strcmp(operation, "create") || !strcmp(operation, "open")){
+            int fd_c = strtol(fd, NULL, 10);
+            int flags = -1;
+            if(!strcmp(operation, "create"))
+                flags = 6;
+            else    
+                flags = 2;
+            int err_open_create = add_hashtable(path, fd_c, flags); 
+            int err_invio = invia_risposta((*threadpool), err_open_create, fd_c, NULL, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, return (void*)NULL);
+        } 
+    }
     return (void*)NULL;
 }
 
@@ -141,6 +139,8 @@ int create_threadpool(threadpool_t** threadpool, int num_thread, int pipe_scritt
     /* Inizializza la coda condivisa tra il thread main e gli worker */
     int err = create_fifo(&(*threadpool)->pending_requests); 
     CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella creazione della coda condivisa tra thread main e gli worker.\n"); return -1);
+
+    (*threadpool)->curr_threads = num_thread;
 
     /* Crea l'array di thread */
     (*threadpool)->threads = (pthread_t *)malloc(sizeof(pthread_t) * num_thread);
@@ -159,6 +159,10 @@ int create_threadpool(threadpool_t** threadpool, int num_thread, int pipe_scritt
 int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
+
+    for(int i = 0; i < (*threadpool)->num_thread; i++) {
+        push_queue(NULL, &((*threadpool)->pending_requests));
+    }
 
     for(int i = 0; i < (*threadpool)->num_thread; i++) {
         if(pthread_join((*threadpool)->threads[i], NULL) != 0) {

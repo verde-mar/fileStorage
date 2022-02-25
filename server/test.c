@@ -9,9 +9,12 @@
 int main(int argc, char const *argv[])
 {
     threadpool_t* t;
-    create_threadpool(&t, 1, 2);
+     int err_hash = create_hashtable(100);
+    create_threadpool(&t, 2, 2);
 
     push_queue((char*)argv[1], &(t->pending_requests));
+    push_queue((char*)argv[2], &(t->pending_requests));
+    
    
     /*pthread_t tid;
     int err, status;
@@ -34,5 +37,6 @@ int main(int argc, char const *argv[])
 
     destroy_hashtable();*/
     destroy_threadpool(&t);
+    destroy_hashtable();
     return 0;
 }

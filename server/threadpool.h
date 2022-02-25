@@ -24,6 +24,7 @@ typedef struct threadpool {
     int response_pipe;         
     list_c *pending_requests;   
     int num_thread;
+    int curr_threads;
 } threadpool_t;
 
 /**
