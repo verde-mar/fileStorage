@@ -25,7 +25,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     CHECK_OPERATION(pool==NULL, 
         fprintf(stderr, "Parametri non validi.\n"); 
             return -1);
-
+    
     int err_pipe = 0;
     response *risp = malloc(sizeof(response));
     CHECK_OPERATION(risp==NULL, 
@@ -36,13 +36,14 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     risp->path = path;
     risp->buffer_file = buf;
     risp->deleted = deleted;
-    
+    fflush(stdout);
     /* Scrive il puntatore della response sulla pipe delle risposte */
-    err_pipe = write(pool->response_pipe, risp, sizeof(response*)); 
+    err_pipe = write(pool->response_pipe, &risp, sizeof(response*)); 
+    printf("err_pipe: %d\n", err_pipe);
     CHECK_OPERATION(err_pipe==-1, 
         fprintf(stdout, "La pipe delle risposte e' chiusa, quindi il thread deve terminare.\n");
-        return -1);
-
+            return -1);
+        
     return 0;
 }
 
@@ -60,12 +61,13 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         char* req = remove_fifo((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req == NULL, (*threadpool)->curr_threads--;  (void*)NULL);
+        CHECK_OPERATION(req == NULL, (*threadpool)->curr_threads--;  return (void*)NULL);
         
         /* Tokenizza la richiesta */
         char *operation, *path, *file, *fd;
         int err_token = tokenizer(req, &operation, &path, &file, &fd);
         CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return NULL);
+        printf("operation: %s\n", operation);
 
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){

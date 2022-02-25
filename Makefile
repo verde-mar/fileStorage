@@ -6,12 +6,12 @@ SERVER = ./server
 UTILS = ./utils
 
 #all: cl
-all: test
+all: smain
 
-$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o $(SERVER)/hash.o $(SERVER)/threadpool.o
+$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o $(SERVER)/hash.o $(SERVER)/threadpool.o $(SERVER)/gestore.o
 	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -shared -o $@ $^
 
-test: $(SERVER)/test.c $(SERVER)/libserver.so
+smain: $(SERVER)/server_main.c $(SERVER)/libserver.so
 	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -o $@ $^
 
 #$(CLIENT)/libclient.so: $(CLIENT)/dispatcher.o $(CLIENT)/worker.o $(UTILS)/utils.o $(CLIENT)/socketIO.o
