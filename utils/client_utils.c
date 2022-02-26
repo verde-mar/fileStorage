@@ -1,123 +1,17 @@
-if (success == 0) {
-        /* Rimuove l'elemento anche dalla coda FIFO */
-        int succ_fifo = remove(name_file); 
-        CHECK_OPERATION(succ_fifo == -1, 
-            fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
-                return -1);
-    }
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
-if (success == 0) {
-            /* Aggiunge l'elemento in coda alla lista FIFO */
-            int succ_fifo = add_fifo(name_file); 
-            CHECK_OPERATION(succ_fifo == -1, 
-                fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
-                    return -1);
-        }
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
+#include <fcntl.h>
+#include <check_errors.h>
+#include <stdlib.h>
 
-
-
-int add(list_t **lista_trabocco, char* name_file, int flags){
-    CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
-        fprintf(stderr, "Parametri non validi.\n");
-            return -1);
-   
-        /* Crea il nodo da aggiungere */
-        node *curr = (node*)malloc(sizeof(node));
-        CHECK_OPERATION(curr == NULL,
-            fprintf(stderr, "Allocazione non andata a buon fine.\n");
-                return -1);
-        curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
-        strcpy((char*)curr->path, name_file);
-        int m_init = pthread_mutex_init(curr->mutex, NULL);
-        CHECK_OPERATION(m_init =
-int add(list_t **lista_trabocco, char* name_file, int flags){
-    CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
-        fprintf(stderr, "Parametri non validi.\n");
-            return -1);
-   
-        /* Crea il nodo da aggiungere */
-        node *curr = (node*)malloc(sizeof(node));
-        CHECK_OPERATION(curr == NULL,
-            fprintf(stderr, "Allocazione non andata a buon fine.\n");
-                return -1);
-        curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
-        strcpy((char*)curr->path, name_file);
-        int m_init = pthread_mutex_init(curr->mutex, NULL);
-        CHECK_OPERATION(m_init == -1,
-            fprintf(stderr, "Errore nella inizializzazione della mutex.\n");
-                return -1);
-        curr->open = 0;
-        curr->buffer = NULL;
-
-        pthread_mutex_lock((*lista_trabocco)->mutex);
-
-        /* Aggiunge il nodo in testa alla lista di trabocco*/
-        curr->next = (*lista_trabocco)->head; 
-        (*lista_trabocco)->head = curr;
-
-        if(flags == 4){
-            /* Setta la mutex */
-            int err_set = set_mutex(curr);
-            CHECK_OPERATION(err_set==-1,
-                fprintf(stderr, "Errore nel setaggio della mutex");
-                    return -1);
-        }
-
-        pthread_mutex_unlock((*lista_trabocco)->mutex);
-
-    return 0;
-}
-
-node* delete(list_t **lista_trabocco, char* name_file){
-    CHECK_OPERATION(!*lista_trabocco || !name_file,
-        fprintf(stderr, "Parametri non validi.\n");
-            return -1);
-
-    node* curr, *prev;
-    curr = (*lista_trabocco)->head;
-    if (strcmp(curr->path, name_file) == 0){
-
-        pthread_mutex_lock((*lista_trabocco)->mutex);
-        (*lista_trabocco)->head = curr->next; 
-        pthread_mutex_unlock((*lista_trabocco)->mutex);
-        
-        return curr;
-    }
-
-    prev = curr;
-    curr = curr->next;
-    while (curr != NULL) {
-        if (strcmp(curr->path, name_file) == 0){
-
-            pthread_mutex_lock((*lista_trabocco)->mutex);
-            prev->next = curr->next; 
-            pthread_mutex_unlock((*lista_trabocco)->mutex);
-
-            return curr;
-        }
-        prev = curr;
-        curr = curr->next;
-    }
-
-    return NULL;
-}
-
-node* look_for_node(char* name_file){
-    CHECK_OPERATION(name_file == NULL, 
-        fprintf(stderr, "Parametro non valido.\n");
-            return -1);
-
-    int hash = hash_function(name_file); //TODO:CREA
-    node* curr;
-    //TODO: metti in lock da qui
-    for (curr=table->queue[hash]; curr != NULL; curr=curr->next)
-        if (strcmp(curr->path, name_file) == 0)
-            return(curr);
-
-    return NULL;
-}
-
+#include <worker.h>
+#include <client_utils.h>
 
 int caller_open(const char* pathname){
     int err;
@@ -204,5 +98,3 @@ int caller_write(const char* pathname, const char *dirname){
     }
     return 0;
 }
-push_queue((char*)argv[1], &(pool->pending_requests));
-    push_queue((char*)argv[2], &(pool->pending_requests)); 

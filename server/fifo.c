@@ -158,7 +158,6 @@ char* remove_fifo(list_c *queue){
 
     free(temp);
     queue->elements--;
-
     PTHREAD_UNLOCK(queue->mutex);
     
     return name;
@@ -180,7 +179,6 @@ char* pop_queue(list_c *queue){
 
     /* Restituisce il path del nodo appena eliminato */
     name = (char*)temp->path;
-    printf("NOME DELLA RICHIESTA: %s\n", name);
 
     free(temp);
     queue->elements--;

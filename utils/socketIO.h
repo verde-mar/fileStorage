@@ -1,6 +1,10 @@
 #ifndef SOCKETIO_H_
 #define SOCKETIO_H_
 
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/types.h>
+
 /**
  * @brief Legge la size del messaggio che sta per arrivare
  * 
@@ -27,6 +31,8 @@ int read_msg(int fd_skt, void *msg, size_t size);
  */
 int write_msg(int fd_skt, void *msg, size_t size);
 
+int write_size(int fd_skt, size_t* size);
+
 /**
  * @brief Legge n byte dal file descriptor associato
  * 
@@ -46,5 +52,32 @@ ssize_t readn(int fd, void *ptr, size_t n);
  * @return ssize_t Il numero di byte scritti
  */
 ssize_t  writen(int fd, void *ptr, size_t n);
+
+/**
+ * @brief Definisce la maschera dei segnali
+ * 
+ * @param mask Maschera
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int set_mask(sigset_t *mask);
+
+/**
+ * @brief Restituisce l'indice massimo tra i descrittori attivi
+ * 
+ * @param set Set dei descrittori di file
+ * @param fdmax Indice massimo corrente
+ * @return int i in caso di successo, -1 in caso di fallimento
+ */
+int aggiorna(fd_set set, int fdmax);
+
+/**
+ * @brief Effettua la bind e la listen: crea la socket, e ci si mette in ascolto
+ * 
+ * @param fd_skt fd della socket
+ * @param set Set dei fd da ascoltare 
+ * @param socket_name Nome della socket
+ * @return int 0 se ha successo, -1 altrimenti
+ */
+int bind_listen(int *fd_skt, fd_set *set, char* socket_name);
 
 #endif

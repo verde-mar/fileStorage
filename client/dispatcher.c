@@ -14,6 +14,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include <client_utils.h>
+
 int dispatcher(int argc, char *argv[]){
     int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0, R = -1;
     char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *rest = NULL;

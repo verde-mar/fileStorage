@@ -1,5 +1,5 @@
 CC = gcc -std=c99 -O3 -g 
-CFLAGS = -Wall -Werror -pedantic -pthread
+CFLAGS = -Wall -pedantic -pthread
 
 CLIENT = ./client
 SERVER = ./server
@@ -8,7 +8,7 @@ UTILS = ./utils
 #all: cl
 all: smain
 
-$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o $(SERVER)/hash.o $(SERVER)/threadpool.o $(SERVER)/gestore.o
+$(SERVER)/libserver.so: $(SERVER)/fifo.o $(SERVER)/queue.o $(SERVER)/hash.o $(SERVER)/threadpool.o $(SERVER)/gestore.o $(UTILS)/utils.o $(UTILS)/socketIO.o
 	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -shared -o $@ $^
 
 smain: $(SERVER)/server_main.c $(SERVER)/libserver.so

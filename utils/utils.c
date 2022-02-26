@@ -10,8 +10,6 @@
 #include <check_errors.h>
 #include <stdlib.h>
 
-#include <worker.h>
-
 int is_regular_file(const char *path) {
     struct stat path_stat;
     CHECK_OPERATION(stat(path, &path_stat)==-1, fprintf(stderr, " errore nella verifica sul file.\n"); return -1);
@@ -26,91 +24,6 @@ int is_directory(const char *path) {
     return S_ISDIR(path_stat.st_mode);
 }
 
-int caller_open(const char* pathname){
-    int err;
-    if(is_directory(pathname)){
-        DIR *dir = opendir(pathname);
-        CHECK_OPERATION(dir == NULL, fprintf(stderr, "Errore sulla opendir.\n"); return -1;);
-        
-        struct dirent *file;
-        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
-            int len = strlen(pathname) + strlen(file->d_name) + strlen("/") + 1;
-            const char *path = malloc(sizeof(char)*len);
-            path = strcpy((char*)path, pathname);
-            path = strcat((char*)path, "/");
-            path = strcat((char*)path, file->d_name);
-
-            if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
-                if(is_regular_file(path)){
-                    err = openFile(path, O_CREATE | O_LOCK);
-                    CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a openFile.\n"); 
-                        free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
-                } else if(is_directory(path)){
-                    int result = caller_open(path);
-                    CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
-                        free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
-                }
-            }
-            free((char*)path);
-        }
-        int check = closedir(dir);
-        CHECK_OPERATION(check == -1, fprintf(stderr, " errore nella closedir.\n"); return -1);
-    } else if(is_regular_file(pathname)){
-        /* Gestisce la richiesta */
-        err = openFile(pathname, O_CREATE | O_LOCK);
-        CHECK_OPERATION(err == -1, fprintf(stderr, " errore nella chiamata a openFile(pathname).\n"); return -1;);
-    }
-    return 0;
-}
-
-int caller_write(const char* pathname, const char *dirname){
-    int err;
-    if(is_directory(pathname)){
-        DIR *dir = opendir(pathname);
-        CHECK_OPERATION(dir == NULL, fprintf(stderr, "Errore sulla opendir.\n"); return -1;);
-        
-        struct dirent *file;
-        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
-            int len = strlen(pathname) + strlen(file->d_name) + strlen("/") + 1;
-            const char *path = malloc(sizeof(char)*len);
-            path = strcpy((char*)path, pathname);
-            path = strcat((char*)path, "/");
-            path = strcat((char*)path, file->d_name);
-
-            if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
-                if(is_regular_file(path)){
-                    err = writeFile(path, dirname);
-                    CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a writeFile.\n"); 
-                        free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
-                } else if(is_directory(path)){
-                    int result = caller_open(path);
-                    CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
-                        free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
-                }
-            }
-            free((char*)path);
-        }
-        int check = closedir(dir);
-        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-    } else if(is_regular_file(pathname)){
-        /* Gestisce la richiesta */
-        err = writeFile(pathname, dirname);
-        CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a writeFile.\n"); return -1;);
-    }
-    return 0;
-}
 
 int save_on_disk(char *dirname, char* filename, char* buf, size_t size){ 
     CHECK_OPERATION(dirname == NULL || filename == NULL || size < 0,
@@ -194,60 +107,3 @@ int caller(int (*fun) (const char*), const char* pathname){
     return 0;
 }
 
-int read_from_file(char *pathname, char** buf, int *size){
-    /* Apre il file */
-    FILE *new_file = fopen(pathname, "r");
-    CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); return -1);
-
-    /* Legge dal file */
-    struct stat st;
-    stat(pathname, &st);
-    int size = st.st_size;
-    *buf = malloc(sizeof(char)*(*size));
-    int err_fwrite = fread(*buf, *size, 1, new_file); 
-    CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
-
-    /* Chiude il file */
-    int check = fclose(new_file);
-    CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella fclose.\n"); return -1);
-
-    return 0;
-}
-
-int freed(int *byte_letti, int *byte_scritti, int *size_path, char *actual_request, char** path, char **old_file, int *size_old){
-    /* Legge il path del file appena eliminato */
-    errno = 0;
-    byte_letti += read_size(fd_skt, size_path);
-    CHECK_OPERATION(errno == EFAULT,
-    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-        free(actual_request);
-            return -1);
-    *path = malloc(sizeof(char)*(*size_path));
-    CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-
-    errno = 0;
-    byte_letti = read_msg(fd_skt, path, size_path);
-    CHECK_OPERATION(errno == EFAULT,
-    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-        free(actual_request);
-            return -1);
-
-    /* Legge il file e lo memorizza su disco */
-    errno = 0;
-    byte_letti = read_size(fd_skt, &size_old);
-    CHECK_OPERATION(errno == EFAULT,
-    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-        free(actual_request);
-            return -1);
-    *old_file = malloc(sizeof(char)*(*size_old));
-    CHECK_OPERATION(old_file == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-
-    errno = 0;
-    byte_letti = read_msg(fd_skt, old_file, size_old);
-    CHECK_OPERATION(errno == EFAULT,
-    fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-        free(actual_request);
-            return -1);
-
-    return 0;
-}

@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <sys/un.h>
 
-#include <sys/select.h>
-#include <sys/types.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <check_errors.h>
@@ -85,4 +84,48 @@ ssize_t  writen(int fd, void *ptr, size_t n) {
      ptr   += nwritten;
    }
    return(n - nleft); /* return >= 0 */
+}
+
+int aggiorna(fd_set set, int fdmax){
+    for(int i=(fdmax-1);i>=0;--i)
+	    if (FD_ISSET(i, &set)) return i;
+    return -1;
+}
+
+int set_mask(sigset_t *mask){
+    int err_sigempty = sigemptyset(mask);
+    CHECK_OPERATION(err_sigempty == -1, fprintf(stderr, "Errore nella sigemptyset.\n"); return -1);
+    int err_sigadd = sigaddset(mask, SIGINT);
+    CHECK_OPERATION(err_sigadd == -1, fprintf(stderr, "Errore nella sigaddset.\n"); return -1); 
+    err_sigadd = sigaddset(mask, SIGQUIT);
+    CHECK_OPERATION(err_sigadd == -1, fprintf(stderr, "Errore nella sigaddset.\n"); return -1);
+    err_sigadd = sigaddset(mask, SIGHUP);
+    CHECK_OPERATION(err_sigadd == -1, fprintf(stderr, "Errore nella sigaddset.\n"); return -1);    
+    int err_sigmask = pthread_sigmask(SIG_SETMASK, mask, NULL);
+    CHECK_OPERATION(err_sigmask != 0, fprintf(stderr, "Errore nella pthread_sigmask .\n"); return -1);
+
+    return 0;
+}
+
+int bind_listen(int *fd_skt, fd_set *set, char* socket_name){
+    struct sockaddr_un sa;
+    int fd_num = 0;
+
+    /* Crea la socket su cui collegarsi */
+    strcpy(sa.sun_path, socket_name);
+    sa.sun_family = AF_UNIX;
+    *fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
+    CHECK_OPERATION((*fd_skt==-1), fprintf(stderr, "Errore nella creazione della socket.\n"); return -1;);
+
+    /* Assegna un indirizzo ad un socket */
+    int err_bind = bind(*fd_skt, (struct sockaddr*)&sa, sizeof(sa));
+    CHECK_OPERATION((err_bind==-1), fprintf(stderr, "Errore nella bind.\n");return -1;);
+
+    /* Si mette in ascolto su quel socket */
+    int err_listen = listen(*fd_skt, 10);
+    CHECK_OPERATION((err_listen==-1), fprintf(stderr, "Errore nella listen.\n"); return -1;);
+    if(*fd_skt > fd_num) fd_num = *fd_skt;
+    
+
+    return fd_num;
 }

@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <socketIO.h>
+
 static int tokenizer(char *to_token, char** operation, char** path, char** file, char **fd){
     CHECK_OPERATION((to_token==NULL), fprintf(stderr, "Stringa da tokenizzare non valida.\n"); return -1);
     char *pars = to_token, *str = NULL;
@@ -38,8 +40,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     risp->deleted = deleted;
     fflush(stdout);
     /* Scrive il puntatore della response sulla pipe delle risposte */
-    err_pipe = write(pool->response_pipe, &risp, sizeof(response*)); 
-    printf("err_pipe: %d\n", err_pipe);
+    err_pipe = writen(pool->response_pipe, &risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe==-1, 
         fprintf(stdout, "La pipe delle risposte e' chiusa, quindi il thread deve terminare.\n");
             return -1);
@@ -56,7 +57,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
 static void* working(void* pool){
     CHECK_OPERATION(!(pool), fprintf(stderr, "Parametri non validi.\n"); return (void*)NULL);
     threadpool_t **threadpool = (threadpool_t**) pool;
-
+    
     while(1){
         /* Preleva una richiesta dalla coda  delle richieste */
         char* req = pop_queue((*threadpool)->pending_requests);
@@ -171,9 +172,11 @@ int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
 
-    for(int i = 0; i < (*threadpool)->num_thread; i++) {
-        push_queue(NULL, &((*threadpool)->pending_requests));
-    }
+    if((*threadpool)->curr_threads>0)
+        for(int i = 0; i < (*threadpool)->num_thread; i++) {
+            int err_push = push_queue(NULL, &((*threadpool)->pending_requests));
+            CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
+        }
 
     for(int i = 0; i < (*threadpool)->num_thread; i++) {
         if(pthread_join((*threadpool)->threads[i], NULL) != 0) {
