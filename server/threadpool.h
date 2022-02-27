@@ -22,7 +22,7 @@ typedef struct risposta {
 typedef struct threadpool {
     pthread_t* threads;         
     int response_pipe;         
-    list_c *pending_requests;   
+    lista_richieste *pending_requests;   
     int num_thread;
     int curr_threads;
 } threadpool_t;

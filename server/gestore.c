@@ -17,11 +17,11 @@ void *gestore_segnali(void *arg) {
         CHECK_OPERATION(sigwait(set, &sig), fprintf(stderr, "Errore nella sigwait.\n"); return (void*)NULL);
         if(sig == 2 || sig == 3){
             int err_write = writen(fd_pipe, &sig, sizeof(int));
-            CHECK_OPERATION(err_write == -1, return (void*)NULL);
+            CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nell'invio del tipo di segnale.\n"); return (void*)NULL);
             return (void*)NULL;	 
         } else if(sig == 1){
             int err_write = writen(fd_pipe, &sig, sizeof(int));
-            CHECK_OPERATION(err_write == -1, return (void*)NULL);
+            CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nell'invio del tipo di segnale.\n"); return (void*)NULL);
             return (void*)NULL;	 
         }
     }

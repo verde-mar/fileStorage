@@ -23,9 +23,28 @@ typedef struct l {
     pthread_cond_t *cond;
 } list_c;
 
+/**
+ * @brief Lista con ordinamento FIFO
+ * 
+ */
+typedef struct list_req {
+    int elements;           
+    struct richiesta* head;    
+    pthread_mutex_t *mutex; 
+    pthread_cond_t *cond;
+} lista_richieste;
+
+/**
+ * @brief Richiesta inviata dal client
+ */
+typedef struct richiesta {
+    char* request;
+    int fd;   
+    struct richiesta* next;
+} request;
+
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
 list_c *fifo_queue;
-
 
 /**
  * @brief Crea la lista con ordinamento FIFO
@@ -34,6 +53,9 @@ list_c *fifo_queue;
  * @return int int 0 in caso di successo, -1 altrimenti
  */
 int create_fifo(list_c **queue);
+
+int create_req(lista_richieste **queue);
+int del_req(lista_richieste ** queue);
 
 /**
  * @brief Elimina la lista con ordinamento FIFO
@@ -74,14 +96,9 @@ char* remove_fifo(list_c *queue);
  * @param queue Coda a cui aggiungere un elemento
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int push_queue(char *request, list_c **queue);
+int push_queue(request *request, lista_richieste **queue);
 
-/**
- * @brief Rimuove l' elemento in testa della coda
- * 
- * @param queue Coda da cui rimuovere la testa
- * @return Path dell'elemento appena eliminato
- */
-char* pop_queue(list_c *queue);
+
+request* pop_queue(lista_richieste *queue);
 
 #endif

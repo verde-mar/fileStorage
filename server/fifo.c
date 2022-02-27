@@ -27,7 +27,6 @@ int create_fifo(list_c **queue){
     return 0;
 }
 
-
 int delete_fifo(list_c **queue){
     /* Rimuove ogni elemento della coda */
     node_c *tmp = NULL;
@@ -72,37 +71,6 @@ int add_fifo(char *name_file){
         current->next = new_node;
     }
     fifo_queue->elements++;
-
-    return 0;
-}
-
-int push_queue(char *request, list_c **queue){
-    node_c *current, *new_node; 
-    /* Crea il nodo da aggiungere */
-    new_node = malloc(sizeof(node_c));
-    CHECK_OPERATION(new_node == NULL,
-        fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return -1);
-
-    new_node->path = request;
-    new_node->next = NULL;
-
-    /* Aggiunge il nuovo nodo in coda */
-    PTHREAD_LOCK((*queue)->mutex);
-
-    current = (*queue)->head;
-    if (current == NULL)
-        (*queue)->head = new_node; 
-    else {
-        while(current->next!=NULL)
-            current = current->next;
-        current->next = new_node;
-    }
-    (*queue)->elements++;
-
-    PTHREAD_COND_SIGNAL((*queue)->cond);
-
-    PTHREAD_UNLOCK((*queue)->mutex);
 
     return 0;
 }
@@ -163,9 +131,49 @@ char* remove_fifo(list_c *queue){
     return name;
 }
 
-char* pop_queue(list_c *queue){
-    char* name;
-    node_c *temp;
+
+int push_queue(request *req, lista_richieste **queue){
+    request *current, *new_node; 
+
+    /* Crea il nodo da aggiungere */
+    new_node = malloc(sizeof(request));
+
+    if(req!=NULL){
+        CHECK_OPERATION(new_node == NULL,
+            fprintf(stderr, "Allocazione non andata a buon fine.\n");
+                return -1);
+
+        new_node->request = req->request;
+        new_node->fd = req->fd; 
+        new_node->next = NULL;
+    } else {
+        new_node->request = NULL;
+        new_node->fd = -1;
+        new_node->next = NULL;
+    }
+
+    /* Aggiunge il nuovo nodo in coda */
+    PTHREAD_LOCK((*queue)->mutex);
+
+    current = (*queue)->head;
+    if (current == NULL)
+        (*queue)->head = new_node; 
+    else {
+        while(current->next!=NULL)
+            current = current->next;
+        current->next = new_node;
+    }
+    (*queue)->elements++;
+
+    PTHREAD_COND_SIGNAL((*queue)->cond);
+
+    PTHREAD_UNLOCK((*queue)->mutex);
+
+    return 0;
+}
+
+request* pop_queue(lista_richieste *queue){
+    request *temp;
 
     /* Elimina la testa della lista */
     PTHREAD_LOCK(queue->mutex);
@@ -174,16 +182,59 @@ char* pop_queue(list_c *queue){
         PTHREAD_COND_WAIT(queue->cond, queue->mutex);
 
     temp = queue->head;
-    node_c *current = queue->head;
+    request *current = queue->head;
     queue->head = current->next;
 
     /* Restituisce il path del nodo appena eliminato */
-    name = (char*)temp->path;
-
-    free(temp);
+    
     queue->elements--;
 
     PTHREAD_UNLOCK(queue->mutex);
     
-    return name;
+    return temp;
+}
+
+int create_req(lista_richieste **queue){ //TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy
+    *queue = malloc(sizeof(lista_richieste));
+    CHECK_OPERATION((*queue) == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+            return -1);
+
+    /* Inizializza il numero di elementi iniziali */
+    (*queue)->elements = 0;
+    /* Inizializza la testa */
+    (*queue)->head = NULL;
+    /* Inizializza la mutex */
+    (*queue)->mutex = malloc(sizeof(pthread_mutex_t));
+    CHECK_OPERATION((*queue)->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_LOCK((*queue)->mutex);
+    /* Inizializza la variabile di condizione */
+    (*queue)->cond = malloc(sizeof(pthread_cond_t));
+    CHECK_OPERATION((*queue)->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_COND((*queue)->cond);
+
+    return 0;
+}
+
+int del_req(lista_richieste **queue){
+    /* Rimuove ogni elemento della coda */
+    request *tmp = NULL;
+    while ((*queue)->head) {
+        tmp = (*queue)->head;
+        (*queue)->head = ((*queue)->head)->next;
+
+        free(tmp->request);
+        free(tmp);
+    }
+    
+    /* Distrugge la lock di ciascun nodo */
+    PTHREAD_DESTROY_LOCK((*queue)->mutex);
+    free((*queue)->mutex);
+    /* Distrugge la variabile di condizione di ciascun nodo */
+    PTHREAD_DESTROY_COND((*queue)->cond);
+    free((*queue)->cond);
+    /* Libera la memoria occupata dalla lista di trabocco */
+    free((*queue));
+
+    return 0;
 }

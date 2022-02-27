@@ -4,6 +4,7 @@
     //2- SIGHUP: chiude accept, chiude la pipe risposte in lettura se il numero dei thread attivi e' 0.
 //TODO: aggiungi alla richiesta, il file descriptor del client 
 //TODO: rende la struct risposta, una o piu' stringhe da inviare al client
+//TODO: potresti fare delle MACRO per la pulizia della memoria
 #include <stdio.h>
 #include <signal.h>
 #include <check_errors.h>
@@ -85,7 +86,7 @@ int main(int argc, char const *argv[]) {
     CHECK_OPERATION((err_signal==-1), return -1;); //TODO: qui si dovrebbe (chiudere le pipe?)  distruggere tab hash, threadpool, interrompere il gestore dei segnali, fare unlink socket
 
     /* Crea e inizializza i set di file descriptor */
-    FD_ZERO(&rdset); 
+    //FD_ZERO(&rdset); 
     FD_ZERO(&set);
     
     /* Aggiunge i fd delle pipe in lettura e del fd della socket al set */
@@ -99,6 +100,7 @@ int main(int argc, char const *argv[]) {
         fd_max = signal_pipe[0];
     else
         fd_max = fd_num;
+
     if(fd_max < response_pipe[0])
         fd_max = response_pipe[0]; 
 
@@ -159,9 +161,22 @@ int main(int argc, char const *argv[]) {
                         }
                     }
                     close(signal_pipe[0]);
-                }
-            //} else {
+                } else { /* E' arrivata una richiesta da un client registrato */
+                    request *richiesta = malloc(sizeof(request));
+                    size_t size;
+                    int err_read = read_size(fd, &size);
+                    CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della size della richiesta.\n"); return -1);
 
+                    richiesta->request = malloc(sizeof(char)*size);
+                    CHECK_OPERATION(richiesta->request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
+                    err_read = read_msg(fd, richiesta->request, size);
+                    CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); return -1);
+                    CHECK_OPERATION(err_read == 0, FD_CLR(fd, &set); aggiorna(set, fd_max););
+                    richiesta->fd = fd;
+                    int push_req = push_queue(richiesta, &(pool)->pending_requests);
+                    CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); return -1);
+                }
             }
         }
         if(pool->curr_threads == 0){
