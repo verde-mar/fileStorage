@@ -332,14 +332,14 @@ int writeFile(const char* pathname, const char* dirname){
 
     /* Legge dal file e inserisce i dati in buf */
     char *buf;
-    int *size;
-    int err_rbuf = read_from_file((char*)pathname, &buf, size);
+    int size;
+    int err_rbuf = read_from_file((char*)pathname, &buf, &size);
     CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
 
     actual_request = strcat(actual_request, buf);
     
     /* Invia la richiesta */
-    int byte_scritti = write_msg(fd_skt, actual_request, (len+*size)); 
+    int byte_scritti = write_msg(fd_skt, actual_request, (len+size)); 
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);
@@ -357,19 +357,21 @@ int writeFile(const char* pathname, const char* dirname){
             size_t size_old, size_path;
             char *old_file, *path;
 
-            int err_freed = freed(&byte_letti, &byte_scritti, &size_path, actual_request, &path, &old_file, &size_old);
+            int err_freed = freed(&byte_letti, &byte_scritti, &size_path, &path, &old_file, &size_old);
             CHECK_OPERATION(err_freed == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                     free(path);
                         free(old_file);
-                            return -1;);
+                            free(actual_request);
+                                return -1;);
 
             int err_save = save_on_disk((char*)dirname, optarg, old_file, size_old);
             CHECK_OPERATION(err_save == -1, 
                 fprintf(stderr, "Errore nel salvataggio su disco");
                     free(path);
                         free(old_file);
-                            return -1;);
+                            free(actual_request);
+                                return -1;);
 
             free(path);
             free(old_file);
@@ -379,7 +381,8 @@ int writeFile(const char* pathname, const char* dirname){
             byte_scritti += write_msg(fd_skt, actual_request, len); 
             CHECK_OPERATION(errno == EFAULT,
                 free(buf);
-                    return -1);
+                    free(actual_request);
+                            return -1;);
             
 
             /* Legge la risposta  */
@@ -388,7 +391,8 @@ int writeFile(const char* pathname, const char* dirname){
                 fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     free(actual_request);
                         free(buf);
-                            return -1);
+                            free(actual_request);
+                                return -1;);
         }
     }
     free(actual_request);
@@ -432,7 +436,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             size_t size_old, size_path;
             char *old_file, *path;
 
-            int err_freed = freed(&byte_letti, &byte_scritti, &size_path, actual_request, &path, &old_file, &size_old);
+            int err_freed = freed(&byte_letti, &byte_scritti, &size_path, &path, &old_file, &size_old);
             CHECK_OPERATION(err_freed == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                     free(path);

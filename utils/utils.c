@@ -112,7 +112,7 @@ int caller(int (*fun) (const char*), const char* pathname){
 int read_from_file(char *pathname, char** buf, int *size){
     CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
 
-    FILE* file_toread = fopen(pathname, 'r');
+    FILE* file_toread = fopen(pathname, "r");
     CHECK_OPERATION(file_toread == NULL, fprintf(stderr, "Non e' stato possibile aprire il file.\n"); return -1);
 
     struct stat st;
@@ -128,3 +128,4 @@ int read_from_file(char *pathname, char** buf, int *size){
 
     return 0;
 }
+

@@ -14,6 +14,8 @@
 #include <client_utils.h>
 #include <utils.h>
 
+#include <socketIO.h>
+
 int caller_open(const char* pathname){
     int err;
     if(is_directory(pathname)){
@@ -97,5 +99,46 @@ int caller_write(const char* pathname, const char *dirname){
         err = writeFile(pathname, dirname);
         CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a writeFile.\n"); return -1;);
     }
+    return 0;
+}
+
+int freed(int *byte_letti, int *byte_scritti, size_t *size_path, char** path, char** old_file, size_t *size_old){
+    CHECK_OPERATION((!*path || !*old_file) || (*size_old < 0 || *size_path < 0), 
+        fprintf(stderr, "Parametri non validi.\n"); 
+            return -1);
+    errno = 0;
+    *byte_letti += read_size(fd_skt, size_path); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+
+    *path = malloc(sizeof(char)*(*size_path));
+    CHECK_OPERATION(*path == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+            return -1);
+
+    errno = 0;
+    *byte_letti += read_msg(fd_skt, path, *size_path);
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+
+    errno = 0;
+    *byte_letti += read_size(fd_skt, size_old); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+                
+    *old_file = malloc(sizeof(char)*(*size_old));
+    CHECK_OPERATION(*old_file == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+            return -1);
+
+    errno = 0;
+    *byte_letti += read_msg(fd_skt, old_file, *size_old);
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+
     return 0;
 }
