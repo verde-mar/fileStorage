@@ -12,6 +12,7 @@
 
 #include <worker.h>
 #include <client_utils.h>
+#include <utils.h>
 
 int caller_open(const char* pathname){
     int err;

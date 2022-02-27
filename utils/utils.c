@@ -10,6 +10,8 @@
 #include <check_errors.h>
 #include <stdlib.h>
 
+#include <utils.h>
+
 int is_regular_file(const char *path) {
     struct stat path_stat;
     CHECK_OPERATION(stat(path, &path_stat)==-1, fprintf(stderr, " errore nella verifica sul file.\n"); return -1);
@@ -107,3 +109,22 @@ int caller(int (*fun) (const char*), const char* pathname){
     return 0;
 }
 
+int read_from_file(char *pathname, char** buf, int *size){
+    CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
+
+    FILE* file_toread = fopen(pathname, 'r');
+    CHECK_OPERATION(file_toread == NULL, fprintf(stderr, "Non e' stato possibile aprire il file.\n"); return -1);
+
+    struct stat st;
+    stat(pathname, &st);
+    *size = st.st_size;
+    *buf = malloc(sizeof(char)*(*size));
+
+    int err_fread = fread(*buf, *size, 1, file_toread);
+    CHECK_OPERATION(err_fread, fprintf(stderr, "Errore nella lettura del file.\n"); return -1);
+
+    int err_close = fclose(file_toread);
+    CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);
+
+    return 0;
+}

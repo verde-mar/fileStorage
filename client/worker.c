@@ -12,9 +12,10 @@
 
 #include <unistd.h>
 #include <socketIO.h>
-#include <utils.h>
+#include <client_utils.h>
 
 #include <sys/stat.h>
+#include <utils.h>
 
 int openConnection(const char* sockname, int msec, const struct timespec abstime){
     /* Crea il socket */
@@ -332,12 +333,13 @@ int writeFile(const char* pathname, const char* dirname){
     /* Legge dal file e inserisce i dati in buf */
     char *buf;
     int *size;
-    int err_rbuf = read_from_file(pathname, &buf, &size);
+    int err_rbuf = read_from_file((char*)pathname, &buf, size);
+    CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
 
     actual_request = strcat(actual_request, buf);
     
     /* Invia la richiesta */
-    int byte_scritti = write_msg(fd_skt, actual_request, (len+size)); 
+    int byte_scritti = write_msg(fd_skt, actual_request, (len+*size)); 
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);
