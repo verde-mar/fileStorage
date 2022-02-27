@@ -29,8 +29,7 @@ int dispatcher(int argc, char *argv[]){
             case 'h': 
                 fflush(stdout);
                 fprintf(stdout, ("Le opzioni accettate sono:\n-h per stampare tutte le opzioni accettate;\n-f filename per scoprire a quale socket connettersi\n-w dirname per inviare una richiesta di scrittura al server per i file contenuti in dirname;\n-W file1 per inviare una richiesta di scrittura di file1 al server;\n-D dirname per specificare la directory del server in cui scrivere i file specificati nelle opzioni -w e -W;\n-r file1 per inviare una richiesta di lettura del file1 al server;\n-R per inviare una richiesta di lettura di tutti i file contenuti nel server;\n-d dirname per specificare la directory del client dove memorizzare i file specificati nelle opzioni -r e -R;\n-t time per specificare il tempo in millisecondi che intercorre tra l' invio di due richieste successive;\n-l file1 per specificare la lista dei nomi dei file su cui acquisire la mutua esclusione;\n-u file1 per specificare la lista dei nomi dei file su cui rilasciare la mutua esclusione;\n-c file1 per specificare la lista dei file da rimuovere sul server se presenti;\n-p per abilitare le stampe sullo standard output per ogni operazione.\n"));
-                   
-                return 0;
+                break;
 
             /* Si connette al server */
             case 'f':
@@ -61,7 +60,7 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato. Non e' possibile cancellare il file. Riprova al prossimo avvio.\n"););
 
                 sleep(time);
-
+                printf("prima della openFile.\n");
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, O_CREATE | O_LOCK);
                 CHECK_OPERATION(err_caller != 0,
@@ -73,7 +72,7 @@ int dispatcher(int argc, char *argv[]){
                                         return -1;)
                                             free(socketname);
                                                 return -1);
-
+                printf("dopo la openFile.\n");
                 /* Richiede la scrittura sul file identificato da rest */
                 int err_w = writeFile(rest, dirnameD);
                 CHECK_OPERATION(err_w == -1,

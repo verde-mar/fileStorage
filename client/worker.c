@@ -40,6 +40,7 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
         abstime_temp.tv_nsec -= t.tv_nsec;
         success_connection = connect(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     }
+    CHECK_OPERATION(success_connection==-1, fprintf(stderr, "STAMPA DA LEVARE: operazione openconnection fallita.\n"); return -1);
     CHECK_OPERATION(success_connection==-1 && printer == 1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine.\n"); return -1); 
     CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita l'operazione 'openConnection' con successo.\n"); return 0);
     return 0;
@@ -66,7 +67,7 @@ int openFile(const char *pathname, int flags){
     /* Determina il tipo di richiesta da effettuare in base al valore di flags */
     char *request = NULL;
     if(flags == 6){
-        request = "open";
+        request = "open;";
     } else if(flags == 2){
         request = "create;";
     } else if(flags == 4){
@@ -81,7 +82,7 @@ int openFile(const char *pathname, int flags){
             return -1);
     actual_request = strcpy(actual_request, request);
     actual_request = strcat(actual_request, pathname);
-    
+
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1,
@@ -89,6 +90,8 @@ int openFile(const char *pathname, int flags){
             free(actual_request);
                 return -1);
     free(actual_request);
+
+    printf("dopo la write_msg.\n");
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
@@ -98,7 +101,7 @@ int openFile(const char *pathname, int flags){
             free(actual_request);
                 return -1);
     CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
-
+    printf("Dopo la lettura del codice di errore: %d\n", codice);
     return codice;
 }
 
@@ -322,13 +325,15 @@ int writeFile(const char* pathname, const char* dirname){
             return -1); 
 
     /* Se la directory in cui memorizzare eventuali file eliminati dal server non e' NULL, viene inviata insieme alla richiesta di write */
-    int len = strlen(pathname)+strlen("write;")+1;
-    char* actual_request = malloc(sizeof(char)*len);
+    int len = (strlen(pathname)+strlen("write;")+2)*sizeof(char);
+    char* actual_request = malloc(len);
     CHECK_OPERATION(actual_request == NULL, 
         perror("Allocazione non andata a buon fine:");
             return -1);
     actual_request = strcpy(actual_request, "write;");
     actual_request = strcat(actual_request, pathname);
+    actual_request = strcat(actual_request, ";");
+    actual_request[len-1] = '\0';
 
     /* Legge dal file e inserisce i dati in buf */
     char *buf;
@@ -336,10 +341,13 @@ int writeFile(const char* pathname, const char* dirname){
     int err_rbuf = read_from_file((char*)pathname, &buf, &size);
     CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
 
+    len += size;
+    actual_request = realloc(actual_request, len);
+    buf[size] = '\0';
     actual_request = strcat(actual_request, buf);
-    
+
     /* Invia la richiesta */
-    int byte_scritti = write_msg(fd_skt, actual_request, (len+size)); 
+    int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);

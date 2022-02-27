@@ -16,7 +16,7 @@
 int read_size(int fd_skt, size_t* size){
     int byte_letti = readn(fd_skt, size, sizeof(size_t));
     CHECK_OPERATION(byte_letti==-1, 
-        fprintf(stderr, " errore nella lettura della size del messaggio.\n");
+        fprintf(stderr, "Errore nella lettura della size del messaggio.\n");
             return -1); 
 
     return byte_letti;
@@ -24,11 +24,11 @@ int read_size(int fd_skt, size_t* size){
 
 int read_msg(int fd_skt, void *msg, size_t size){
     CHECK_OPERATION(size<0, 
-        fprintf(stderr, " parametri non validi.\n");
+        fprintf(stderr, "Parametri non validi.\n");
             return -1); 
     int byte_letti = readn(fd_skt, msg, size);
     CHECK_OPERATION(byte_letti==-1, 
-        fprintf(stderr, " errore nella lettura del messaggio.\n");
+        fprintf(stderr, "Errore nella lettura del messaggio.\n");
             return -1); 
 
     return byte_letti;
@@ -36,7 +36,7 @@ int read_msg(int fd_skt, void *msg, size_t size){
 
 int write_size(int fd_skt, size_t* size){
     int byte_scritti = writen(fd_skt, size, sizeof(size_t));
-    CHECK_OPERATION(byte_scritti==-1, fprintf(stderr, " errore sulla write_size.\n"); return -1;); 
+    CHECK_OPERATION(byte_scritti==-1, fprintf(stderr, "Errore sulla write_size.\n"); return -1;);
 
     return byte_scritti;
 }
@@ -44,12 +44,15 @@ int write_size(int fd_skt, size_t* size){
 int write_msg(int fd_skt, void *msg, size_t size){
     int byte_scritti = write_size(fd_skt, &size);
     CHECK_OPERATION(byte_scritti == -1,
-        fprintf(stderr, " errore nell'invio della size del messaggio.\n");
+        fprintf(stderr, "Errore nell'invio della size del messaggio.\n");
             return -1);
+    printf("byte_scritti nella write msg: %d\n", byte_scritti);
     byte_scritti = writen(fd_skt, msg, size);
     CHECK_OPERATION(byte_scritti == -1,
-        fprintf(stderr, " errore nell'invio del messaggio.\n");
+        fprintf(stderr, "Errore nell'invio del messaggio.\n");
             return -1);
+    printf("byte_scritti nella write msg, per il msg: %d\n", byte_scritti);
+    
     
     return byte_scritti;
 }

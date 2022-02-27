@@ -112,16 +112,18 @@ int caller(int (*fun) (const char*), const char* pathname){
 int read_from_file(char *pathname, char** buf, int *size){
     CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
 
-    FILE* file_toread = fopen(pathname, "r");
+    FILE* file_toread = fopen(pathname, "rb");
     CHECK_OPERATION(file_toread == NULL, fprintf(stderr, "Non e' stato possibile aprire il file.\n"); return -1);
 
     struct stat st;
     stat(pathname, &st);
     *size = st.st_size;
-    *buf = malloc(sizeof(char)*(*size));
+    *buf = malloc((*size)+1);
+    printf("size: %d\n", *size);
+    CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
-    int err_fread = fread(*buf, *size, 1, file_toread);
-    CHECK_OPERATION(err_fread, fprintf(stderr, "Errore nella lettura del file.\n"); return -1);
+    size_t err_fread = fread(*buf, *size, 1, file_toread);
+    CHECK_OPERATION(err_fread == -1, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);
 
     int err_close = fclose(file_toread);
     CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);

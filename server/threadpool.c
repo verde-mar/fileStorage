@@ -67,7 +67,7 @@ static void* working(void* pool){
         int err_token = tokenizer(req->request, &operation, &path, &file);
         CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return (void*)NULL);
         
-
+        printf("operation: %s\npath:%s\n", operation, path);
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){
             node *deleted;
