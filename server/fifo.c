@@ -29,12 +29,10 @@ int create_fifo(list_c **queue){
 
 int delete_fifo(list_c **queue){
     /* Rimuove ogni elemento della coda */
-    node_c *tmp = NULL;
-    while ((*queue)->head) {
-        tmp = (*queue)->head;
+    while ((*queue)->head!=NULL) {
+        node_c *tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
 
-        free((char*)tmp->path);
         free(tmp);
     }
     

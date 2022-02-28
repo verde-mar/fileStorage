@@ -125,26 +125,29 @@ int main(int argc, char const *argv[]) {
                     CHECK_OPERATION(err_resp == -1, fprintf(stderr, "Errore sulla readn nella lettura della risposta."); return -1);
                     printf("risp->codice_errore: %d\n", risp->errore);
                     int err_cod = write_size(risp->fd_richiesta, (size_t*)&risp->errore);
-                    CHECK_OPERATION(err_cod == -1, fprintf(stderr, "Errore nell'invio del codice di errore al client.\n"); return -1);
+                    //CHECK_OPERATION(err_cod == -1, fprintf(stderr, "Errore nell'invio del codice di errore al client.\n"); return -1);
 
                     if(risp->buffer_file != NULL){
                         int err_path = write_msg(risp->fd_richiesta, (char*)risp->path, strlen(risp->path));
                         CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, strlen(risp->buffer_file));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
+                        free(risp->buffer_file);
                     }
 
-                    if(risp->deleted!= NULL){
+                    /*if(risp->deleted!= NULL){
                         if((risp->deleted)->buffer!=NULL){
                             int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path));
                             CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, strlen((risp->deleted)->buffer));
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
+                            free((risp->deleted)->buffer);
                         }
-                    }
+                    }*/
 
                     FD_SET(risp->fd_richiesta, &set);
                     if(risp->fd_richiesta > fd_max) fd_max = fd;
+                    free((char*)risp->path);
                     free(risp);
                 } else if(fd == signal_pipe[0]){ /* E' arrivato un segnale di chiusura */
                     printf("MANDA IL SEGNALE.\n");
@@ -167,21 +170,28 @@ int main(int argc, char const *argv[]) {
                     }
                     close(signal_pipe[0]);
                 } else { /* E' arrivata una richiesta da un client registrato */
-                    request *richiesta = malloc(sizeof(request));
+                    request *richiesta = malloc(sizeof(request)); //TODO: funzione che crea la richiesta e una che la distrugge
                     size_t size;
                     int err_read = read_size(fd, &size);
-                    CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della size della richiesta.\n"); return -1);
-                    printf("size del messaggio che arrivera': %ld\n", size);
-                    richiesta->request = malloc(sizeof(char)*size);
-                    CHECK_OPERATION(richiesta->request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-                    
-                    err_read = read_msg(fd, richiesta->request, size);
-                    CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); return -1);
-                    CHECK_OPERATION(err_read == 0, FD_CLR(fd, &set); aggiorna(set, fd_max););
-                    richiesta->fd = fd;
-                    printf("richiesta:%s\nfd:%d\n", richiesta->request, richiesta->fd);
-                    int push_req = push_queue(richiesta, &(pool)->pending_requests);
-                    CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); return -1);
+                    if(err_read != -1 && err_read != 0){
+                        richiesta->request = malloc(sizeof(char)*size);
+                        CHECK_OPERATION(richiesta->request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+                        
+                        err_read = read_msg(fd, richiesta->request, size);
+                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); return -1);
+                        
+                        richiesta->fd = fd;
+
+                        int push_req = push_queue(richiesta, &(pool)->pending_requests);
+                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); return -1);
+                    } else if(err_read == 0){
+                        FD_CLR(fd, &set); 
+                        aggiorna(set, fd_max);
+                        free(richiesta);
+                    } else {
+                        fprintf(stdout, "Client disconnesso.\n");
+                        free(richiesta);
+                    }
                 }
             }
         }
@@ -190,6 +200,7 @@ int main(int argc, char const *argv[]) {
             close(response_pipe[0]);
         }
     }
+    
     int err_closing = routine_chiusura(&pool, tid_signal);
     CHECK_OPERATION(err_closing == -1, fprintf(stderr, "Errore nella chiusura del file storage.\n"); return -1);
 

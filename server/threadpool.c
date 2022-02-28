@@ -60,8 +60,9 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--;  free(req); fprintf(stderr, "E' stata trovata una richiesta NULL.\n"); return (void*)NULL);
-        
+        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
+        free(req->request);
+        free(req);
         /* Tokenizza la richiesta */
         char *operation, *path, *file;
         int err_token = tokenizer(req->request, &operation, &path, &file);
@@ -73,6 +74,7 @@ static void* working(void* pool){
             node *deleted;
             int err_write = write_hashtable(path, file, &deleted, req->fd);
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"); return (void*)NULL);
+            
             int err_invio = invia_risposta((*threadpool), err_write, req->fd, NULL, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
 
@@ -124,6 +126,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_open_create == -1, fprintf(stderr, "Errore sulla add_hashtable.\n"); return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
+            
         } 
     }
     return (void*)NULL;

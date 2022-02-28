@@ -258,6 +258,8 @@ int closeFile(const char* pathname){
             free(actual_request);
                 return -1);
 
+                printf("CODICE NELLA CLOSEFILE: %d\n", codice);
+
     CHECK_CODICE(printer, codice, "closeFile", byte_letti, byte_scritti);
 
     return 0;
@@ -351,7 +353,7 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);
-
+    printf("DOPO LA WRITEMSG");
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     int codice;
     int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
@@ -359,7 +361,7 @@ int writeFile(const char* pathname, const char* dirname){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
                 return -1);
-
+    printf("DOPO LA READ_MSG: codice --- %d\n", codice);
     if(dirname != NULL){
         while(codice == 909){
             size_t size_old, size_path;

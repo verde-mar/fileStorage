@@ -20,7 +20,7 @@
         if(codice == 101) {\
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia'.\n", operazione); \
         } else if(codice == 202){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro client.\n", operazione); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro thread.\n", operazione); \
         } else if(codice == 303){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile o dalla lockFile dopo la closeFile.\n", operazione); \
         } else if(codice == 404){ \
