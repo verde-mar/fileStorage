@@ -113,26 +113,27 @@ int main(int argc, char const *argv[]) {
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
-                printf("fd: %d\nfd_skt: %d\n", fd, fd_skt);
+
                 if (fd == fd_skt && no_more) { /* E' arrivata una nuova richiesta */
                     fd_c = accept(fd_skt,NULL,0);//TODO: manca un controllo
                     FD_SET(fd_c, &set);
                     if (fd_c > fd_max) fd_max = fd_c; 
                 } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
-                    printf("MANDA LA RISPOSTA.\n");
+                   
                     response *risp;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
                     CHECK_OPERATION(err_resp == -1, fprintf(stderr, "Errore sulla readn nella lettura della risposta."); return -1);
-                    printf("risp->codice_errore: %d\n", risp->errore);
-                    int err_cod = write_size(risp->fd_richiesta, (size_t*)&risp->errore);
-                    //CHECK_OPERATION(err_cod == -1, fprintf(stderr, "Errore nell'invio del codice di errore al client.\n"); return -1);
 
+                    int err_write = write_size(risp->fd_richiesta, &risp->errore);
+                    CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); return -1);
                     if(risp->buffer_file != NULL){
-                        int err_path = write_msg(risp->fd_richiesta, (char*)risp->path, strlen(risp->path));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
-                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, strlen(risp->buffer_file));
+                        size_t len = sizeof(char)*(strlen(risp->buffer_file)+1);
+                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, len);
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
+                        printf("risp->buffer_file: %s\n", risp->buffer_file);
                         free(risp->buffer_file);
+                    } else {
+                        risp->errore = 333;
                     }
 
                     /*if(risp->deleted!= NULL){
@@ -142,15 +143,16 @@ int main(int argc, char const *argv[]) {
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, strlen((risp->deleted)->buffer));
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                             free((risp->deleted)->buffer);
+                            free(risp->deleted);
                         }
                     }*/
 
                     FD_SET(risp->fd_richiesta, &set);
                     if(risp->fd_richiesta > fd_max) fd_max = fd;
+
                     free((char*)risp->path);
                     free(risp);
                 } else if(fd == signal_pipe[0]){ /* E' arrivato un segnale di chiusura */
-                    printf("MANDA IL SEGNALE.\n");
                     int sig;
                     /* Legge il tipo di segnale dalla pipe */
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
@@ -164,33 +166,30 @@ int main(int argc, char const *argv[]) {
                         close(response_pipe[0]);
                     } else { /* Se arriva un SIGHUP */
                         for(int i = 0; i < pool->num_thread; i++) {
-                            int err_push = push_queue(NULL, &(pool->pending_requests));
+                            int err_push = push_queue(NULL, -1, &(pool->pending_requests));
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
                         }
                     }
                     close(signal_pipe[0]);
                 } else { /* E' arrivata una richiesta da un client registrato */
-                    request *richiesta = malloc(sizeof(request)); //TODO: funzione che crea la richiesta e una che la distrugge
                     size_t size;
                     int err_read = read_size(fd, &size);
-                    if(err_read != -1 && err_read != 0){
-                        richiesta->request = malloc(sizeof(char)*size);
-                        CHECK_OPERATION(richiesta->request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+                    if(err_read != -1 && err_read!=0){
+                        char* request = malloc(sizeof(char)*size);
+                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
                         
-                        err_read = read_msg(fd, richiesta->request, size);
+                        err_read = read_msg(fd, request, size);
                         CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); return -1);
-                        
-                        richiesta->fd = fd;
-
-                        int push_req = push_queue(richiesta, &(pool)->pending_requests);
+                        printf("request: %s\n", request);
+                        int push_req = push_queue(request, fd, &(pool)->pending_requests);
                         CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); return -1);
                     } else if(err_read == 0){
+                        fprintf(stdout, "Client disconnesso.\n");
                         FD_CLR(fd, &set); 
                         aggiorna(set, fd_max);
-                        free(richiesta);
-                    } else {
-                        fprintf(stdout, "Client disconnesso.\n");
-                        free(richiesta);
+                    } else if(err_read == -1){
+                        fprintf(stderr, "Errore nella lettura della size del messaggio.\n");
+                        return -1;
                     }
                 }
             }

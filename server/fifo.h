@@ -96,7 +96,7 @@ char* remove_fifo(list_c *queue);
  * @param queue Coda a cui aggiungere un elemento
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int push_queue(request *request, lista_richieste **queue);
+int push_queue(char* req_path, int fd_c, lista_richieste **queue);
 
 
 request* pop_queue(lista_richieste *queue);

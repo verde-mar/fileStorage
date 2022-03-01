@@ -37,6 +37,8 @@
             fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
         } else if(codice == 222){\
             fprintf(stderr, "Il thread e' stato deschedulato prima che la tua richiesta fosse elaborata, riprova al prossimo avvio."); \
+        }else if(codice == 333){\
+            fprintf(stderr, "Il buffer era vuoto.\n"); \
         } else if(codice == 0){\
             fprintf(stdout, "La %s e' terminata con successo.\n", operazione); \
         } else if(codice == 909){\

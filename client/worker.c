@@ -40,8 +40,7 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
         abstime_temp.tv_nsec -= t.tv_nsec;
         success_connection = connect(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     }
-    CHECK_OPERATION(success_connection==-1, fprintf(stderr, "STAMPA DA LEVARE: operazione openconnection fallita.\n"); return -1);
-    CHECK_OPERATION(success_connection==-1 && printer == 1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine.\n"); return -1); 
+    CHECK_OPERATION(success_connection==-1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine.\n"); return -1); 
     CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita l'operazione 'openConnection' con successo.\n"); return 0);
     return 0;
 }
@@ -91,17 +90,15 @@ int openFile(const char *pathname, int flags){
                 return -1);
     free(actual_request);
 
-    printf("dopo la write_msg.\n");
-
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(byte_scritti == -1,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
     CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
-    printf("Dopo la lettura del codice di errore: %d\n", codice);
+
     return codice;
 }
 
@@ -118,7 +115,7 @@ int lockFile(const char* pathname){
             return -1);
     actual_request = strcpy(actual_request, "lock;");
     actual_request = strcat(actual_request, pathname);
-    
+    printf("actual_request: %s\n", actual_request);
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1,
@@ -127,9 +124,9 @@ int lockFile(const char* pathname){
                 return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
+    size_t codice;
     errno = 0;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
@@ -138,10 +135,10 @@ int lockFile(const char* pathname){
     CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
 
     /* Se la lock era occupata da qualcun altro, attende la risposta di rilascio e reinvia la richiesta*/
-    if(codice == 202){
+    if(codice == 202){//TODO: e' fatto male
         errno = 0;
         /* Legge la risposta */
-        byte_letti += read_msg(fd_skt, &codice, sizeof(int)); 
+        byte_letti += read_size(fd_skt, &codice); 
         CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
@@ -181,9 +178,9 @@ int unlockFile(const char* pathname){
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
+    size_t codice;
     errno = 0;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
@@ -216,8 +213,8 @@ int removeFile(const char* pathname){
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
@@ -251,14 +248,12 @@ int closeFile(const char* pathname){
     free(actual_request);
     
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
                 return -1);
-
-                printf("CODICE NELLA CLOSEFILE: %d\n", codice);
 
     CHECK_CODICE(printer, codice, "closeFile", byte_letti, byte_scritti);
 
@@ -288,11 +283,10 @@ int readFile(const char* pathname, void** buf, size_t *size){
     free(actual_request);
 
     /* Legge la risposta dal server */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
                 return -1);
 
     if(codice == 0){
@@ -300,20 +294,19 @@ int readFile(const char* pathname, void** buf, size_t *size){
         byte_letti += read_size(fd_skt, size); 
         CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
                 return -1);
         
-        *buf = malloc(sizeof(char)*(*size));
+        printf("size del msg: %ld\n", *size);
+        *buf = malloc(*size);
         CHECK_OPERATION(*buf == NULL, 
             fprintf(stderr, "Allocazione non andata a buon fine:"); 
-                return -1);
-
+                    return -1);
+        
         byte_letti += read_msg(fd_skt, *buf, (*size)); 
         CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
+            free(*buf);
                 return -1);
-
     } 
 
     CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
@@ -353,15 +346,15 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);
-    printf("DOPO LA WRITEMSG");
+
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
                 return -1);
-    printf("DOPO LA READ_MSG: codice --- %d\n", codice);
+
     if(dirname != NULL){
         while(codice == 909){
             size_t size_old, size_path;
@@ -396,7 +389,7 @@ int writeFile(const char* pathname, const char* dirname){
             
 
             /* Legge la risposta  */
-            int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+            int byte_letti = read_size(fd_skt, &codice); 
             CHECK_OPERATION(byte_letti == -1,
                 fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     free(actual_request);
@@ -434,8 +427,8 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    int codice;
-    int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+    size_t codice;
+    int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
@@ -472,7 +465,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             
 
             /* Legge la risposta  */
-            int byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+            int byte_letti = read_size(fd_skt, &codice); 
             CHECK_OPERATION(byte_letti == -1,
                 fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     free(actual_request);
@@ -493,7 +486,8 @@ int readNFiles(int N, const char* dirname){
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
     char *path, *file;
-    int codice = -1, byte_scritti = -1, byte_letti = -1, count = 0;
+    size_t codice = -1;
+    int byte_scritti = -1, byte_letti = -1, count = 0;
     size_t size_path = -1, size_file = -1;
 
     while(N>0 || codice != 111){    
@@ -508,7 +502,7 @@ int readNFiles(int N, const char* dirname){
                 return -1);
 
         /* Legge la risposta dal server */
-        byte_letti = read_msg(fd_skt, &codice, sizeof(int)); 
+        byte_letti = read_size(fd_skt, &codice); 
         CHECK_OPERATION(errno == EFAULT,
             fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     return -1);

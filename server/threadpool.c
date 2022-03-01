@@ -36,7 +36,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     risp->path = path;
     risp->buffer_file = buf;
     risp->deleted = deleted;
-    fflush(stdout);
+    
     /* Scrive il puntatore della response sulla pipe delle risposte */
     err_pipe = writen(pool->response_pipe, &risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe==-1, 
@@ -61,14 +61,12 @@ static void* working(void* pool){
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
         CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
-        free(req->request);
-        free(req);
+        
         /* Tokenizza la richiesta */
         char *operation, *path, *file;
         int err_token = tokenizer(req->request, &operation, &path, &file);
         CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return (void*)NULL);
         
-        printf("operation: %s\npath:%s\n", operation, path);
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){
             node *deleted;
@@ -106,7 +104,8 @@ static void* working(void* pool){
             int err_invio = invia_risposta((*threadpool), err_close, req->fd, NULL, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "remove")){
-            int err_rem = del_hashtable(path, NULL, req->fd); 
+            node* deleted = NULL;
+            int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
@@ -127,7 +126,9 @@ static void* working(void* pool){
             int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
             
-        } 
+        }
+        free(req->request);
+        free(req);
     }
     return (void*)NULL;
 }
@@ -166,7 +167,7 @@ int destroy_threadpool(threadpool_t **threadpool){
 
     if((*threadpool)->curr_threads>0)
         for(int i = 0; i < (*threadpool)->num_thread; i++) {
-            int err_push = push_queue(NULL, &((*threadpool)->pending_requests));
+            int err_push = push_queue(NULL, -1, &((*threadpool)->pending_requests));
             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
         }
 

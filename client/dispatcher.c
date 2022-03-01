@@ -23,8 +23,9 @@ int dispatcher(int argc, char *argv[]){
     /* Inizializza la variabile globale che abilita le stampe delle API */
     printer = 0;
     while ((opt = getopt(argc, argv, "hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
+        sleep(time);
         switch(opt) {
-
+            
             /* Stampa le opzioni accettate dal client */
             case 'h': 
                 fflush(stdout);
@@ -59,8 +60,7 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato. Non e' possibile cancellare il file. Riprova al prossimo avvio.\n"););
 
-                sleep(time);
-                printf("prima della openFile.\n");
+                
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, O_CREATE | O_LOCK);
                 CHECK_OPERATION(err_caller != 0,
@@ -72,7 +72,7 @@ int dispatcher(int argc, char *argv[]){
                                         return -1;)
                                             free(socketname);
                                                 return -1);
-                printf("dopo la openFile.\n");
+                
                 /* Richiede la scrittura sul file identificato da rest */
                 int err_w = writeFile(rest, dirnameD);
                 CHECK_OPERATION(err_w == -1,
@@ -141,9 +141,9 @@ int dispatcher(int argc, char *argv[]){
                                                         return -1);
                 }
                 
-                /* Richiede il rilascio della lock sul file iile identificato da rest */
-                err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1,
+                /* Richiede la chiusura del file identificato da rest */  
+                err_close = closeFile(rest);
+                CHECK_OPERATION(err_close == -1,
                     free(rest);
                         err_conn = closeConnection(socketname);
                             CHECK_OPERATION(err_conn == -1,
@@ -155,9 +155,9 @@ int dispatcher(int argc, char *argv[]){
                                                         free(socketname);
                                                             return -1);
 
-                /* Richiede la chiusura del file identificato da rest */  
-                err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1,
+                /* Richiede il rilascio della lock sul file iile identificato da rest */
+                err_unlock = unlockFile(rest);
+                CHECK_OPERATION(err_unlock == -1,
                     free(rest);
                         err_conn = closeConnection(socketname);
                             CHECK_OPERATION(err_conn == -1,
@@ -178,11 +178,9 @@ int dispatcher(int argc, char *argv[]){
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL,
-                    fprintf(stderr, " errore nella restituzione del path assoluto del file passato come parametro.\n");
+                    fprintf(stderr, "Errore nella restituzione del path assoluto del file passato come parametro.\n");
                         free(socketname);
                             return -1);
-
-                sleep(time);
 
                 /* Richiede l'apertura e la lock dei file nella directory identificata da rest */
                 err_caller = caller_open(rest);
@@ -200,18 +198,18 @@ int dispatcher(int argc, char *argv[]){
                             free(socketname);
                                 return -1);
 
-                /* Richiede il rilascio della lock dei file nella directory identificata da rest */
-                err_unlock = caller(unlockFile, rest); 
-                CHECK_OPERATION(err_unlock == -1,
-                    fprintf(stderr, " errore nella unlockFile.\n");
+                /* Richiede la chiusura dei file nella directory identificata da rest */
+                err_close = caller(closeFile, rest); 
+                CHECK_OPERATION(err_close == -1,
+                    fprintf(stderr, " errore nella closeFile.\n");
                         free(rest);
                             free(socketname);
                                 return -1);
 
-                /* Richiede la chiusura dei file nella directory identificata da rest */
-               err_close = caller(closeFile, rest); 
-                CHECK_OPERATION(err_close == -1,
-                    fprintf(stderr, " errore nella closeFile.\n");
+                /* Richiede il rilascio della lock dei file nella directory identificata da rest */
+                err_unlock = caller(unlockFile, rest); 
+                CHECK_OPERATION(err_unlock == -1,
+                    fprintf(stderr, " errore nella unlockFile.\n");
                         free(rest);
                             free(socketname);
                                 return -1);
@@ -254,7 +252,7 @@ int dispatcher(int argc, char *argv[]){
                                             free(socketname);
                                                 return -1);
 
-                void *buf;
+                void *buf = NULL;
                 size_t size;
                 int err_r = readFile(rest, &buf, &size);
                 CHECK_OPERATION(err_r == -1, 
@@ -268,21 +266,23 @@ int dispatcher(int argc, char *argv[]){
                                                     if(dirnamed != NULL) free(dirnamed);
                                                         free(socketname);
                                                             return -1);
-                
-                int err_save = save_on_disk(dirnamed, optarg, (char*)buf, size);
-                CHECK_OPERATION(err_save == -1, 
-                    free(rest);
-                        err_conn = closeConnection(socketname);
-                            CHECK_OPERATION(err_conn == -1,
-                                    if(dirnameD != NULL) free(dirnameD); 
-                                        if(dirnamed != NULL) free(dirnamed);
-                                            return -1;)
-                                                if(dirnameD != NULL) free(dirnameD); 
-                                                    if(dirnamed != NULL) free(dirnamed);
-                                                        free(socketname);
-                                                            return -1);
+                if(buf!=NULL){
+                    int err_save = save_on_disk(dirnamed, optarg, (char*)buf, size);
+                    CHECK_OPERATION(err_save == -1, 
+                        free(rest);
+                            err_conn = closeConnection(socketname);
+                                CHECK_OPERATION(err_conn == -1,
+                                        if(dirnameD != NULL) free(dirnameD); 
+                                            if(dirnamed != NULL) free(dirnamed);
+                                                return -1;)
+                                                    if(dirnameD != NULL) free(dirnameD); 
+                                                        if(dirnamed != NULL) free(dirnamed);
+                                                            free(socketname);
+                                                                return -1);
+                    
+                    free(buf); //specifica nella relazione
+                }
                 free(rest);
-                free(buf); //specifica nella relazione
 
                 break;
 
@@ -290,8 +290,6 @@ int dispatcher(int argc, char *argv[]){
             case 'R':
                 R = strtol(optarg, NULL, 10);
                 read_ops = 1;
-
-                sleep(time);
 
                 int num_file = readNFiles(R, dirnamed);
                 CHECK_OPERATION(num_file == -1,
@@ -334,7 +332,6 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato. Non e' possibile cancellare il file. Riprova al prossimo avvio.\n"););
 
-                sleep(time);
                 err_lock = lockFile(rest);
                 CHECK_OPERATION(err_lock == -1,
                         free(rest);
@@ -354,7 +351,7 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato. Non e' possibile cancellare il file. Riprova al prossimo avvio.\n"););
 
-                sleep(time);
+            
                 err_unlock = unlockFile(rest);
                 CHECK_OPERATION(err_unlock == -1,
                         free(rest);
@@ -374,7 +371,6 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato. Non e' possibile cancellare il file. Riprova al prossimo avvio.\n"););
 
-                sleep(time);
                 int err_lock = lockFile(rest);
                 CHECK_OPERATION(err_lock == -1,
                         free(rest);

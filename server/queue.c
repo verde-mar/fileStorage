@@ -97,7 +97,7 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         PTHREAD_LOCK(fifo_queue->mutex);
         PTHREAD_LOCK((*lista_trabocco)->mutex);
         
-        int adder = add_fifo(name_file);
+        int adder = add_fifo((char*)curr->path);
         CHECK_OPERATION(adder == -1, return -1);
 
         curr->next = (*lista_trabocco)->head; 
@@ -126,57 +126,66 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
     return 0;
 }
 
-int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd){
+int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
     PTHREAD_LOCK(fifo_queue->mutex);
-
+    
     PTHREAD_LOCK((*lista_trabocco)->mutex);
-
+    
     int remover = del(name_file);
     CHECK_OPERATION(remover == -1, return -1);
-
-    node* curr, *prev;
-    prev = NULL;
+    node* curr; /* Puntatore al nodo corrente */
+    node *prev; /* Puntatore al nodo precedente */
+    if ((*lista_trabocco)->head == NULL) /* Lista vuota */
+        return 0;
+    
     curr = (*lista_trabocco)->head;
+    if (strcmp(curr->path, name_file) == 0) { /* Cancellazione del primo nodo */
+        (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
+        if((*just_deleted) == NULL) {
+            PTHREAD_DESTROY_LOCK(curr->mutex);
+            PTHREAD_DESTROY_COND(curr->locked); 
+            free(curr->locked);
+            free(curr->mutex);
+            if(curr->buffer)
+                free(curr->buffer); 
+            free((char*)curr->path);
+            free(curr);
+            
+        } else {
+            *just_deleted = curr;
+        }
+        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+        return 0;
+    }
 
+    /* Scansione della lista a partire dal secondo nodo */
+    prev = curr;
+    curr = curr->next;
     while (curr != NULL) {
-        if (strcmp(curr->path, name_file) == 0){
-            /* Se il flag di apertura e' pari ad 1 
-                e il client ne aveva gia' acquisito la lock 
-                    si procede con l'eliminazione */
-            if(curr->open == 1 && curr->fd_c == fd){
+        if (strcmp(curr->path, name_file) == 0) {
+            if(curr->fd_c == fd){
                 prev->next = curr->next; 
-                if(*just_deleted != NULL) //TODO: questo controllo e' corretto?
-                    *just_deleted = curr;
-                else {
+                if((*just_deleted) == NULL) {
                     PTHREAD_DESTROY_LOCK(curr->mutex);
                     PTHREAD_DESTROY_COND(curr->locked); 
                     free(curr->locked);
                     free(curr->mutex);
-                    free((char*)curr->path);
                     if(curr->buffer)
                         free(curr->buffer); 
+                    free((char*)curr->path);
                     free(curr);
+                    
+                } else {
+                    *just_deleted = curr;
                 }
-                int success = del(name_file);
-                CHECK_OPERATION(success==-1, 
-                    fprintf(stderr, "Errore nell'inserimento di un elemento nella coda fifo.\n"); 
-                        return -1);
                 PTHREAD_UNLOCK((*lista_trabocco)->mutex);
                 PTHREAD_UNLOCK(fifo_queue->mutex);
-                
                 return 0;
-            } 
-            /* Il file non e' stato aperto */
-            else if(curr->open == 0){
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
-                PTHREAD_UNLOCK(fifo_queue->mutex);
-                
-                return 303;
-                
             } 
             /* Non e' stata acquisita la lock */
             else if(curr->fd_c != fd){
@@ -190,11 +199,8 @@ int delete(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd
         curr = curr->next;
     }
 
-    /* Il nodo non e' stato trovato */
-    *just_deleted = NULL;
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
-
     return -1;
 }
 
@@ -222,20 +228,18 @@ int closes(list_t **lista_trabocco, char* name_file, int fd){
                     return 505);
 
     PTHREAD_LOCK(nodo->mutex);
+    
+    while(nodo->fd_c != fd){
+        PTHREAD_COND_WAIT(nodo->locked, nodo->mutex);
+    }
     /* Se ha acquisito la lock e il flag open e' ad 1 */
-    if(nodo->fd_c == fd && nodo->open == 1){
+    if(nodo->open == 1){
         nodo->open = 0;
         PTHREAD_UNLOCK(nodo->mutex);
         return 0;
     } 
-    /* Se non ha acquisito la lock */
-    else if(nodo->fd_c != fd){
-        PTHREAD_UNLOCK(nodo->mutex);
-        
-        return 202;
-    } 
     /* Il file non e' stato aperto */
-    else if(nodo->open == 0){
+    else{
         PTHREAD_UNLOCK(nodo->mutex);
 
         return 303;
@@ -259,7 +263,8 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
 
     PTHREAD_LOCK(nodo->mutex);
     /* Se ha acquisito la lock e il flag open e' a 1 */
-    if(nodo->fd_c == fd && nodo->open == 1){
+    if(nodo->fd_c == fd){
+        fprintf(stdout, "E' stata rilasciata la lock sul file: %s\n", nodo->path);
         nodo->fd_c = -1;
         PTHREAD_COND_SIGNAL(nodo->locked);
     } 
@@ -303,6 +308,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
 
         return 303;
     }
+    fprintf(stdout, "E' stata acquisita la lock sul file %s\n", nodo->path);
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
@@ -320,9 +326,10 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
                     return 505);
 
     PTHREAD_LOCK(nodo->mutex);
+    printf("nodo->path: %s\nnodo->open: %d\n", nodo->path, nodo->open);
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
-        *buf = malloc(sizeof(char)*strlen(nodo->buffer)); 
+        *buf = malloc(sizeof(char)*(strlen(nodo->buffer)+1)); 
         strcpy(*buf, nodo->buffer);
         PTHREAD_UNLOCK(nodo->mutex);
 
@@ -330,11 +337,13 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
+        *buf = NULL;
         PTHREAD_UNLOCK(nodo->mutex);
         return 202;
     } 
     /* Il file non e' stato aperto */
     else if(nodo->open == 0){
+        *buf = NULL;
         PTHREAD_UNLOCK(nodo->mutex);
         return 303;
     }
@@ -344,7 +353,7 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
     return 0;
 }
 
-int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int* max_size, int* curr_size, int fd){
+int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int* max_size, int* curr_size, node** deleted, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -356,7 +365,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
                     return 505);
 
     PTHREAD_LOCK(fifo_queue->mutex);
-
+    int size_buf = (strlen(buf)*sizeof(char))+1;
     if(size_buf<=*max_size){
         *curr_size += size_buf;
         if(*curr_size > *max_size){
@@ -364,7 +373,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
             if(to_delete){
                 int delete = del(name_file);
                 CHECK_OPERATION(delete == -1, PTHREAD_UNLOCK(fifo_queue->mutex); return -1);
-                CHECK_OPERATION(delete != -1, PTHREAD_UNLOCK(fifo_queue->mutex); return 909);
+                CHECK_OPERATION(delete != -1 && delete != 0, PTHREAD_UNLOCK(fifo_queue->mutex); return 909);
             }
         }
     }
@@ -401,7 +410,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int size_
     return -1;
 }
 
-int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, int *max_size, int* curr_size, int fd){
+int writes(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, int* curr_size, node** deleted, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -413,7 +422,7 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
                     return 505);
 
     PTHREAD_LOCK(fifo_queue->mutex);
-    
+    int size_buf = (strlen(buf)*sizeof(char))+1;
     if(size_buf<=*max_size){
         *curr_size += size_buf;
         if(*curr_size > *max_size){
@@ -421,7 +430,8 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
             if(to_delete){
                 int delete = del(name_file);
                 CHECK_OPERATION(delete == -1, PTHREAD_UNLOCK(fifo_queue->mutex); return -1);
-                CHECK_OPERATION(delete != -1, PTHREAD_UNLOCK(fifo_queue->mutex); return 909);
+                CHECK_OPERATION(delete != -1 && delete != 0, PTHREAD_UNLOCK(fifo_queue->mutex); return 909);
+                CHECK_OPERATION(delete == 0, deletes(lista_trabocco, name_file, deleted, fd));
             } else {
                 PTHREAD_UNLOCK(fifo_queue->mutex); 
                 return -1;
@@ -430,7 +440,7 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int size_buf, in
     }
     
     PTHREAD_LOCK(nodo->mutex);
-    printf("CAGNOTTO\n");
+    
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
         nodo->buffer =  malloc(sizeof(char)*(size_buf+1));

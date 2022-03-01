@@ -75,13 +75,12 @@ int add_fifo(char *name_file){
 
 int del(char *name_file){
     node_c* curr, *prev;
-    PTHREAD_LOCK(fifo_queue->mutex);
-
+    
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
+    
     if (strcmp(curr->path, name_file) == 0){
         fifo_queue->head = curr->next; 
-        free((char*)curr->path);
         free(curr);
         fifo_queue->elements--;
         PTHREAD_UNLOCK(fifo_queue->mutex); 
@@ -92,18 +91,17 @@ int del(char *name_file){
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
+        
         if (strcmp(curr->path, name_file) == 0){
             prev->next = curr->next; 
             fifo_queue->elements--;
             free(curr);
-            PTHREAD_UNLOCK(fifo_queue->mutex);
 
             return 0;
         }
         prev = curr;
         curr = curr->next;
-    }
-    PTHREAD_UNLOCK(fifo_queue->mutex);
+    }   
 
     return -1;
 }
@@ -130,23 +128,22 @@ char* remove_fifo(list_c *queue){
 }
 
 
-int push_queue(request *req, lista_richieste **queue){
+int push_queue(char* req_path, int fd_c, lista_richieste **queue){
     request *current, *new_node; 
 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(request));
-
-    if(req!=NULL){
-        CHECK_OPERATION(new_node == NULL,
+    CHECK_OPERATION(new_node == NULL,
             fprintf(stderr, "Allocazione non andata a buon fine.\n");
                 return -1);
 
-        new_node->request = req->request;
-        new_node->fd = req->fd; 
+    if(req_path!=NULL){
+        new_node->request = req_path;
+        new_node->fd = fd_c; 
         new_node->next = NULL;
     } else {
         new_node->request = NULL;
-        new_node->fd = -1;
+        new_node->fd = fd_c;
         new_node->next = NULL;
     }
 

@@ -119,6 +119,30 @@ node* look_for_node(char* name_file){
 }
 
 
+int del_req(lista_richieste **queue){
+    /* Rimuove ogni elemento della coda */
+    request *tmp = NULL;
+    while ((*queue)->head) {
+        tmp = (*queue)->head;
+        (*queue)->head = ((*queue)->head)->next;
+
+        free(tmp->request);
+        free(tmp);
+    }
+    
+    /* Distrugge la lock di ciascun nodo */
+    PTHREAD_DESTROY_LOCK((*queue)->mutex);
+    free((*queue)->mutex);
+    /* Distrugge la variabile di condizione di ciascun nodo */
+    PTHREAD_DESTROY_COND((*queue)->cond);
+    free((*queue)->cond);
+    /* Libera la memoria occupata dalla lista di trabocco */
+    free((*queue));
+
+    return 0;
+}
+
+
 int caller_open(const char* pathname){
     int err;
     if(is_directory(pathname)){
@@ -206,3 +230,77 @@ int caller_write(const char* pathname, const char *dirname){
 }
 push_queue((char*)argv[1], &(pool->pending_requests));
     push_queue((char*)argv[2], &(pool->pending_requests)); 
+
+
+int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd){
+    CHECK_OPERATION(*lista_trabocco==NULL,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1);
+
+    PTHREAD_LOCK(fifo_queue->mutex);
+    
+    PTHREAD_LOCK((*lista_trabocco)->mutex);
+    
+    int remover = del(name_file);
+    CHECK_OPERATION(remover == -1, return -1);
+    node* curr; /* Puntatore al nodo corrente */
+    node *prev; /* Puntatore al nodo precedente */
+    if ((*lista_trabocco)->head == NULL) /* Lista vuota */
+        return 0;
+    
+    curr = *head_ptr;
+    if (strcmp(curr->path, name_file) == 0) { /* Cancellazione del primo nodo */
+        (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
+        if((*just_deleted) == NULL) {
+            PTHREAD_DESTROY_LOCK(curr->mutex);
+            PTHREAD_DESTROY_COND(curr->locked); 
+            free(curr->locked);
+            free(curr->mutex);
+            if(curr->buffer)
+                free(curr->buffer); 
+            free((char*)curr->path);
+            free(curr);
+            
+        } else {
+            *just_deleted = curr;
+        }
+        return 0;
+    }
+
+    /* Scansione della lista a partire dal secondo nodo */
+    previous = current;
+    current = current->next;
+    while (current != NULL) {
+        if (strcmp(curr->path, name_file) == 0) {
+            if(curr->fd_c == fd){
+                previous->next = current->next; 
+                if((*just_deleted) == NULL) {
+                    PTHREAD_DESTROY_LOCK(curr->mutex);
+                    PTHREAD_DESTROY_COND(curr->locked); 
+                    free(curr->locked);
+                    free(curr->mutex);
+                    if(curr->buffer)
+                        free(curr->buffer); 
+                    free((char*)curr->path);
+                    free(curr);
+                    
+                } else {
+                    *just_deleted = curr;
+                }
+                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+                PTHREAD_UNLOCK(fifo_queue->mutex);
+                return 0;
+            } 
+            /* Non e' stata acquisita la lock */
+            else if(curr->fd_c != fd){
+                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+                PTHREAD_UNLOCK(fifo_queue->mutex);
+
+                return 202;
+            }
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+    return -1;
+}

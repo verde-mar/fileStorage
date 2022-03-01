@@ -10,7 +10,7 @@
  */
 typedef struct risposta {
     int fd_richiesta;          
-    int errore;                
+    size_t errore;                
     char* buffer_file; 
     char* path;     
     node *deleted;    

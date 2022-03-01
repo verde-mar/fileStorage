@@ -94,15 +94,14 @@ int del_hashtable(char *name_file, node **just_deleted, int fd){
     CHECK_OPERATION(name_file==NULL || fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
-
+    printf("E' ENTRATO NELLA DELETE");
     int hash = hash_function(name_file);
 
     /* Elimina un nodo */
-    int success = delete(&(table->queue[hash]), name_file, just_deleted, fd);
+    int success = deletes(&(table->queue[hash]), name_file, just_deleted, fd);
     CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
             return -1);
-    
     
     return success;
 }
@@ -113,7 +112,7 @@ int close_hashtable(char *name_file, int fd){
             return -1;);
     int success = -1;
     int hash = hash_function(name_file); 
-
+   
     /* Chiude un nodo */
     success = closes(&(table->queue[hash]), name_file, fd);
     CHECK_OPERATION(success==-1, 
@@ -182,7 +181,7 @@ int append_hashtable(char* name_file, char* buf, node** deleted, int fd){
     CHECK_OPERATION(buf == NULL, return 707);
 
     /* Effettua la append su un nodo */
-    success = append_buffer(&(table->queue[hash]), name_file, buf, strlen(buf), &(table->max_size), &(table->curr_size), fd);
+    success = append_buffer(&(table->queue[hash]), name_file, buf, &(table->max_size), &(table->curr_size), deleted, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
             return -1);
@@ -197,7 +196,7 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
     int success = -1;
     int hash = hash_function(name_file);
     /* Effettua la write su un nodo */
-    success = writes(&(table->queue[hash]), name_file, buf, strlen(buf), &(table->max_size), &(table->curr_size), fd);
+    success = writes(&(table->queue[hash]), name_file, buf, &(table->max_size), &(table->curr_size), deleted, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
             return -1);
