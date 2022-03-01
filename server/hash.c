@@ -96,7 +96,7 @@ int del_hashtable(char *name_file, node **just_deleted, int fd){
             return -1;);
 
     int hash = hash_function(name_file);
-
+   
     /* Elimina un nodo */
     int success = deletes(&(table->queue[hash]), name_file, just_deleted, fd);
     CHECK_OPERATION(success == -1, 

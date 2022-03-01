@@ -37,7 +37,7 @@ int delete_fifo(list_c **queue){
     }
     
     /* Distrugge la lock di ciascun nodo */
-    PTHREAD_DESTROY_LOCK((*queue)->mutex);
+    PTHREAD_DESTROY_LOCK((*queue)->mutex, "delete_fifo: queue->mutex");
     free((*queue)->mutex);
     /* Distrugge la variabile di condizione di ciascun nodo */
     PTHREAD_DESTROY_COND((*queue)->cond);
@@ -83,7 +83,6 @@ int del(char *name_file){
         fifo_queue->head = curr->next; 
         free(curr);
         fifo_queue->elements--;
-        PTHREAD_UNLOCK(fifo_queue->mutex); 
 
         return 0;
     }
@@ -105,7 +104,6 @@ int del(char *name_file){
 
     return -1;
 }
-
 
 char* remove_fifo(list_c *queue){
     char* name;
@@ -224,7 +222,7 @@ int del_req(lista_richieste **queue){
     }
     
     /* Distrugge la lock di ciascun nodo */
-    PTHREAD_DESTROY_LOCK((*queue)->mutex);
+    PTHREAD_DESTROY_LOCK((*queue)->mutex, "del_req: queue->mutex");
     free((*queue)->mutex);
     /* Distrugge la variabile di condizione di ciascun nodo */
     PTHREAD_DESTROY_COND((*queue)->cond);

@@ -40,7 +40,7 @@ int destroy_list(list_t **lista_trabocco){
         (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
 
         /* Libera la memoria del nodo corrente */
-        PTHREAD_DESTROY_LOCK(tmp->mutex);
+        PTHREAD_DESTROY_LOCK(tmp->mutex, "destroy_list: tmp->mutex");
         PTHREAD_DESTROY_COND(tmp->locked); 
         free(tmp->mutex);
         free(tmp->locked);
@@ -52,7 +52,7 @@ int destroy_list(list_t **lista_trabocco){
         free(tmp);
     }
     /* Distrugge la lock della lista di trabocco */
-    PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex)
+    PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex, "destroy_list: lista_trabocco->mutex");
     free((*lista_trabocco)->mutex);
 
     /* Libera la memoria occupata dalla lista di trabocco */
@@ -98,13 +98,16 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         PTHREAD_LOCK((*lista_trabocco)->mutex);
         
         int adder = add_fifo((char*)curr->path);
-        CHECK_OPERATION(adder == -1, return -1);
+        CHECK_OPERATION(adder == -1, 
+            PTHREAD_UNLOCK(fifo_queue->mutex);
+                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+                    return -1);
 
         curr->next = (*lista_trabocco)->head; 
         (*lista_trabocco)->head = curr;
         
-        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     }
 
     /* Se e' stata specificata l'operazione di acquisizione della lock */
@@ -117,22 +120,21 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
                         return 505);
 
     } else if(check_exists!=NULL && flags == 4){
-        printf("FLAGS E' 4\n");
         /* Ricerca il nodo */        
         PTHREAD_LOCK(check_exists->mutex);
+        
         check_exists->open = 1;
         while(check_exists->fd_c != -1 && check_exists->fd_c != fd)
                 PTHREAD_COND_WAIT(check_exists->locked, check_exists->mutex);
         /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
-        if(check_exists->fd_c == fd || check_exists->fd_c == -1){            
+        if(check_exists->fd_c == fd || check_exists->fd_c == -1){ 
             check_exists->fd_c = fd;
         } else {
             PTHREAD_UNLOCK(check_exists->mutex);
 
             return 303;
         }
-        printf("check_exists->open: %d\n", check_exists->open);
-        fprintf(stdout, "E' stata acquisita la lock sul file %s\n", check_exists->path);
+
         PTHREAD_UNLOCK(check_exists->mutex);
     }
 
@@ -150,21 +152,27 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
             return -1);
 
     PTHREAD_LOCK(fifo_queue->mutex);
-    
     PTHREAD_LOCK((*lista_trabocco)->mutex);
-    
+
     int remover = del(name_file);
-    CHECK_OPERATION(remover == -1, return -1);
+    CHECK_OPERATION(remover == -1, 
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+            PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+                return -1);
+
     node* curr; /* Puntatore al nodo corrente */
     node *prev; /* Puntatore al nodo precedente */
-    if ((*lista_trabocco)->head == NULL) /* Lista vuota */
+    if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+
         return 0;
-    
+        }
     curr = (*lista_trabocco)->head;
     if (strcmp(curr->path, name_file) == 0) { /* Cancellazione del primo nodo */
         (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
         if((*just_deleted) == NULL) {
-            PTHREAD_DESTROY_LOCK(curr->mutex);
+            PTHREAD_DESTROY_LOCK(curr->mutex, "deletes: curr->mutex");
             PTHREAD_DESTROY_COND(curr->locked); 
             free(curr->locked);
             free(curr->mutex);
@@ -176,8 +184,9 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
         } else {
             *just_deleted = curr;
         }
-        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+        
         return 0;
     }
 
@@ -189,7 +198,7 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
             if(curr->fd_c == fd){
                 prev->next = curr->next; 
                 if((*just_deleted) == NULL) {
-                    PTHREAD_DESTROY_LOCK(curr->mutex);
+                    PTHREAD_DESTROY_LOCK(curr->mutex, "deletes: curr->mutex");
                     PTHREAD_DESTROY_COND(curr->locked); 
                     free(curr->locked);
                     free(curr->mutex);
@@ -200,15 +209,16 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
                     
                 } else {
                     *just_deleted = curr;
+
                 }
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
                 PTHREAD_UNLOCK(fifo_queue->mutex);
+                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
                 return 0;
             } 
             /* Non e' stata acquisita la lock */
             else if(curr->fd_c != fd){
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
                 PTHREAD_UNLOCK(fifo_queue->mutex);
+                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
                 return 202;
             }
@@ -217,8 +227,9 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
         curr = curr->next;
     }
 
-    PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
+    PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+
     return -1;
 }
 
@@ -326,7 +337,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
 
         return 303;
     }
-    fprintf(stdout, "E' stata acquisita la lock sul file %s\n", nodo->path);
+
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
@@ -344,7 +355,7 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
                     return 505);
 
     PTHREAD_LOCK(nodo->mutex);
-    printf("nodo->path: %s\nnodo->open: %d\n", nodo->path, nodo->open);
+    
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
         *buf = malloc(sizeof(char)*(strlen(nodo->buffer)+1)); 
@@ -392,6 +403,10 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int* max_
                 int delete = del(name_file);
                 CHECK_OPERATION(delete == -1, PTHREAD_UNLOCK(fifo_queue->mutex); return -1);
                 CHECK_OPERATION(delete != -1 && delete != 0, PTHREAD_UNLOCK(fifo_queue->mutex); return 909);
+                CHECK_OPERATION(delete == 0, deletes(lista_trabocco, name_file, deleted, fd));
+            } else {
+                PTHREAD_UNLOCK(fifo_queue->mutex); 
+                return -1;
             }
         }
     }
@@ -401,29 +416,35 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int* max_
     if(nodo->fd_c == fd && nodo->open == 1){
         int len = (strlen(nodo->buffer) + size_buf) + 1; 
         nodo->buffer = (char*) realloc(nodo->buffer, len);
+        CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+            PTHREAD_UNLOCK(fifo_queue->mutex);
+                PTHREAD_UNLOCK(nodo->mutex);
+                    return -1
+            );
         nodo->buffer = strcat(nodo->buffer, buf);
-        PTHREAD_UNLOCK(nodo->mutex);
+
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
 
         return 0;
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
-        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
 
         return 202;
     } 
     /* Il file non e' stato aperto */
     else if(nodo->open == 0){
-        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
 
         return 303;
     }
     
-    PTHREAD_UNLOCK(nodo->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
+    PTHREAD_UNLOCK(nodo->mutex);
 
     return -1;
 }
@@ -463,26 +484,26 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, i
     if(nodo->fd_c == fd && nodo->open == 1){
         nodo->buffer =  malloc(sizeof(char)*(size_buf+1));
         nodo->buffer = strcpy(nodo->buffer, buf);
-        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
-
+        PTHREAD_UNLOCK(nodo->mutex);
+    
         return 0;
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
-        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
         return 202;
     } 
     /* Il file non e' stato aperto */
     else if(nodo->open == 0){
-        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK(nodo->mutex);
         return 303;
     }
     
-    PTHREAD_UNLOCK(nodo->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
+    PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
 }
