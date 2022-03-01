@@ -68,12 +68,12 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
 
     /* Aggiunge il nodo in testa alla lista di trabocco, se non esiste gia' */
     node* check_exists = look_for_node(lista_trabocco, name_file);
-    CHECK_OPERATION(check_exists != NULL,
-        fprintf(stderr, "Il nodo esiste gia'.\n");
-                    return 101);
-   
+    
     /* Se e' stata specificata l'operazione di creazione */
     if(flags == 2 || flags == 6){
+        CHECK_OPERATION(check_exists != NULL,
+                    return 101);
+
         /* Crea il nodo da aggiungere */
         node *curr = (node*)malloc(sizeof(node));
         CHECK_OPERATION(curr == NULL,
@@ -109,17 +109,35 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
 
     /* Se e' stata specificata l'operazione di acquisizione della lock */
     if(flags == 6){
-
+        
         /* Se il nodo esiste acquisisce la lock */
         int check_lock = lock(lista_trabocco, name_file, fd);
         CHECK_OPERATION(check_lock == -1,
             fprintf(stderr, "Il nodo non e' stato trovato.\n");
                         return 505);
 
+    } else if(check_exists!=NULL && flags == 4){
+        printf("FLAGS E' 4\n");
+        /* Ricerca il nodo */        
+        PTHREAD_LOCK(check_exists->mutex);
+        check_exists->open = 1;
+        while(check_exists->fd_c != -1 && check_exists->fd_c != fd)
+                PTHREAD_COND_WAIT(check_exists->locked, check_exists->mutex);
+        /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
+        if(check_exists->fd_c == fd || check_exists->fd_c == -1){            
+            check_exists->fd_c = fd;
+        } else {
+            PTHREAD_UNLOCK(check_exists->mutex);
+
+            return 303;
+        }
+        printf("check_exists->open: %d\n", check_exists->open);
+        fprintf(stdout, "E' stata acquisita la lock sul file %s\n", check_exists->path);
+        PTHREAD_UNLOCK(check_exists->mutex);
     }
 
     /* Se non e' stata specificata nessuna operazione valida, allora restituisce un errore */
-    CHECK_OPERATION(flags!=2 && flags !=6, 
+    CHECK_OPERATION((flags!=2 && flags !=6) && flags!=4, 
         fprintf(stderr, "Flag non validi.\n");
             return 404;);
     
@@ -297,11 +315,11 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
                     return 505);
     
     PTHREAD_LOCK(nodo->mutex);
+    while(nodo->fd_c != -1 && nodo->fd_c != fd)
+        PTHREAD_COND_WAIT(nodo->locked, nodo->mutex);
+
     /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
-    if(nodo->fd_c == fd || nodo->fd_c == -1){
-        while(nodo->fd_c != -1 && nodo->fd_c != fd)
-            PTHREAD_COND_WAIT(nodo->locked, nodo->mutex);
-        
+    if(nodo->fd_c == fd || nodo->fd_c == -1){        
         nodo->fd_c = fd;
     } else {
         PTHREAD_UNLOCK(nodo->mutex);

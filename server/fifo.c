@@ -106,6 +106,7 @@ int del(char *name_file){
     return -1;
 }
 
+
 char* remove_fifo(list_c *queue){
     char* name;
     node_c *temp;

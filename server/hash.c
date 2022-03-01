@@ -94,7 +94,7 @@ int del_hashtable(char *name_file, node **just_deleted, int fd){
     CHECK_OPERATION(name_file==NULL || fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
-    printf("E' ENTRATO NELLA DELETE");
+
     int hash = hash_function(name_file);
 
     /* Elimina un nodo */
@@ -201,5 +201,25 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
             return -1);
 
+    return success;
+}
+int readN_hashtable(char** buf, int fd){
+    CHECK_OPERATION(fd<0,
+        fprintf(stderr, "Parametri non validi.\n");
+            return -1;);
+    int success = -1;
+
+    node_c *curr = fifo_queue->head;
+    while(curr){
+        int hash = hash_function((char*)curr->path); 
+    
+        /* Legge i dati di un nodo */
+        success = reads(&(table->queue[hash]), (char*)curr->path, buf, fd);
+        CHECK_OPERATION(success==-1, 
+            fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
+                return -1);
+        curr = curr->next;
+    }
+    fprintf(stdout, "Non ci sono elementi da leggere.\n");
     return success;
 }

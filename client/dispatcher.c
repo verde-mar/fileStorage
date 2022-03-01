@@ -242,7 +242,7 @@ int dispatcher(int argc, char *argv[]){
 
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, O_LOCK);
-                CHECK_OPERATION(err_caller != 0,
+                CHECK_OPERATION(err_caller == -1 || err_caller == 303 || err_caller == 202,
                     free(rest);
                     err_conn = closeConnection(socketname);
                         CHECK_OPERATION(err_conn == -1,
@@ -290,6 +290,7 @@ int dispatcher(int argc, char *argv[]){
             case 'R':
                 R = strtol(optarg, NULL, 10);
                 read_ops = 1;
+                printf("R: %d\n", R);
 
                 int num_file = readNFiles(R, dirnamed);
                 CHECK_OPERATION(num_file == -1,

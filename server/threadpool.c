@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <socketIO.h>
+#include <errno.h>
 
 static int tokenizer(char *to_token, char** operation, char** path, char** file){
     CHECK_OPERATION((to_token==NULL), fprintf(stderr, "Stringa da tokenizzare non valida.\n"); return -1);
@@ -111,16 +112,18 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
             char *buf;
-            int err_read = read_hashtable(path, &buf, req->fd);
-            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore sulla readN_hashtable.\n"); return (void*)NULL);
+            int err_read = readN_hashtable(&buf, req->fd);
+            CHECK_OPERATION(err_read == -1, errno=EFAULT; return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
-        } else if(!strcmp(operation, "create") || !strcmp(operation, "open")){
+        } else if(!strcmp(operation, "create") || !strcmp(operation, "open") || !strcmp(operation, "lock_open")){
             int flags = -1;
-            if(!strcmp(operation, "create"))
+            if(!strcmp(operation, "open"))
                 flags = 6;
-            else    
+            else if(!strcmp(operation, "create"))
                 flags = 2;
+            else if(!strcmp(operation, "lock_open"))
+                flags = 4;
             int err_open_create = add_hashtable(path, req->fd, flags); 
             CHECK_OPERATION(err_open_create == -1, fprintf(stderr, "Errore sulla add_hashtable.\n"); return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, NULL, NULL);

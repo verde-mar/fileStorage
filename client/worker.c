@@ -70,7 +70,7 @@ int openFile(const char *pathname, int flags){
     } else if(flags == 2){
         request = "create;";
     } else if(flags == 4){
-        request = "lock;";
+        request = "lock_open;";
     }
 
     /* Crea la richiesta da inviare */
@@ -482,9 +482,6 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
 }
 
 int readNFiles(int N, const char* dirname){ 
-    CHECK_OPERATION(dirname == NULL, 
-        fprintf(stderr, "Parametro non valido.\n");
-            return -1);
     char *path, *file;
     size_t codice = -1;
     int byte_scritti = -1, byte_letti = -1, count = 0;
@@ -508,7 +505,7 @@ int readNFiles(int N, const char* dirname){
                     return -1);
 
         /* Se la lettura e' andata a buon fine */
-        if(codice == 0){
+        if(codice == 0 && dirname){
             /* Legge la size del path del file da leggere */
             errno = 0;
             byte_letti += read_size(fd_skt, &size_path); 
