@@ -487,71 +487,69 @@ int readNFiles(int N, const char* dirname){
     int byte_scritti = -1, byte_letti = -1, count = 0;
     size_t size_path = -1, size_file = -1;
 
-    while(N>0 || codice != 111){    
-        errno = 0;   
-        N--; 
-        count++;
+    char *actual_request = malloc((sizeof(char)*(strlen("readN;")+1)) + sizeof(int));
+    sprintf(actual_request, "readN;%d\n", N);
+    /* Invia la richiesta */
+    byte_scritti = write_msg(fd_skt, actual_request, (strlen(actual_request)+1)); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            return -1);
 
-        /* Invia la richiesta */
-        byte_scritti = write_msg(fd_skt, "readN;", (strlen("readN;")+1)); 
-        CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+    /* Legge la risposta dal server */
+    errno = 0;
+    byte_letti = read_size(fd_skt, &codice); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                 return -1);
 
-        /* Legge la risposta dal server */
-        byte_letti = read_size(fd_skt, &codice); 
+    while(codice != 111 && dirname){  
+        /* Legge la size del path del file da leggere */
+        errno = 0;
+        byte_letti += read_size(fd_skt, &size_path); 
         CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                    return -1);
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+        
+        path = malloc(sizeof(char)*size_path);
+        CHECK_OPERATION(path == NULL, 
+            fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+                return -1);
 
-        /* Se la lettura e' andata a buon fine */
-        if(codice == 0 && dirname){
-            /* Legge la size del path del file da leggere */
-            errno = 0;
-            byte_letti += read_size(fd_skt, &size_path); 
-            CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                    return -1);
-            
-            path = malloc(sizeof(char)*size_path);
-            CHECK_OPERATION(path == NULL, 
-                fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
-                    return -1);
+        /* Legge il path */
+        byte_letti += read_msg(fd_skt, path, size_path); 
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
 
-            /* Legge il path */
-            byte_letti += read_msg(fd_skt, path, size_path); 
-            CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                    return -1);
+        /* Legge la size del file da leggere */
+        errno = 0;
+        byte_letti += read_size(fd_skt, &size_file); 
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);
+        
+        file = malloc(sizeof(char)*size_file);
+        CHECK_OPERATION(file == NULL, 
+            fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+                return -1);
 
-            /* Legge la size del file da leggere */
-            errno = 0;
-            byte_letti += read_size(fd_skt, &size_file); 
-            CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                    return -1);
-            
-            file = malloc(sizeof(char)*size_file);
-            CHECK_OPERATION(file == NULL, 
-                fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
-                    return -1);
+        /* Legge il file */
+        byte_letti += read_msg(fd_skt, file, size_file); 
+        CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                return -1);   
 
-            /* Legge il file */
-            byte_letti += read_msg(fd_skt, file, size_file); 
-            CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                    return -1);   
+        /* Salva il file su disco */
+        int check_save = save_on_disk((char*)dirname, path, file, size_file);
+        CHECK_OPERATION(check_save == -1,
+            fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
+                return -1);
 
-            /* Salva il file su disco */
-            int check_save = save_on_disk((char*)dirname, path, file, size_file);
-            CHECK_OPERATION(check_save == -1,
-                fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
-                    return -1);
-
-            free(file);
-            free(path); 
-        } 
+        free(file);
+        free(path); 
+    
     }
+    free(actual_request);
     CHECK_CODICE(printer, codice, "readNFiles", byte_letti, byte_scritti);  
 
     return count;

@@ -155,6 +155,7 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
 /**
  * @brief Legge un elemento dalla tabella hash
  * 
+ * @param N Numero di file da inviare
  * @param buf Buffer in cui memorizzare i dati del nodo 
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
@@ -162,6 +163,6 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
  *              303 nel caso in cui si provi a fare la read dopo la close
  *              505 nel caso in cui il file non esista
  */
-int readN_hashtable(char** buf, int fd);
+int readN_hashtable(int N, char** buf, int fd);
 
 #endif

@@ -150,7 +150,7 @@ int main(int argc, char const *argv[]) {
                     FD_SET(risp->fd_richiesta, &set);
                     if(risp->fd_richiesta > fd_max) fd_max = fd;
 
-                    free((char*)risp->path);
+                    //free((char*)risp->path);
                     free(risp);
                 } else if(fd == signal_pipe[0]){ /* E' arrivato un segnale di chiusura */
                     int sig;
@@ -175,7 +175,7 @@ int main(int argc, char const *argv[]) {
                     size_t size;
                     int err_read = read_size(fd, &size);
                     if(err_read != -1 && err_read!=0){
-                        char* request = malloc(sizeof(char)*size);
+                        char* request = malloc(size); 
                         CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
                         
                         err_read = read_msg(fd, request, size);

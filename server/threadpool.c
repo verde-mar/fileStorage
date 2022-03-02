@@ -112,7 +112,8 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
             char *buf;
-            int err_read = readN_hashtable(&buf, req->fd);
+            int N = strtol(path, NULL, 10);
+            int err_read = readN_hashtable(N, &buf, req->fd);
             CHECK_OPERATION(err_read == -1, errno=EFAULT; return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
@@ -130,6 +131,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
             
         }
+
         free(req->request);
         free(req);
     }

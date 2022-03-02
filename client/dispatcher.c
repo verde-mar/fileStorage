@@ -294,18 +294,17 @@ int dispatcher(int argc, char *argv[]){
 
                 int num_file = readNFiles(R, dirnamed);
                 CHECK_OPERATION(num_file == -1,
-                    free(rest);
-                        err_conn = closeConnection(socketname);
-                            CHECK_OPERATION(err_conn == -1,
-                                    if(dirnameD != NULL) free(dirnameD); 
-                                        if(dirnamed != NULL) free(dirnamed);
-                                            return -1;)
-                                                if(dirnameD != NULL) free(dirnameD); 
-                                                    if(dirnamed != NULL) free(dirnamed);
-                                                        free(socketname);
-                                                            return -1);
+                    err_conn = closeConnection(socketname);
+                        CHECK_OPERATION(err_conn == -1,
+                                if(dirnameD != NULL) free(dirnameD); 
+                                    if(dirnamed != NULL) free(dirnamed);
+                                        return -1;)
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    free(socketname);
+                                                        return -1);
                 
-                free(rest);
+                
 
                 break;
             

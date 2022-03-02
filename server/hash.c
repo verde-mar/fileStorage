@@ -203,14 +203,14 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
 
     return success;
 }
-int readN_hashtable(char** buf, int fd){
+int readN_hashtable(int N, char** buf, int fd){
     CHECK_OPERATION(fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
     int success = -1;
 
     node_c *curr = fifo_queue->head;
-    while(curr){
+    while(curr && N>0){
         int hash = hash_function((char*)curr->path); 
     
         /* Legge i dati di un nodo */
@@ -219,6 +219,7 @@ int readN_hashtable(char** buf, int fd){
             fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
                 return -1);
         curr = curr->next;
+        N--;
     }
     fprintf(stdout, "Non ci sono elementi da leggere.\n");
     return success;
