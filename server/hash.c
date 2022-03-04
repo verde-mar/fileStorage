@@ -203,6 +203,7 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
 
     return success;
 }
+
 int readN_hashtable(int N, char** buf, int fd){
     CHECK_OPERATION(fd<0,
         fprintf(stderr, "Parametri non validi.\n");

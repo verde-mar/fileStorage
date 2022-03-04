@@ -249,7 +249,7 @@ int closes(list_t **lista_trabocco, char* name_file, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
-
+    printf("NAME_FILE: %s\n", name_file);
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
@@ -293,7 +293,6 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
     PTHREAD_LOCK(nodo->mutex);
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd){
-        fprintf(stdout, "E' stata rilasciata la lock sul file: %s\n", nodo->path);
         nodo->fd_c = -1;
         PTHREAD_COND_SIGNAL(nodo->locked);
     } 
@@ -359,6 +358,7 @@ int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd){
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd && nodo->open == 1){
         *buf = malloc(sizeof(char)*(strlen(nodo->buffer)+1)); 
+        CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); PTHREAD_UNLOCK(nodo->mutex); return -1);
         strcpy(*buf, nodo->buffer);
         PTHREAD_UNLOCK(nodo->mutex);
 
@@ -459,9 +459,9 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, i
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
-
+    printf("NAME_FILE IN WRITE: %s\n", name_file);
     PTHREAD_LOCK(fifo_queue->mutex);
-    int size_buf = (strlen(buf)*sizeof(char))+1;
+    size_t size_buf = (strlen(buf))+1;
     if(size_buf<=*max_size){
         *curr_size += size_buf;
         if(*curr_size > *max_size){

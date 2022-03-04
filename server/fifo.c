@@ -126,7 +126,7 @@ char* remove_fifo(list_c *queue){
     return name;
 }
 
-int push_queue(char* req_path, int fd_c, lista_richieste **queue){
+int push_queue(void* req_path, int fd_c, lista_richieste **queue){
     request *current, *new_node; 
 
     /* Crea il nodo da aggiungere */

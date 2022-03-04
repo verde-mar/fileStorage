@@ -40,7 +40,6 @@ int save_on_disk(char *dirname, char* filename, char* buf, size_t size){
 
     while (token1) {
         new_path = token1;
-        printf("new_path: %s\n", new_path);
         token1 = strtok_r(NULL, "/", &str1);
     }
 
@@ -81,7 +80,7 @@ int caller(int (*fun) (const char*), const char* pathname){
 
             if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
                 if(is_regular_file(path)){
-                    err = fun(pathname);
+                    err = fun(path);
                     CHECK_OPERATION(err == -1, fprintf(stderr, " errore nella chiamata a fun(pathname).\n"); 
                         free((char*)path);
                             int check = closedir(dir);
@@ -110,7 +109,7 @@ int caller(int (*fun) (const char*), const char* pathname){
     return 0;
 }
 
-int read_from_file(char *pathname, char** buf, int *size){
+int read_from_file(char *pathname, char** buf, size_t *size){
     CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
 
     FILE* file_toread = fopen(pathname, "rb");
@@ -120,15 +119,13 @@ int read_from_file(char *pathname, char** buf, int *size){
     stat(pathname, &st);
     *size = st.st_size;
     *buf = malloc((*size)+1);
-    printf("size: %d\n", *size);
     CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
     size_t err_fread = fread(*buf, *size, 1, file_toread);
-    CHECK_OPERATION(err_fread == -1, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);
+    CHECK_OPERATION(err_fread == 0, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);
 
     int err_close = fclose(file_toread);
     CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);
 
     return 0;
 }
-

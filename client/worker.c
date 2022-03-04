@@ -318,9 +318,16 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(pathname == NULL, 
         fprintf(stderr, "Parametro non valido:");
             return -1); 
+    
+    /* Legge dal file e inserisce i dati in buf */
+    char *buf;
+    size_t size = 0;
+    int err_rbuf = read_from_file((char*)pathname, &buf, &size);//(void**)
+    CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
+    buf[size] = '\0';
 
     /* Se la directory in cui memorizzare eventuali file eliminati dal server non e' NULL, viene inviata insieme alla richiesta di write */
-    int len = (strlen(pathname)+strlen("write;")+2)*sizeof(char);
+    size_t len = (strlen(pathname)+strlen("write;")+1)*sizeof(char) + (size+1);
     char* actual_request = malloc(len);
     CHECK_OPERATION(actual_request == NULL, 
         perror("Allocazione non andata a buon fine:");
@@ -328,24 +335,14 @@ int writeFile(const char* pathname, const char* dirname){
     actual_request = strcpy(actual_request, "write;");
     actual_request = strcat(actual_request, pathname);
     actual_request = strcat(actual_request, ";");
-    actual_request[len-1] = '\0';
-
-    /* Legge dal file e inserisce i dati in buf */
-    char *buf;
-    int size;
-    int err_rbuf = read_from_file((char*)pathname, &buf, &size);
-    CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
-
-    len += size;
-    actual_request = realloc(actual_request, len);
-    buf[size] = '\0';
     actual_request = strcat(actual_request, buf);
-
+    printf("actual_request: %s\n", actual_request);
     /* Invia la richiesta */
-    int byte_scritti = write_msg(fd_skt, actual_request, len); 
+    int byte_scritti = write_msg(fd_skt, actual_request, len); //TODO: poi fai casting a void*
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
-            return -1);
+            free(buf);     
+                return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     size_t codice;
@@ -353,7 +350,8 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(actual_request);
-                return -1);
+                free(buf);     
+                    return -1);
 
     if(dirname != NULL){
         while(codice == 909){
@@ -366,7 +364,8 @@ int writeFile(const char* pathname, const char* dirname){
                     free(path);
                         free(old_file);
                             free(actual_request);
-                                return -1;);
+                                free(buf);     
+                                    return -1);
 
             int err_save = save_on_disk((char*)dirname, optarg, old_file, size_old);
             CHECK_OPERATION(err_save == -1, 
@@ -374,7 +373,8 @@ int writeFile(const char* pathname, const char* dirname){
                     free(path);
                         free(old_file);
                             free(actual_request);
-                                return -1;);
+                                free(buf);     
+                                    return -1);
 
             free(path);
             free(old_file);

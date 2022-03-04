@@ -139,6 +139,7 @@ int dispatcher(int argc, char *argv[]){
                                                 return -1;)
                                                     free(socketname);
                                                         return -1);
+                    free(buf);
                 }
                 
                 /* Richiede la chiusura del file identificato da rest */  
@@ -185,7 +186,6 @@ int dispatcher(int argc, char *argv[]){
                 /* Richiede l'apertura e la lock dei file nella directory identificata da rest */
                 err_caller = caller_open(rest);
                 CHECK_OPERATION(err_caller == -1,
-                    fprintf(stderr, " errore nella visione della directory.\n");
                         free(rest);
                             free(socketname);
                                 return -1);
@@ -193,7 +193,6 @@ int dispatcher(int argc, char *argv[]){
                 /* Richiede la scrittura dei file nella directory identificata da rest */
                 int err_W = caller_write(rest, dirnameD); 
                 CHECK_OPERATION(err_W == -1,
-                    fprintf(stderr, " errore nella unlockFile.\n");
                         free(rest);
                             free(socketname);
                                 return -1);
@@ -201,15 +200,13 @@ int dispatcher(int argc, char *argv[]){
                 /* Richiede la chiusura dei file nella directory identificata da rest */
                 err_close = caller(closeFile, rest); 
                 CHECK_OPERATION(err_close == -1,
-                    fprintf(stderr, " errore nella closeFile.\n");
                         free(rest);
                             free(socketname);
                                 return -1);
 
                 /* Richiede il rilascio della lock dei file nella directory identificata da rest */
                 err_unlock = caller(unlockFile, rest); 
-                CHECK_OPERATION(err_unlock == -1,
-                    fprintf(stderr, " errore nella unlockFile.\n");
+                CHECK_OPERATION(err_unlock == -1,  
                         free(rest);
                             free(socketname);
                                 return -1);

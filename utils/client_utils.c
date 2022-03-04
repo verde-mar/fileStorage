@@ -82,7 +82,7 @@ int caller_write(const char* pathname, const char *dirname){
                                 CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
                                     return -1;);
                 } else if(is_directory(path)){
-                    int result = caller_open(path);
+                    int result = caller_write(path, dirname);
                     CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
                         free((char*)path);
                             int check = closedir(dir);

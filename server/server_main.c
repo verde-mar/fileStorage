@@ -130,7 +130,7 @@ int main(int argc, char const *argv[]) {
                         size_t len = sizeof(char)*(strlen(risp->buffer_file)+1);
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, len);
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
-                        printf("risp->buffer_file: %s\n", risp->buffer_file);
+                        
                         free(risp->buffer_file);
                     } else {
                         risp->errore = 333;
@@ -180,7 +180,7 @@ int main(int argc, char const *argv[]) {
                         
                         err_read = read_msg(fd, request, size);
                         CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); return -1);
-                        printf("request: %s\n", request);
+                        //printf("request: %s\n", request);
                         int push_req = push_queue(request, fd, &(pool)->pending_requests);
                         CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); return -1);
                     } else if(err_read == 0){
