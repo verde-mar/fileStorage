@@ -109,7 +109,7 @@ int caller(int (*fun) (const char*), const char* pathname){
     return 0;
 }
 
-int read_from_file(char *pathname, char** buf, size_t *size){
+int read_from_file(char *pathname, void** buf, size_t *size){
     CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
 
     FILE* file_toread = fopen(pathname, "rb");
@@ -118,7 +118,7 @@ int read_from_file(char *pathname, char** buf, size_t *size){
     struct stat st;
     stat(pathname, &st);
     *size = st.st_size;
-    *buf = malloc((*size)+1);
+    *buf = malloc(*size);
     CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
     size_t err_fread = fread(*buf, *size, 1, file_toread);

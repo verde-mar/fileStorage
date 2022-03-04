@@ -39,6 +39,8 @@ typedef struct list_req {
  */
 typedef struct richiesta {
     char* request;
+    void *buffer;
+    size_t size_buffer;
     int fd;   
     struct richiesta* next;
 } request;
@@ -93,10 +95,13 @@ char* remove_fifo(list_c *queue);
  * @brief Aggiunge un elemento alla coda condivisa tra il thread main e gli worker, in mutua esclusione
  * 
  * @param request Richiesta da aggiungere
+ * @param fd_c File descriptor del client che ha richiesto l'operazione
+ * @param buffer Buffer associato alla richiesta se diverso da NULL
+ * @param size_buffer Size di buffer
  * @param queue Coda a cui aggiungere un elemento
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int push_queue(void* req_path, int fd_c, lista_richieste **queue);
+int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue);
 
 
 request* pop_queue(lista_richieste *queue);

@@ -11,7 +11,8 @@
 typedef struct risposta {
     int fd_richiesta;          
     size_t errore;                
-    char* buffer_file; 
+    void* buffer_file; 
+    size_t size_buffer;
     char* path;     
     node *deleted;    
 } response;
@@ -52,10 +53,11 @@ int destroy_threadpool(threadpool_t **threadpool);
  * @param err Codice di errore generato
  * @param fd File descriptor del client che ha richiesto l'operazione
  * @param buf Eventuale buffer di dati 
+ * @param size_buf Size di buf
  * @param path Eventuale path associato a buf
  * @param deleted Nodo in cui memorizzare un eventuale file eliminato
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, node *deleted);
+int invia_risposta(threadpool_t *pool, int err, int fd, void* buf, size_t size_buf, char* path, node *deleted);
 
 #endif

@@ -9,7 +9,8 @@
  */
 typedef struct node {
     const char* path;
-    char *buffer;
+    void *buffer;
+    size_t size_buffer;
     int open;
     struct node* next;
     pthread_mutex_t *mutex;
@@ -130,6 +131,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd);
  * @param lista_trabocco Lista in cui si trova il nodo su cui effettuare l'operazione
  * @param name_file Path che identifica il nodo
  * @param buf Buffer su cui effettuare la append
+ * @param size_buf Size di buf
  * @param max_size Massima size possibile della tabella hash
  * @param curr_size Size corrente della tabella hash
  * @param deleted Nodo in cui memorizzare quello appena eliminato
@@ -140,7 +142,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, int* curr_size, node** deleted, int fd);
+int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da name_file
@@ -148,6 +150,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int *max_
  * @param lista_trabocco Lista in cui si trova il nodo su cui effettuare l'operazione
  * @param name_file Path che identifica il nodo
  * @param buf Buffer da scrivere sul nodo
+ * @param size_buf Size di buf
  * @param max_size Massima size possibile della tabella hash
  * @param curr_size Size corrente della tabella hash
  * @param deleted Nodo in cui memorizzare quello appena eliminato
@@ -158,14 +161,15 @@ int append_buffer(list_t **lista_trabocco, char* name_file, char* buf, int *max_
  *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int writes(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, int* curr_size, node** deleted, int fd);
+int writes(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd);
 
 /**
  * @brief Legge il file identificato da name_file
  * 
  * @param lista_trabocco Lista di trabocco in cui e' contenuto il file cercato
  * @param name_file Path del file
- * @param buf 
+ * @param buf Buffer di dati
+ * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -173,6 +177,6 @@ int writes(list_t **lista_trabocco, char* name_file, char* buf, int *max_size, i
  *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int reads(list_t **lista_trabocco, char* name_file, char** buf, int fd);
+int reads(list_t **lista_trabocco, char* name_file, void** buf, size_t* size_buf, int fd);
 
 #endif

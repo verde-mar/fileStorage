@@ -84,10 +84,18 @@ int openFile(const char *pathname, int flags){
 
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
-    CHECK_OPERATION(byte_scritti == -1,
+    CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
+    size_t size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, &size); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
+
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
@@ -119,6 +127,14 @@ int lockFile(const char* pathname){
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
+
+    size_t size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, &size); 
+    CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
@@ -175,6 +191,14 @@ int unlockFile(const char* pathname){
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
+
+    size_t size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, &size); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
@@ -210,6 +234,14 @@ int removeFile(const char* pathname){
     CHECK_OPERATION(byte_scritti == -1,
             free(actual_request);
                 return -1);
+
+    size_t size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, &size); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
@@ -242,6 +274,14 @@ int closeFile(const char* pathname){
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
+
+    size_t size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, &size); 
+    CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
@@ -280,6 +320,14 @@ int readFile(const char* pathname, void** buf, size_t *size){
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
             free(actual_request);
                 return -1);
+
+    *size = 0;
+    errno = 0;
+    byte_scritti += write_size(fd_skt, size); 
+    CHECK_OPERATION(errno == EFAULT,
+        fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
+            free(actual_request);
+                return -1);
     free(actual_request);
 
     /* Legge la risposta dal server */
@@ -299,7 +347,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
         printf("size del msg: %ld\n", *size);
         *buf = malloc(*size);
         CHECK_OPERATION(*buf == NULL, 
-            fprintf(stderr, "Allocazione non andata a buon fine:"); 
+            fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
                     return -1);
         
         byte_letti += read_msg(fd_skt, *buf, (*size)); 
@@ -307,6 +355,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
             free(*buf);
                 return -1);
+        
     } 
 
     CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
@@ -320,25 +369,29 @@ int writeFile(const char* pathname, const char* dirname){
             return -1); 
     
     /* Legge dal file e inserisce i dati in buf */
-    char *buf;
+    void *buf;
     size_t size = 0;
-    int err_rbuf = read_from_file((char*)pathname, &buf, &size);//(void**)
+    int err_rbuf = read_from_file((char*)pathname, &buf, &size);
     CHECK_OPERATION(err_rbuf == -1, fprintf(stderr, "Errore nella lettura dal file.\n"); return -1);
-    buf[size] = '\0';
 
     /* Se la directory in cui memorizzare eventuali file eliminati dal server non e' NULL, viene inviata insieme alla richiesta di write */
-    size_t len = (strlen(pathname)+strlen("write;")+1)*sizeof(char) + (size+1);
+    size_t len = (strlen(pathname)+strlen("write;")+1)*sizeof(char);
     char* actual_request = malloc(len);
     CHECK_OPERATION(actual_request == NULL, 
         perror("Allocazione non andata a buon fine:");
             return -1);
     actual_request = strcpy(actual_request, "write;");
     actual_request = strcat(actual_request, pathname);
-    actual_request = strcat(actual_request, ";");
-    actual_request = strcat(actual_request, buf);
-    printf("actual_request: %s\n", actual_request);
+
     /* Invia la richiesta */
-    int byte_scritti = write_msg(fd_skt, actual_request, len); //TODO: poi fai casting a void*
+    int byte_scritti = write_msg(fd_skt, actual_request, len); 
+    CHECK_OPERATION(byte_scritti == -1,
+        free(actual_request);
+            free(buf);     
+                return -1);
+                
+    /* Invia il buffer */
+    byte_scritti += write_msg(fd_skt, buf, size); 
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             free(buf);     
@@ -411,17 +464,20 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             return -1);
     
     /* Se la directory in cui memorizzare eventuali file eliminati dal server non e' NULL, viene inviata insieme alla richiesta di write */
-    int len = strlen(pathname)+strlen("append;")+(size+1);
+    int len = strlen(pathname)+strlen("append;")+1;
     char* actual_request = malloc(sizeof(char)*len);
     CHECK_OPERATION(actual_request == NULL, 
         perror("Allocazione non andata a buon fine.");
             return -1);
     actual_request = strcpy(actual_request, "append;");
     actual_request = strcat(actual_request, pathname);
-    actual_request = strcat(actual_request, buf);
     
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
+    CHECK_OPERATION(byte_scritti == -1,
+        free(actual_request);
+            return -1);
+    byte_scritti += write_msg(fd_skt, buf, size); 
     CHECK_OPERATION(byte_scritti == -1,
         free(actual_request);
             return -1);

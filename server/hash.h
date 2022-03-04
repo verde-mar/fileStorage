@@ -114,13 +114,14 @@ int lock_hashtable(char *name_file, int fd);
  * 
  * @param name_file Path del file da leggere
  * @param buf Buffer in cui memorizzare i dati del nodo 
+ * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *             -1 in caso di generico fallimento
  *              303 nel caso in cui si provi a fare la read dopo la close
  *              505 nel caso in cui il file non esista
  */
-int read_hashtable(char *name_file, char** buf, int fd);
+int read_hashtable(char *name_file, void** buf, size_t* size_buf, int fd);
 
 /**
  * @brief Effettua l'append sul file identificato da name_file
@@ -135,7 +136,7 @@ int read_hashtable(char *name_file, char** buf, int fd);
  *              505 nel caso in cui il file non esista
  *              202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
-int append_hashtable(char* name_file, char* buf, node** deleted, int fd);
+int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd);
 
 /**
  * @brief Scrive sul file identificato da name_file
@@ -150,19 +151,20 @@ int append_hashtable(char* name_file, char* buf, node** deleted, int fd);
  *              505 nel caso in cui il file non esista
  *              202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
-int write_hashtable(char* name_file, char* buf, node** deleted, int fd);
+int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd);
 
 /**
  * @brief Legge un elemento dalla tabella hash
  * 
  * @param N Numero di file da inviare
  * @param buf Buffer in cui memorizzare i dati del nodo 
+ * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *             -1 in caso di generico fallimento
  *              303 nel caso in cui si provi a fare la read dopo la close
  *              505 nel caso in cui il file non esista
  */
-int readN_hashtable(int N, char** buf, int fd);
+int readN_hashtable(int N, void** buf, size_t *size_buf, int fd);
 
 #endif

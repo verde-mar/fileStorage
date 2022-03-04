@@ -9,20 +9,18 @@
 #include <socketIO.h>
 #include <errno.h>
 
-static int tokenizer(char *to_token, char** operation, char** path, char** file){
+static int tokenizer(char *to_token, char** operation, char** path){
     CHECK_OPERATION((to_token==NULL), fprintf(stderr, "Stringa da tokenizzare non valida.\n"); return -1);
     char *pars = to_token, *str = NULL;
     char* token = strtok_r(pars, ";", &str);
     *operation = token;
     token = strtok_r(NULL, ";", &str);
     *path = token;
-    token = strtok_r(NULL, ";", &str);
-    *file = token;
 
     return 0;
 }
 
-int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, node *deleted){
+int invia_risposta(threadpool_t *pool, int err, int fd, void* buf, size_t size_buf, char* path, node *deleted){
     CHECK_OPERATION(pool==NULL, 
         fprintf(stderr, "Parametri non validi.\n"); 
             return -1);
@@ -37,6 +35,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, char* buf, char* path, n
     risp->path = path;
     risp->buffer_file = buf;
     risp->deleted = deleted;
+    risp->size_buffer = size_buf;
     
     /* Scrive il puntatore della response sulla pipe delle risposte */
     err_pipe = writen(pool->response_pipe, &risp, sizeof(response*)); 
@@ -64,59 +63,61 @@ static void* working(void* pool){
         CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
         
         /* Tokenizza la richiesta */
-        char *operation, *path, *file;
-        int err_token = tokenizer(req->request, &operation, &path, &file);
+        char *operation, *path;
+        int err_token = tokenizer(req->request, &operation, &path);
         CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return (void*)NULL);
         printf("operation: %s\n", operation);
         printf("path: %s\n", path);
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){
             node *deleted;
-            int err_write = write_hashtable(path, file, &deleted, req->fd);
+            int err_write = write_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd); 
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"); return (void*)NULL);
             
-            int err_invio = invia_risposta((*threadpool), err_write, req->fd, NULL, NULL, deleted);
+            int err_invio = invia_risposta((*threadpool), err_write, req->fd, NULL, 0, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
 
         } else if(!strcmp(operation, "read")){
-            char *buf;
-            int err_read = read_hashtable(path, &buf, req->fd);
+            void* buf;
+            size_t size_buf;
+            int err_read = read_hashtable(path, &buf, &size_buf, req->fd);
             CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore sulla read_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "append")){
             node *deleted;
-            int err_append = append_hashtable(path, file, &deleted, req->fd);
+            int err_append = append_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd);
             CHECK_OPERATION(err_append == -1, fprintf(stderr, "Errore sulla append_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_append, req->fd, NULL, NULL, deleted);
+            int err_invio = invia_risposta((*threadpool), err_append, req->fd, NULL, 0, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "lock")){
             int err_lock = lock_hashtable(path, req->fd);
             CHECK_OPERATION(err_lock == -1, fprintf(stderr, "Errore sulla lock_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_lock, req->fd, NULL, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_lock, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "unlock")){
             int err_unlock = unlock_hashtable(path, req->fd);
             CHECK_OPERATION(err_unlock == -1, fprintf(stderr, "Errore sulla unlock_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_unlock, req->fd, NULL, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_unlock, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "close")){
             int err_close = close_hashtable(path, req->fd);
             CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore sulla close_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_close, req->fd, NULL, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_close, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "remove")){
             node* deleted = NULL;
             int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
-            char *buf;
+            void* buf;
+            size_t size_buf;
             int N = strtol(path, NULL, 10);
-            int err_read = readN_hashtable(N, &buf, req->fd);
+            int err_read = readN_hashtable(N, &buf, &size_buf, req->fd);
             CHECK_OPERATION(err_read == -1, errno=EFAULT; return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, path, NULL);
+            int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "create") || !strcmp(operation, "open") || !strcmp(operation, "lock_open")){
             int flags = -1;
@@ -128,11 +129,10 @@ static void* working(void* pool){
                 flags = 4;
             int err_open_create = add_hashtable(path, req->fd, flags); 
             CHECK_OPERATION(err_open_create == -1, fprintf(stderr, "Errore sulla add_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, NULL, NULL);
+            int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
             
         }
-
         free(req->request);
         free(req);
     }
@@ -173,7 +173,7 @@ int destroy_threadpool(threadpool_t **threadpool){
 
     if((*threadpool)->curr_threads>0)
         for(int i = 0; i < (*threadpool)->num_thread; i++) {
-            int err_push = push_queue(NULL, -1, &((*threadpool)->pending_requests));
+            int err_push = push_queue(NULL, -1, NULL, 0, &((*threadpool)->pending_requests));
             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
         }
 
