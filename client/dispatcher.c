@@ -249,7 +249,7 @@ int dispatcher(int argc, char *argv[]){
                                             free(socketname);
                                                 return -1);
 
-                void *buf = NULL;
+                void *buf;
                 size_t size;
                 int err_r = readFile(rest, &buf, &size);
                 CHECK_OPERATION(err_r == -1, 
@@ -263,7 +263,7 @@ int dispatcher(int argc, char *argv[]){
                                                     if(dirnamed != NULL) free(dirnamed);
                                                         free(socketname);
                                                             return -1);
-                if(buf!=NULL){
+                if(size>0){
                     int err_save = save_on_disk(dirnamed, optarg, (char*)buf, size);
                     CHECK_OPERATION(err_save == -1, 
                         free(rest);
@@ -277,8 +277,9 @@ int dispatcher(int argc, char *argv[]){
                                                             free(socketname);
                                                                 return -1);
                     
-                    free(buf); //specifica nella relazione
+                    
                 }
+                free(buf); //specifica nella relazione
                 free(rest);
 
                 break;

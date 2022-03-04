@@ -126,7 +126,7 @@ char* remove_fifo(list_c *queue){
     return name;
 }
 
-int push_queue(void* req_path, int fd_c, lista_richieste **queue){
+int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
     request *current, *new_node; 
 
     /* Crea il nodo da aggiungere */
@@ -138,6 +138,8 @@ int push_queue(void* req_path, int fd_c, lista_richieste **queue){
     if(req_path!=NULL){
         new_node->request = req_path;
         new_node->fd = fd_c; 
+        new_node->buffer = buffer;
+        new_node->size_buffer = size_buffer;
         new_node->next = NULL;
     } else {
         new_node->request = NULL;
@@ -215,7 +217,6 @@ int del_req(lista_richieste **queue){
     while ((*queue)->head) {
         tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
-
         free(tmp->request);
         free(tmp);
     }

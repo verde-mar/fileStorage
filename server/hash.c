@@ -154,7 +154,7 @@ int lock_hashtable(char *name_file, int fd){
     return success;
 }
 
-int read_hashtable(char *name_file, char** buf, int fd){
+int read_hashtable(char *name_file, void** buf, size_t *size_buf, int fd){
     CHECK_OPERATION(name_file==NULL || fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
@@ -162,7 +162,7 @@ int read_hashtable(char *name_file, char** buf, int fd){
     int hash = hash_function(name_file); 
 
     /* Legge i dati di un nodo */
-    success = reads(&(table->queue[hash]), name_file, buf, fd);
+    success = reads(&(table->queue[hash]), name_file, buf, size_buf, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
             return -1);
@@ -170,7 +170,7 @@ int read_hashtable(char *name_file, char** buf, int fd){
     return success;
 }
 
-int append_hashtable(char* name_file, char* buf, node** deleted, int fd){
+int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd){
     CHECK_OPERATION((name_file==NULL || fd<0) || buf==NULL ,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
@@ -181,7 +181,7 @@ int append_hashtable(char* name_file, char* buf, node** deleted, int fd){
     CHECK_OPERATION(buf == NULL, return 707);
 
     /* Effettua la append su un nodo */
-    success = append_buffer(&(table->queue[hash]), name_file, buf, &(table->max_size), &(table->curr_size), deleted, fd);
+    success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), deleted, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
             return -1);
@@ -189,14 +189,14 @@ int append_hashtable(char* name_file, char* buf, node** deleted, int fd){
     return success;
 }
 
-int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
+int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd){
     CHECK_OPERATION((name_file==NULL || fd<0) || buf==NULL ,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
     int success = -1;
     int hash = hash_function(name_file);
     /* Effettua la write su un nodo */
-    success = writes(&(table->queue[hash]), name_file, buf, &(table->max_size), &(table->curr_size), deleted, fd);
+    success = writes(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), deleted, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
             return -1);
@@ -204,7 +204,7 @@ int write_hashtable(char* name_file, char* buf, node** deleted, int fd){
     return success;
 }
 
-int readN_hashtable(int N, char** buf, int fd){
+int readN_hashtable(int N, void** buf, size_t *size_buf, int fd){
     CHECK_OPERATION(fd<0,
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
@@ -215,7 +215,7 @@ int readN_hashtable(int N, char** buf, int fd){
         int hash = hash_function((char*)curr->path); 
     
         /* Legge i dati di un nodo */
-        success = reads(&(table->queue[hash]), (char*)curr->path, buf, fd);
+        success = reads(&(table->queue[hash]), (char*)curr->path, buf, size_buf, fd);
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
                 return -1);
