@@ -179,7 +179,6 @@ int main(int argc, char const *argv[]) {
                         CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); return -1);
 
                         void* buffer = NULL;
-                        printf("size_buffer: %ld\n", size_buffer);
                         if(size_buffer > 0){
                             
                             buffer = malloc(size_buffer);

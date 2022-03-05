@@ -63,7 +63,7 @@ int dispatcher(int argc, char *argv[]){
                 
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, O_CREATE | O_LOCK);
-                CHECK_OPERATION(err_caller != 0,
+                CHECK_OPERATION(err_caller == -1,
                     free(rest);
                     err_conn = closeConnection(socketname);
                         CHECK_OPERATION(err_conn == -1,
@@ -72,106 +72,108 @@ int dispatcher(int argc, char *argv[]){
                                         return -1;)
                                             free(socketname);
                                                 return -1);
-                
-                /* Richiede la scrittura sul file identificato da rest */
-                int err_w = writeFile(rest, dirnameD);
-                CHECK_OPERATION(err_w == -1,
-                        free(rest);
-                            err_conn = closeConnection(socketname);
-                                CHECK_OPERATION(err_conn == -1,
-                                        if(dirnameD != NULL) free(dirnameD); 
-                                            if(dirnamed != NULL) free(dirnamed);
-                                                return -1;)
-                                                    free(socketname);
-                                                        return -1);
-                
-                /* Se la prima scrittura del file su disco e' gia' stata fatta, si richiede l'operazione di append del file identificato da rest */
-                if(err_w == 808){
-                    struct stat st;
-                    stat(rest, &st);
-                    int size = st.st_size;
-                    char* buf = malloc(sizeof(char)*size);
-
-                    FILE *file = fopen(rest, "r");
-                    CHECK_OPERATION(file == NULL, 
-                        fprintf(stderr, "Errore nella fopen.\n"); 
+                if(err_caller!=101){
+                    /* Richiede la scrittura sul file identificato da rest */
+                    int err_w = writeFile(rest, dirnameD);
+                    CHECK_OPERATION(err_w == -1,
                             free(rest);
-                            err_conn = closeConnection(socketname);
-                                CHECK_OPERATION(err_conn == -1,
-                                        if(dirnameD != NULL) free(dirnameD); 
-                                            if(dirnamed != NULL) free(dirnamed);
-                                                return -1;)
-                                                    free(socketname);
-                                                        return -1);
-                    
-
-                    int err_fwrite = fread(buf, size, 1, file); 
-                    CHECK_OPERATION(err_fwrite == -1, 
-                        fprintf(stderr, "Errore nella closedir.\n"); 
-                            free(rest);
-                            err_conn = closeConnection(socketname);
-                                CHECK_OPERATION(err_conn == -1,
-                                        if(dirnameD != NULL) free(dirnameD); 
-                                            if(dirnamed != NULL) free(dirnamed);
-                                                return -1;)
-                                                    free(socketname);
-                                                        return -1);
-
-                    int check = fclose(file);
-                    CHECK_OPERATION(check == -1, 
-                        fprintf(stderr, "Errore nella fclose.\n"); 
-                            free(rest);
-                            err_conn = closeConnection(socketname);
-                                CHECK_OPERATION(err_conn == -1,
-                                        if(dirnameD != NULL) free(dirnameD); 
-                                            if(dirnamed != NULL) free(dirnamed);
-                                                return -1;)
-                                                    free(socketname);
-                                                        return -1);
-
-                    int err_append = appendToFile(rest, buf, size, dirnameD);
-                    CHECK_OPERATION(err_append == -1,
-                        free(rest);
-                            err_conn = closeConnection(socketname);
-                                CHECK_OPERATION(err_conn == -1,
-                                        if(dirnameD != NULL) free(dirnameD); 
-                                            if(dirnamed != NULL) free(dirnamed);
-                                                return -1;)
-                                                    free(socketname);
-                                                        return -1);
-                    free(buf);
-                }
-                
-                /* Richiede la chiusura del file identificato da rest */  
-                err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1,
-                    free(rest);
-                        err_conn = closeConnection(socketname);
-                            CHECK_OPERATION(err_conn == -1,
-                                    if(dirnameD != NULL) free(dirnameD); 
-                                        if(dirnamed != NULL) free(dirnamed);
-                                            return -1;)
-                                                if(dirnameD != NULL) free(dirnameD); 
-                                                    if(dirnamed != NULL) free(dirnamed);
+                                err_conn = closeConnection(socketname);
+                                    CHECK_OPERATION(err_conn == -1,
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    return -1;)
                                                         free(socketname);
                                                             return -1);
+                    /* Se la prima scrittura del file su disco e' gia' stata fatta, si richiede l'operazione di append del file identificato da rest */
+                    if(err_w == 808){
+                        struct stat st;
+                        stat(rest, &st);
+                        int size = st.st_size;
+                        char* buf = malloc(sizeof(char)*size);
+
+                        FILE *file = fopen(rest, "r");
+                        CHECK_OPERATION(file == NULL, 
+                            fprintf(stderr, "Errore nella fopen.\n"); 
+                                free(rest);
+                                err_conn = closeConnection(socketname);
+                                    CHECK_OPERATION(err_conn == -1,
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    return -1;)
+                                                        free(socketname);
+                                                            return -1);
+                        
+
+                        int err_fwrite = fread(buf, size, 1, file); 
+                        CHECK_OPERATION(err_fwrite == -1, 
+                            fprintf(stderr, "Errore nella closedir.\n"); 
+                                free(rest);
+                                err_conn = closeConnection(socketname);
+                                    CHECK_OPERATION(err_conn == -1,
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    return -1;)
+                                                        free(socketname);
+                                                            return -1);
+
+                        int check = fclose(file);
+                        CHECK_OPERATION(check == -1, 
+                            fprintf(stderr, "Errore nella fclose.\n"); 
+                                free(rest);
+                                err_conn = closeConnection(socketname);
+                                    CHECK_OPERATION(err_conn == -1,
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    return -1;)
+                                                        free(socketname);
+                                                            return -1);
+
+                        int err_append = appendToFile(rest, buf, size, dirnameD);
+                        CHECK_OPERATION(err_append == -1,
+                            free(rest);
+                                err_conn = closeConnection(socketname);
+                                    CHECK_OPERATION(err_conn == -1,
+                                            if(dirnameD != NULL) free(dirnameD); 
+                                                if(dirnamed != NULL) free(dirnamed);
+                                                    return -1;)
+                                                        free(socketname);
+                                                            return -1);
+                        free(buf);
+                    }
+                    /* Richiede la chiusura del file identificato da rest */  
+                    err_close = closeFile(rest);
+                    CHECK_OPERATION(err_close == -1,
+                        free(rest);
+                            err_conn = closeConnection(socketname);
+                                CHECK_OPERATION(err_conn == -1,
+                                        if(dirnameD != NULL) free(dirnameD); 
+                                            if(dirnamed != NULL) free(dirnamed);
+                                                return -1;)
+                                                    if(dirnameD != NULL) free(dirnameD); 
+                                                        if(dirnamed != NULL) free(dirnamed);
+                                                            free(socketname);
+                                                                return -1);
+                }
 
                 /* Richiede il rilascio della lock sul file iile identificato da rest */
-                err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1,
-                    free(rest);
-                        err_conn = closeConnection(socketname);
-                            CHECK_OPERATION(err_conn == -1,
-                                    if(dirnameD != NULL) free(dirnameD); 
-                                        if(dirnamed != NULL) free(dirnamed);
-                                            return -1;)
-                                                if(dirnameD != NULL) free(dirnameD); 
-                                                    if(dirnamed != NULL) free(dirnamed);
-                                                        free(socketname);
-                                                            return -1);
+                    err_unlock = unlockFile(rest);
+                    CHECK_OPERATION(err_unlock == -1,
+                        free(rest);
+                            err_conn = closeConnection(socketname);
+                                CHECK_OPERATION(err_conn == -1,
+                                        if(dirnameD != NULL) free(dirnameD); 
+                                            if(dirnamed != NULL) free(dirnamed);
+                                                return -1;)
+                                                    if(dirnameD != NULL) free(dirnameD); 
+                                                        if(dirnamed != NULL) free(dirnamed);
+                                                            free(socketname);
+                                                                return -1);
+
+                    
+                CHECK_OPERATION(err_unlock == 202, fprintf(stderr, "Non puoi rilasciare la lock perche' e' stata acquisita da un client che non l'ha piu' liberata.\n"););
 
                 free(rest);
-
+                
                 break;
             
             /* Effettua la richiesta di scrittura dei file di una directory al server */

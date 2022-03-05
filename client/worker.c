@@ -59,8 +59,8 @@ int closeConnection(const char* sockname){
 }
 
 int openFile(const char *pathname, int flags){
-    CHECK_OPERATION(pathname == NULL && (flags != 6 || flags != 2 || flags != 4), 
-        fprintf(stderr, "Parametro non valido:");
+    CHECK_OPERATION(pathname == NULL, 
+        fprintf(stderr, "Parametro non valido.\n");
             return -1); 
     
     /* Determina il tipo di richiesta da effettuare in base al valore di flags */

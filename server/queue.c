@@ -90,13 +90,16 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         curr->size_buffer = 0;
         curr->fd_c = fd;
         curr->locked = malloc(sizeof(pthread_cond_t));
+        CHECK_OPERATION(curr->locked == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
         PTHREAD_INIT_COND(curr->locked);
         curr->mutex = malloc(sizeof(pthread_mutex_t));
+        CHECK_OPERATION(curr->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+
         PTHREAD_INIT_LOCK(curr->mutex);
 
         PTHREAD_LOCK(fifo_queue->mutex);
         PTHREAD_LOCK((*lista_trabocco)->mutex);
-        
+        printf("PRIMA DELLA ADD_FIFO.\n");
         int adder = add_fifo((char*)curr->path);
         CHECK_OPERATION(adder == -1, 
             PTHREAD_UNLOCK(fifo_queue->mutex);
@@ -105,14 +108,14 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
 
         curr->next = (*lista_trabocco)->head; 
         (*lista_trabocco)->head = curr;
-        
+        printf("PRIMA DELLA UNLOCK.\n");
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     }
 
     /* Se e' stata specificata l'operazione di acquisizione della lock */
     if(flags == 6){
-        
+        printf("PRIMA DELLA LOCK NELLA OPEN.\n");
         /* Se il nodo esiste acquisisce la lock */
         int check_lock = lock(lista_trabocco, name_file, fd);
         CHECK_OPERATION(check_lock == -1,
@@ -122,19 +125,14 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
     } else if(check_exists!=NULL && flags == 4){
         /* Ricerca il nodo */        
         PTHREAD_LOCK(check_exists->mutex);
-        
         check_exists->open = 1;
-        while(check_exists->fd_c != -1 && check_exists->fd_c != fd)
-                PTHREAD_COND_WAIT(check_exists->locked, check_exists->mutex);
-        /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
-        if(check_exists->fd_c == fd || check_exists->fd_c == -1){ 
-            check_exists->fd_c = fd;
-        } else {
-            PTHREAD_UNLOCK(check_exists->mutex);
-
-            return 303;
+        while(check_exists->fd_c != fd  && check_exists->fd_c != -1){
+            printf("STO PER ATTENDERE NELLA LOCK_OPEN.\n");
+            PTHREAD_COND_WAIT(check_exists->locked, check_exists->mutex);
         }
-
+        /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
+        check_exists->fd_c = fd;
+        
         PTHREAD_UNLOCK(check_exists->mutex);
     }
 
@@ -178,8 +176,6 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
             free(curr->mutex);
             if(curr->buffer)   
                 free(curr->buffer);
-            printf("size_buffer: %ld\n", curr->size_buffer);
-            printf("buffer: %p\n", curr->buffer);
             
             free((char*)curr->path);
             free(curr);
@@ -244,6 +240,7 @@ node* look_for_node(list_t **lista_trabocco, char* name_file){
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
             return(curr);
         }
+
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     return NULL;
 }
@@ -298,10 +295,12 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
     /* Se ha acquisito la lock e il flag open e' a 1 */
     if(nodo->fd_c == fd){
         nodo->fd_c = -1;
+        printf("STO PER FARE LA SIGNAL IN UNLOCK.\n");
         PTHREAD_COND_SIGNAL(nodo->locked);
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
+        fprintf(stderr, "Non puoi rilasciare la lock perche' e' stata acquisita da un client che non l'ha piu' liberata.\n");
         PTHREAD_UNLOCK(nodo->mutex);
         
         return 202;
@@ -327,9 +326,10 @@ int lock(list_t **lista_trabocco, char* name_file, int fd){
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
                     return 505);
-    
+    PTHREAD_UNLOCK(nodo->mutex);
     PTHREAD_LOCK(nodo->mutex);
-    while(nodo->fd_c != -1 && nodo->fd_c != fd)
+    printf("DOPO LA PTHREAD_LOCK.\n nodo->fd_c: %d\n fd del client: %d\n", nodo->fd_c, fd);
+    while(nodo->fd_c != fd && nodo->fd_c != -1)
         PTHREAD_COND_WAIT(nodo->locked, nodo->mutex);
 
     /* Se la lock era gia' stata acquisita dallo stesso processo o era libera */
