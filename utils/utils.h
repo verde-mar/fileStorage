@@ -26,7 +26,7 @@ int is_directory(const char *path);
  * @param size Size di buf
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int save_on_disk(char *dirname, char *filename, char* buf, size_t size);
+int save_on_disk(char *dirname, char *filename, void* buf, size_t size);
 
 /**
  * @brief Chiama ricorsivamente la funziona fun sui file contenuti in pathname

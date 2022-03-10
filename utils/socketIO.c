@@ -1,3 +1,11 @@
+/**
+ * @file socketIO.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Contiene tutte le funzioni utili all'interazione client-server
+ * @version 0.1
+ * @date 2022-03-09
+ * 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/un.h>
@@ -14,29 +22,27 @@
 #include <socketIO.h>
 
 int read_size(int fd_skt, size_t* size){
+    CHECK_OPERATION(*size<0, fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     int byte_letti = readn(fd_skt, size, sizeof(size_t));
     CHECK_OPERATION(byte_letti==-1, return -1); 
-
 
     return byte_letti;
 }
 
 int read_msg(int fd_skt, void *msg, size_t size){
-    CHECK_OPERATION(size<0, 
-        fprintf(stderr, "Parametri non validi nella read_msg.\n");
-            return -1); 
+    CHECK_OPERATION(size<0, fprintf(stderr, "Parametri non validi.\n"); return -1); 
     return readn(fd_skt, msg, size);
 }
 
 int write_size(int fd_skt, size_t* size){
+    CHECK_OPERATION(*size<0, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
     return writen(fd_skt, size, sizeof(size_t));
 }
 
 int write_msg(int fd_skt, void *msg, size_t size){
     int byte_scritti = write_size(fd_skt, &size);
-    
-    
     CHECK_OPERATION(byte_scritti == -1,
         fprintf(stderr, "Errore nell'invio della size del messaggio.\n");
             return -1);

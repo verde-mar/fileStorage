@@ -1,3 +1,11 @@
+/**
+ * @file utils.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Contiene alcune funzioni utilizzate sia dal client che dal server
+ * @version 0.1
+ * @date 2022-03-09
+ * 
+ */
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -27,7 +35,7 @@ int is_directory(const char *path) {
 }
 
 
-int save_on_disk(char *dirname, char* filename, char* buf, size_t size){ 
+int save_on_disk(char *dirname, char* filename, void* buf, size_t size){ 
     CHECK_OPERATION(filename == NULL || size < 0,
         fprintf(stderr, "Parametri non validi nella save_on_disk.\n"); 
             return -1);
@@ -45,16 +53,19 @@ int save_on_disk(char *dirname, char* filename, char* buf, size_t size){
 
     int len = strlen(dirname) + strlen(new_path) + strlen("/") + 1;
     char *path = malloc(sizeof(char)*len);
+    CHECK_OPERATION(path == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
     path = strcpy(path, dirname);
     path = strcat(path, "/");
     path = strcat(path, new_path);
 
     /* Crea il file nella directory */
-    FILE *new_file = fopen(path, "w");
+    FILE *new_file = fopen(path, "wb");
     CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); return -1);
+    
     /* Scrive sul file */
-    int err_fwrite = fwrite(buf, size, 1, new_file); 
+    size_t err_fwrite = fwrite(buf, size, 1, new_file); 
     CHECK_OPERATION(err_fwrite == -1, fprintf(stderr, "Errore nella fwrite.\n"); return -1);
+    
     /* Chiude il file */
     int check = fclose(new_file);
     CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella fclose.\n"); return -1);
@@ -112,18 +123,20 @@ int caller(int (*fun) (const char*), const char* pathname){
 int read_from_file(char *pathname, void** buf, size_t *size){
     CHECK_OPERATION(!pathname, fprintf(stderr, "Parametro non valido.\n"); return -1);
 
+    /* Apre il file */
     FILE* file_toread = fopen(pathname, "rb");
     CHECK_OPERATION(file_toread == NULL, fprintf(stderr, "Non e' stato possibile aprire il file.\n"); return -1);
-
     struct stat st;
     stat(pathname, &st);
-    *size = st.st_size;
+    *size = (st.st_size);
     *buf = malloc(*size);
     CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-
+    printf("*SIZE DEL FILE %s: %ld\n", pathname, *size);
+    /* Legge il file */
     size_t err_fread = fread(*buf, *size, 1, file_toread);
     CHECK_OPERATION(err_fread == 0, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);
 
+    /* Chiude il file */
     int err_close = fclose(file_toread);
     CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);
 

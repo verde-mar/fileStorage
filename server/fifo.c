@@ -1,3 +1,11 @@
+/**
+ * @file fifo.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Codice relativo sia alla coda FIFO delle richieste sia a quella per il rimpiazzamento dei file
+ * @version 0.1
+ * @date 2022-03-09
+ * 
+ */
 #include <fifo.h>
 #include <stdio.h>
 #include <check_errors.h>
@@ -217,6 +225,7 @@ int del_req(lista_richieste **queue){
     while ((*queue)->head) {
         tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
+        free(tmp->buffer);
         free(tmp->request);
         free(tmp);
     }

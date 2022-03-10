@@ -160,11 +160,12 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
  * @param buf Buffer in cui memorizzare i dati del nodo 
  * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param path Path del file da inviare
  * @return int 0 in caso di successo
  *             -1 in caso di generico fallimento
  *              303 nel caso in cui si provi a fare la read dopo la close
  *              505 nel caso in cui il file non esista
  */
-int readN_hashtable(int N, void** buf, size_t *size_buf, int fd);
+int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path);
 
 #endif

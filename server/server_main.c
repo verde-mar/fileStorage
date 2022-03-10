@@ -122,14 +122,20 @@ int main(int argc, char const *argv[]) {
                     response *risp;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
                     CHECK_OPERATION(err_resp == -1, fprintf(stderr, "Errore sulla readn nella lettura della risposta."); return -1);
-
+                    
                     int err_write = write_size(risp->fd_richiesta, &risp->errore);
                     CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); return -1);
-
-                    if(risp->buffer_file != NULL){
-                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, risp->size_buffer);
+                    
+                    if(risp->path){
+                        int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
+                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); return -1);
+                    }
+                    
+                    if(risp->buffer_file){
+                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                     }
+                    
                     /*if(risp->deleted!= NULL){
                         if((risp->deleted)->buffer!=NULL){
                             int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path));
@@ -180,7 +186,6 @@ int main(int argc, char const *argv[]) {
 
                         void* buffer = NULL;
                         if(size_buffer > 0){
-                            
                             buffer = malloc(size_buffer);
                             CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
@@ -196,7 +201,6 @@ int main(int argc, char const *argv[]) {
                         aggiorna(set, fd_max);
                     } else if(err_read == -1){
                         fprintf(stderr, "Errore nella lettura della size del messaggio.\n");
-                        return -1;
                     }
                 }
             }
