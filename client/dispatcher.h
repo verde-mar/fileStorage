@@ -1,10 +1,3 @@
-/**
- * @file dispatcher.h
- * @author Sara Grecu (s.grecu1@studenti.unipi.it)
- * @brief Contiene l'header della funzione implementata in dispatcher.c
- * @version 0.1
- * 
- */
 #ifndef DISPATCHER_H_
 #define DISPATCHER_H_
 

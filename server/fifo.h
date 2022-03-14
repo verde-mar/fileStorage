@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 /**
- * @brief Nodo della lista FIFO
+ * @brief Nodo della lista per il rimpiazzamento dei file
  * 
  */
 typedef struct node_c {
@@ -13,7 +13,7 @@ typedef struct node_c {
 } node_c;
 
 /**
- * @brief Lista con ordinamento FIFO
+ * @brief Lista per il rimpiazzamento dei file con ordinamento FIFO
  * 
  */
 typedef struct l {
@@ -24,7 +24,7 @@ typedef struct l {
 } list_c;
 
 /**
- * @brief Lista con ordinamento FIFO
+ * @brief Lista delle richieste con ordinamento FIFO
  * 
  */
 typedef struct list_req {
@@ -55,9 +55,6 @@ list_c *fifo_queue;
  * @return int int 0 in caso di successo, -1 altrimenti
  */
 int create_fifo(list_c **queue);
-
-int create_req(lista_richieste **queue);
-int del_req(lista_richieste ** queue);
 
 /**
  * @brief Elimina la lista con ordinamento FIFO
@@ -92,6 +89,22 @@ int del(char *name_file);
 char* remove_fifo(list_c *queue);
 
 /**
+ * @brief Crea la lista delle richieste
+ * 
+ * @param queue Coda creata
+ * @return int 0 in caso di successo, -1 in caso di fallimento
+ */
+int create_req(lista_richieste **queue);
+
+/**
+ * @brief Elimina la lista delle richieste
+ * 
+ * @param queue Coda da eliminare
+ * @return int 0 in caso di successo, -1 in caso di fallimento
+ */
+int del_req(lista_richieste ** queue);
+
+/**
  * @brief Aggiunge un elemento alla coda condivisa tra il thread main e gli worker, in mutua esclusione
  * 
  * @param request Richiesta da aggiungere
@@ -103,7 +116,12 @@ char* remove_fifo(list_c *queue);
  */
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue);
 
-
+/**
+ * @brief Preleva un elemento in testa alla lista delle richieste
+ * 
+ * @param queue Coda da cui prelevare l'elemento
+ * @return request* Elemento prelevato
+ */
 request* pop_queue(lista_richieste *queue);
 
 #endif

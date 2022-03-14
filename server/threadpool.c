@@ -1,3 +1,11 @@
+/**
+ * @file threadpool.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Implementazione del threadpool
+ * @version 0.1
+ * @date 2022-03-09
+ * 
+ */
 #include <threadpool.h>
 #include <check_errors.h>
 #include <utils.h>
@@ -66,11 +74,10 @@ static void* working(void* pool){
         char *operation, *path;
         int err_token = tokenizer(req->request, &operation, &path);
         CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); return (void*)NULL);
-        printf("operation: %s\n", operation);
-        printf("path: %s\n", path);
+        
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){
-            node *deleted;
+            node *deleted = NULL;
             int err_write = write_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd); 
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"); return (void*)NULL);
             
@@ -85,7 +92,7 @@ static void* working(void* pool){
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "append")){
-            node *deleted;
+            node *deleted = NULL;
             int err_append = append_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd);
             CHECK_OPERATION(err_append == -1, fprintf(stderr, "Errore sulla append_hashtable.\n"); return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_append, req->fd, NULL, 0, NULL, deleted);
@@ -107,26 +114,47 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "remove")){
             node* deleted = NULL;
+            //TODO: se la richiesta era delete allora elimino deleted
             int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, NULL);
+            printf("*just_deleted->path: %s IN THREADPOOL.C\n", deleted->path);
+            /*
+            PTHREAD_LOCK((table->queue[hash])->mutex);
+            PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
+            PTHREAD_DESTROY_COND((*just_deleted)->locked); 
+            free((*just_deleted)->locked);
+            free((*just_deleted)->mutex);
+
+            if((*just_deleted)->buffer)   
+                free((*just_deleted)->buffer);
+            free((char*)(*just_deleted)->path);
+            free((*just_deleted));
+
+            PTHREAD_UNLOCK((table->queue[hash])->mutex);
+            */
+            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
             void* buf;
             size_t size_buf;
             int N = strtol(path, NULL, 10);
-            int err_read = readN_hashtable(N, &buf, &size_buf, req->fd);
+            int err_read = readN_hashtable(N, &buf, &size_buf, req->fd, &path);
             CHECK_OPERATION(err_read == -1, errno=EFAULT; return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
-        } else if(!strcmp(operation, "create") || !strcmp(operation, "open") || !strcmp(operation, "lock_open")){
+        } else if(!strcmp(operation, "create_lock") || !strcmp(operation, "open") || !strcmp(operation, "lock_open") || !strcmp(operation, "open")  || !strcmp(operation, "open_lock")){
             int flags = -1;
-            if(!strcmp(operation, "open"))
+            if(!strcmp(operation, "create_lock"))
                 flags = 6;
             else if(!strcmp(operation, "create"))
                 flags = 2;
             else if(!strcmp(operation, "lock_open"))
                 flags = 4;
+            else if(!strcmp(operation, "open"))
+                flags = 0;
+            else if(!strcmp(operation, "open_lock"))
+                flags = 5;
+            
             int err_open_create = add_hashtable(path, req->fd, flags); 
             CHECK_OPERATION(err_open_create == -1, fprintf(stderr, "Errore sulla add_hashtable.\n"); return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, 0, NULL, NULL);

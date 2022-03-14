@@ -1,5 +1,5 @@
 CC = gcc -std=c99 -O3 -g 
-CFLAGS = -Wall -pedantic -pthread
+CFLAGS = -Wall -pthread
 
 CLIENT = ./client
 SERVER = ./server

@@ -1,3 +1,11 @@
+/**
+ * @file fifo.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Codice relativo sia alla coda FIFO delle richieste sia a quella per il rimpiazzamento dei file
+ * @version 0.1
+ * @date 2022-03-09
+ * 
+ */
 #include <fifo.h>
 #include <stdio.h>
 #include <check_errors.h>
@@ -54,7 +62,7 @@ int add_fifo(char *name_file){
     new_node = malloc(sizeof(node_c));
     CHECK_OPERATION(new_node == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
-            return -1);
+        return -1);
 
     new_node->path = name_file;
     new_node->next = NULL;
@@ -78,10 +86,10 @@ int del(char *name_file){
     
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
-    
     if (strcmp(curr->path, name_file) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
+        
         fifo_queue->elements--;
 
         return 0;
@@ -90,7 +98,6 @@ int del(char *name_file){
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
-        
         if (strcmp(curr->path, name_file) == 0){
             prev->next = curr->next; 
             fifo_queue->elements--;
@@ -106,23 +113,8 @@ int del(char *name_file){
 }
 
 char* remove_fifo(list_c *queue){
-    char* name;
-    node_c *temp;
-
-    /* Elimina la testa della lista */
-    PTHREAD_LOCK(queue->mutex);
-
-    temp = queue->head;
-    node_c *current = queue->head;
-    queue->head = current->next;
-
-    /* Restituisce il path del nodo appena eliminato */
-    name = (char*)temp->path;
-
-    free(temp);
-    queue->elements--;
-    PTHREAD_UNLOCK(queue->mutex);
-    
+    char *name = (char*)(queue->head)->path;
+    printf("name: %s\n", name);
     return name;
 }
 
@@ -217,6 +209,7 @@ int del_req(lista_richieste **queue){
     while ((*queue)->head) {
         tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
+        free(tmp->buffer);
         free(tmp->request);
         free(tmp);
     }

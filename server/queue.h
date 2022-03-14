@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 
+
 /**
  * @brief Nodo di ciascuna lista di trabocco
  * 
@@ -65,13 +66,14 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags);
  * @param name_file Path del nodo da eliminare
  * @param just_deleted Nodo in cui salvare il nodo appena eliminato
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param curr_size Size corrente nella tabella hash
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
  *             202 nel caso in cui un altro client detenga la lock
  *             505 nel caso in cui il file non esista
  */
-int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd);
+int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd, int* curr_size);
 
 /**
  * @brief Ricerca un nodo
@@ -142,8 +144,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd);
-
+int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int* max_size, int* curr_size, int fd);
 /**
  * @brief Effettua la write sul buffer del nodo identificato da name_file
  * 
