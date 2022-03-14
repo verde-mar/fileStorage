@@ -74,8 +74,13 @@ int dispatcher(int argc, char *argv[]){
                 if(err_caller==0){
                     /* Richiede la scrittura sul file identificato da rest */
                     err_w = writeFile(rest, dirnameD);
-                    CHECK_OPERATION(err_w == 444 || err_w == -1, free(rest); break;);
-                    printf("ENTRA NELLA CALLER.\n");
+                    CHECK_OPERATION(err_w == 444 || err_w == -1,  
+                        err_close = closeFile(rest);
+                        CHECK_OPERATION(err_close == -1, free(rest); break);
+                        err_unlock = unlockFile(rest);
+                        CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                        free(rest);
+                        break;);
                 }
                 /* Se la prima scrittura del file su disco e' gia' stata fatta, si richiede l'apertura e la append del file identificato da rest */
                 if(err_w == 808){
@@ -83,20 +88,32 @@ int dispatcher(int argc, char *argv[]){
                     CHECK_OPERATION(err_caller == -1, free(rest); break);
                     size_t size;
                     void *buf;
-                    printf("PRIMA DELLA READ_FROM_FILE.\n");
-                    /* Legge dal file quello che verra' messo in append al file passato per parametro */ //TODO: non ha molto senso
+
                     int err_rbuf = read_from_file((char*)rest, &buf, &size);
-                    CHECK_OPERATION(err_rbuf == -1, free(rest); break);
-                    printf("PRIMA DELLA APPENDTOFILE.\n");
-                    /* Richiede l'operazione di append */
-                    int err_append = appendToFile(rest, buf, size, dirnameD);
-                    CHECK_OPERATION(err_append == -1, free(rest); break);
-                    printf("DOPO LA APPENDTOFILE.\n");
+                    CHECK_OPERATION(err_rbuf == -1,
+                        err_close = closeFile(rest);
+                        CHECK_OPERATION(err_close == -1, free(rest); break);
+                        err_unlock = unlockFile(rest);
+                        CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                        free(rest);
+                        break;);
                     
+                    int err_append = appendToFile(rest, buf, size, dirnameD);
+                    CHECK_OPERATION(err_append == -1, 
+                        err_close = closeFile(rest);
+                        CHECK_OPERATION(err_close == -1, break);
+                        err_unlock = unlockFile(rest);
+                        CHECK_OPERATION(err_unlock == -1, break);
+                        free(rest);
+                        break;);
                 }
                 /* Richiede la chiusura del file identificato da rest */  
                 err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1, free(rest); break);
+                CHECK_OPERATION(err_close == -1, 
+                    err_unlock = unlockFile(rest);
+                    CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                    free(rest);
+                    break;);
                 
 
                 /* Richiede il rilascio della lock sul file iile identificato da rest */

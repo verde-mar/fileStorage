@@ -114,9 +114,25 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "remove")){
             node* deleted = NULL;
+            //TODO: se la richiesta era delete allora elimino deleted
             int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, NULL);
+            printf("*just_deleted->path: %s IN THREADPOOL.C\n", deleted->path);
+            /*
+            PTHREAD_LOCK((table->queue[hash])->mutex);
+            PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
+            PTHREAD_DESTROY_COND((*just_deleted)->locked); 
+            free((*just_deleted)->locked);
+            free((*just_deleted)->mutex);
+
+            if((*just_deleted)->buffer)   
+                free((*just_deleted)->buffer);
+            free((char*)(*just_deleted)->path);
+            free((*just_deleted));
+
+            PTHREAD_UNLOCK((table->queue[hash])->mutex);
+            */
+            int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
             void* buf;

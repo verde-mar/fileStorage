@@ -110,20 +110,6 @@ int del_hashtable(char *name_file, node **just_deleted, int fd){
     CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
         return -1);
-    
-    PTHREAD_LOCK((table->queue[hash])->mutex);
-
-    PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
-    PTHREAD_DESTROY_COND((*just_deleted)->locked); 
-    free((*just_deleted)->locked);
-    free((*just_deleted)->mutex);
-
-    if((*just_deleted)->buffer)   
-        free((*just_deleted)->buffer);
-    free((char*)(*just_deleted)->path);
-    free((*just_deleted));
-
-    PTHREAD_UNLOCK((table->queue[hash])->mutex);
 
     return success;
 }
@@ -202,17 +188,36 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
         return -1;);
 
     int success = 202;
+    int been_deleted = 0;
+    if(*size_buf<=table->max_size){
+        table->curr_size += *size_buf;
+        if(table->curr_size > table->max_size){
+            PTHREAD_LOCK(fifo_queue->mutex);
+            been_deleted = 1;
+            char* to_delete = remove_fifo(fifo_queue);
+            PTHREAD_UNLOCK(fifo_queue->mutex);
+            if(to_delete){
+                int hash_del = hash_function(to_delete);
+                int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size)); CHECK_OPERATION(del == -1, return -1;);
+                CHECK_OPERATION(del == -1, return -1);
+            }
+        }
+    } else {
+        free(buf);
+        return 444;
+    }   
+    if(been_deleted) return 909;
+
     int hash = hash_function(name_file);
      
     /* Se prima non e' stata fatta la writeFile, viene restituito un errore */
     CHECK_OPERATION(buf == NULL, return 707);
 
     /* Effettua la append su un nodo */
-    success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), deleted, fd);
+    success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
         return -1);
-
     return success;
 }
 
@@ -221,6 +226,26 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
         fprintf(stderr, "Parametri non validi.\n");
             return -1;);
     int success = 202;
+    int been_deleted = 0;
+    if(*size_buf<=table->max_size){
+        table->curr_size += *size_buf;
+        if(table->curr_size > table->max_size){
+            PTHREAD_LOCK(fifo_queue->mutex);
+            been_deleted = 1;
+            char* to_delete = remove_fifo(fifo_queue);
+            PTHREAD_UNLOCK(fifo_queue->mutex);
+            if(to_delete){
+                int hash_del = hash_function(to_delete);
+                int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size)); CHECK_OPERATION(del == -1, return -1;);
+                CHECK_OPERATION(del == -1, return -1);
+            }
+        } 
+    } else {
+        free(buf);
+        return 444;
+    }   
+    printf("CONTROLLA COME VA LA SIZE CORRENTE: %d\n", table->curr_size);
+    if(been_deleted) return 909;
     int hash = hash_function(name_file);
 
     /* Effettua la write su un nodo */

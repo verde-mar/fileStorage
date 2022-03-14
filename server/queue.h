@@ -144,8 +144,7 @@ int lock(list_t **lista_trabocco, char* name_file, int fd);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd);
-
+int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int* max_size, int* curr_size, int fd);
 /**
  * @brief Effettua la write sul buffer del nodo identificato da name_file
  * 

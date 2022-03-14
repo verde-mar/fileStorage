@@ -88,10 +88,30 @@ int caller_write(const char* pathname, const char *dirname){
                     err = writeFile(path, dirname);
                     CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a writeFile.\n"); 
                         free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
-                    //TODO:CHECK_OPERATION(err == 808, appendToFile(path, dirname))
+                        int check = closedir(dir);
+                        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                        return -1;);
+                    CHECK_OPERATION(err == 808, 
+                        size_t size;
+                        void *buf;
+                        int err_rbuf = read_from_file((char*)path, &buf, &size);
+                        CHECK_OPERATION(err_rbuf == -1,
+                            int err_close = closeFile(path);
+                            CHECK_OPERATION(err_close == -1, free((char*)path); break);
+                            int err_unlock = unlockFile(path);
+                            CHECK_OPERATION(err_unlock == -1, free((char*)path); break);
+                            free((char*)path);
+                            break;);
+                        
+                        int err_append = appendToFile(path, buf, size, dirname);
+                        CHECK_OPERATION(err_append == -1, 
+                            int err_close = closeFile(path);
+                            CHECK_OPERATION(err_close == -1, break);
+                            int err_unlock = unlockFile(path);
+                            CHECK_OPERATION(err_unlock == -1, break);
+                            free((char*)path);
+                            break;);
+                    );
                 } else if(is_directory(path)){
                     int result = caller_write(path, dirname);
                     CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
@@ -114,31 +134,33 @@ int caller_write(const char* pathname, const char *dirname){
 }
 
 int freed(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old){
-
+    
     errno = 0;
     *byte_letti += read_size(fd_skt, &size_path); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                return -1);
+        return -1);
                 
     *path = malloc(size_path);
     CHECK_OPERATION(*path == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return -1);
+        return -1);
 
     errno = 0;
     *byte_letti += read_msg(fd_skt, *path, size_path);
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-                return -1);
+        return -1);
+    printf("PATH DEL FILE: %s\n", *path);
                 
     errno = 0;
     *byte_letti += read_size(fd_skt, size_old); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                 return -1);
-                
-    *old_file = malloc(sizeof(char)*(*size_old));
+    printf("SIZE DEL FILE LETTO: %ld\n", *size_old);
+    
+    *old_file = malloc(*size_old);
     CHECK_OPERATION(*old_file == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
@@ -148,6 +170,7 @@ int freed(int *byte_letti, int *byte_scritti, size_t size_path, char** path, voi
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                 return -1);
+    printf("DOPO AVER INSERITO IL BUFFER.\n");
                 
     return 0;
 }

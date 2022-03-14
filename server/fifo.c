@@ -62,7 +62,7 @@ int add_fifo(char *name_file){
     new_node = malloc(sizeof(node_c));
     CHECK_OPERATION(new_node == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
-            return -1);
+        return -1);
 
     new_node->path = name_file;
     new_node->next = NULL;
@@ -94,12 +94,10 @@ int del(char *name_file){
 
         return 0;
     }
-    printf("DOPO AVER CAPITO CHE L'EKEMENTO DA ELIMINARE NON E' IL PRIMO.\n");
     /* Se non e' il primo, cerca in tutta la lista l'elemento, ed eventualmente lo elimina */
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
-        
         if (strcmp(curr->path, name_file) == 0){
             prev->next = curr->next; 
             fifo_queue->elements--;
