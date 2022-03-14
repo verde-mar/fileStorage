@@ -86,14 +86,15 @@ int del(char *name_file){
     
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
-    
     if (strcmp(curr->path, name_file) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
+        
         fifo_queue->elements--;
 
         return 0;
     }
+    printf("DOPO AVER CAPITO CHE L'EKEMENTO DA ELIMINARE NON E' IL PRIMO.\n");
     /* Se non e' il primo, cerca in tutta la lista l'elemento, ed eventualmente lo elimina */
     prev = curr;
     curr = curr->next;
@@ -114,23 +115,8 @@ int del(char *name_file){
 }
 
 char* remove_fifo(list_c *queue){
-    char* name;
-    node_c *temp;
-
-    /* Elimina la testa della lista */
-    PTHREAD_LOCK(queue->mutex);
-
-    temp = queue->head;
-    node_c *current = queue->head;
-    queue->head = current->next;
-
-    /* Restituisce il path del nodo appena eliminato */
-    name = (char*)temp->path;
-
-    free(temp);
-    queue->elements--;
-    PTHREAD_UNLOCK(queue->mutex);
-    
+    char *name = (char*)(queue->head)->path;
+    printf("name: %s\n", name);
     return name;
 }
 

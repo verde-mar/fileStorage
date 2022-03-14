@@ -106,11 +106,25 @@ int del_hashtable(char *name_file, node **just_deleted, int fd){
    
     /* Elimina un nodo */
     int success = 202;
-    success = deletes(&(table->queue[hash]), name_file, just_deleted, fd);
+    success = deletes(&(table->queue[hash]), name_file, just_deleted, fd, &(table->curr_size));
     CHECK_OPERATION(success == -1, 
         fprintf(stderr, "Errore nell'eliminazione di un elemento nella tabella hash.\n"); 
         return -1);
     
+    PTHREAD_LOCK((table->queue[hash])->mutex);
+
+    PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
+    PTHREAD_DESTROY_COND((*just_deleted)->locked); 
+    free((*just_deleted)->locked);
+    free((*just_deleted)->mutex);
+
+    if((*just_deleted)->buffer)   
+        free((*just_deleted)->buffer);
+    free((char*)(*just_deleted)->path);
+    free((*just_deleted));
+
+    PTHREAD_UNLOCK((table->queue[hash])->mutex);
+
     return success;
 }
 

@@ -131,7 +131,7 @@ int read_from_file(char *pathname, void** buf, size_t *size){
     *size = (st.st_size);
     *buf = malloc(*size);
     CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-    printf("*SIZE DEL FILE %s: %ld\n", pathname, *size);
+   
     /* Legge il file */
     size_t err_fread = fread(*buf, *size, 1, file_toread);
     CHECK_OPERATION(err_fread == 0, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);

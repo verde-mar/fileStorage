@@ -66,13 +66,14 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags);
  * @param name_file Path del nodo da eliminare
  * @param just_deleted Nodo in cui salvare il nodo appena eliminato
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param curr_size Size corrente nella tabella hash
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
  *             202 nel caso in cui un altro client detenga la lock
  *             505 nel caso in cui il file non esista
  */
-int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd);
+int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd, int* curr_size);
 
 /**
  * @brief Ricerca un nodo

@@ -136,16 +136,15 @@ int main(int argc, char const *argv[]) {
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                     }
                     
-                    /*if(risp->deleted!= NULL){
-                        if((risp->deleted)->buffer!=NULL){
-                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path));
+                    if(risp->deleted){
+                        if((risp->deleted)->buffer){
+                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path) + 1);
                             CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
-                            int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, strlen((risp->deleted)->buffer));
+                            int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
-                            free((risp->deleted)->buffer);
-                            free(risp->deleted);
+    
                         }
-                    }*/
+                    }
 
                     FD_SET(risp->fd_richiesta, &set);
                     if(risp->fd_richiesta > fd_max) fd_max = fd;

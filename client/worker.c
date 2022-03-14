@@ -44,11 +44,11 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
     while(success_connection == -1 && abstime_temp.tv_nsec>0){
         struct timespec t={0, (msec*90)};
         int success_nanosleep = nanosleep(&t, &abstime_temp); 
-        CHECK_OPERATION((success_nanosleep==-1)&& printer == 1, fprintf(stderr, "Errore sulla nanosleep.\n"); return -1);
+        CHECK_OPERATION((success_nanosleep==-1)&& printer == 1, fprintf(stderr, "Errore sulla nanosleep.\n"); free((char*)socketname); return -1);
         abstime_temp.tv_nsec -= t.tv_nsec;
         success_connection = connect(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     }
-    CHECK_OPERATION(success_connection==-1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine.\n"); return -1); 
+    CHECK_OPERATION(success_connection==-1, fprintf(stderr, "E' stata eseguita l'operazione 'openConnection' e non e' andata a buon fine.\n"); free((char*)socketname); return -1); 
     CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita l'operazione 'openConnection' con successo.\n"); return 0);
     return 0;
 }
@@ -386,7 +386,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia il buffer */
     byte_scritti += write_msg(fd_skt, buf, size); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-
+    printf("DOPO LE WRITE NELLA WRITEFILE.\n");
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
@@ -395,7 +395,11 @@ int writeFile(const char* pathname, const char* dirname){
         free(actual_request);
         free(buf);     
         return -1);
-
+        printf("codice: %ld\n", codice);
+    CHECK_OPERATION(codice == -1, fprintf(stderr, "Errore nella write. Il file non poteva essere scritto.\n");
+        free(actual_request);
+        free(buf);     
+        return -1);
     if(dirname != NULL){
         while(codice == 909){
             size_t size_old = 0, size_path = 0;
@@ -488,7 +492,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
                 free(path);
                 free(old_file);
                 return -1;);
-
+            printf("path: %s in appendtofile PRIMA DELLA SAVEONDISK\n", path);
             /* Salva il file su disco */
             int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
             CHECK_OPERATION(check_save == -1,

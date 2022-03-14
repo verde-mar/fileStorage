@@ -55,9 +55,7 @@ int dispatcher(int argc, char *argv[]){
                     /* Apre una connessione con il server e ne gestisce l'errore */
                     const struct timespec abs = {0, 80900};
                     err_conn = openConnection((const char*)socketname, 100, abs);
-                    
                     CHECK_OPERATION(err_conn == -1, 
-                        fprintf(stderr, " errore nell'apertura della connessione.\n");
                         free(socketname);
                         return -1);
                 }
@@ -76,7 +74,8 @@ int dispatcher(int argc, char *argv[]){
                 if(err_caller==0){
                     /* Richiede la scrittura sul file identificato da rest */
                     err_w = writeFile(rest, dirnameD);
-                    CHECK_OPERATION(err_w == -1, free(rest); break);
+                    CHECK_OPERATION(err_w == 444 || err_w == -1, free(rest); break;);
+                    printf("ENTRA NELLA CALLER.\n");
                 }
                 /* Se la prima scrittura del file su disco e' gia' stata fatta, si richiede l'apertura e la append del file identificato da rest */
                 if(err_w == 808){
@@ -84,14 +83,15 @@ int dispatcher(int argc, char *argv[]){
                     CHECK_OPERATION(err_caller == -1, free(rest); break);
                     size_t size;
                     void *buf;
-                    
+                    printf("PRIMA DELLA READ_FROM_FILE.\n");
                     /* Legge dal file quello che verra' messo in append al file passato per parametro */ //TODO: non ha molto senso
                     int err_rbuf = read_from_file((char*)rest, &buf, &size);
                     CHECK_OPERATION(err_rbuf == -1, free(rest); break);
-                    
+                    printf("PRIMA DELLA APPENDTOFILE.\n");
                     /* Richiede l'operazione di append */
                     int err_append = appendToFile(rest, buf, size, dirnameD);
                     CHECK_OPERATION(err_append == -1, free(rest); break);
+                    printf("DOPO LA APPENDTOFILE.\n");
                     
                 }
                 /* Richiede la chiusura del file identificato da rest */  
@@ -242,7 +242,7 @@ int dispatcher(int argc, char *argv[]){
                 break;
         }
     }
-
+    printf("PRIMA DELLA CLOSECONNECTION.\n");
     /* Chiude la connessione con il server */
     err_conn = closeConnection(socketname);
     CHECK_OPERATION(err_conn == -1, fprintf(stderr, "Errore nella chiusura della connessione");
