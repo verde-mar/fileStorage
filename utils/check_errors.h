@@ -22,7 +22,7 @@
         } else if(codice == 202){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro thread.\n", operazione); \
         } else if(codice == 303){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile o dalla lockFile dopo la closeFile.\n", operazione); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile  dopo la closeFile.\n", operazione); \
         } else if(codice == 404){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste e non e' stato specificato O_CREATE.\n", operazione); \
         } else if(codice == 505){\

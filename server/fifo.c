@@ -116,7 +116,8 @@ int del(char *file_path){
 
 char* head_name(list_c *queue){
     char *name = (char*)(queue->head)->path;
-    
+    fprintf(stdout, "Questo file sta per essere eliminato: %s\n", name);
+
     return name;
 }
 

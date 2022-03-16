@@ -95,7 +95,6 @@ node* look_for_node(list_t **lista_trabocco, char* file_path);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si riprovi a fare la closeFile dopo averla gia' fatta
  *             505 nel caso in cui il file non esista
  */
@@ -112,6 +111,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd);
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si provi a fare la unlockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
+ *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
 int unlock(list_t **lista_trabocco, char* file_path, int fd);
 
