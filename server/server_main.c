@@ -125,7 +125,7 @@ int main(int argc, char const *argv[]) {
                     
                     int err_write = write_size(risp->fd_richiesta, &risp->errore);
                     CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); return -1);
-                    
+                    printf("CODICE ERRORE: %ld\n", risp->errore);
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
                         CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); return -1);
@@ -135,7 +135,7 @@ int main(int argc, char const *argv[]) {
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                     }
-                    //TODO: se la richiesta era delete allora elimino deleted
+                    
                     if(risp->deleted){
                         printf("NEL SERVER_MAIN CONTROLLANDO IL NODO ELIMINATO.\n");
                         if((risp->deleted)->buffer){

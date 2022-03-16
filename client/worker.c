@@ -344,7 +344,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
-
+   
     if(codice == 0){
         errno = 0;
         byte_letti += read_size(fd_skt, size); 
@@ -355,7 +355,9 @@ int readFile(const char* pathname, void** buf, size_t *size){
         
         byte_letti += read_msg(fd_skt, *buf, (*size)); 
         CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); free(*buf); return -1);
-    } 
+    } else {
+        *buf = NULL;
+    }
 
     CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
     

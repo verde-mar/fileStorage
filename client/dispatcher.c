@@ -173,7 +173,7 @@ int dispatcher(int argc, char *argv[]){
                 /* Invia la richiesta di lettura del file identificato da rest */
                 int err_r = readFile(rest, &buf, &size);
                 CHECK_OPERATION(err_r == -1, free(rest); break);
-                if(buf){
+                if(!err_r && buf){
                     /* Se riceve un buffer non vuoto lo salva su disco */
                     int err_save = save_on_disk(dirnamed, optarg, buf, size);
                     CHECK_OPERATION(err_save == -1, free(rest); break);

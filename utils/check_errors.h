@@ -37,6 +37,8 @@
             fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
         } else if(codice == 333){\
             fprintf(stderr, "Il buffer era vuoto.\n"); \
+        } else if(codice == 555){\
+            fprintf(stderr, "La lock non e' stata acquisita.\n");\
         } else if(codice == 0){\
             fprintf(stdout, "La %s e' terminata con successo.\n", operazione); \
         } else if(codice == 909){\

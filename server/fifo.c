@@ -13,6 +13,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+//TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy ---> metti nella relazione
+
 int create_fifo(list_c **queue){
     *queue = malloc(sizeof(list_c));
     CHECK_OPERATION((*queue) == NULL,
@@ -56,7 +58,7 @@ int delete_fifo(list_c **queue){
     return 0;
 }
 
-int add_fifo(char *name_file){
+int add_fifo(char *file_path){
     node_c *current, *new_node; 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(node_c));
@@ -64,7 +66,7 @@ int add_fifo(char *name_file){
         fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
         return -1);
 
-    new_node->path = name_file;
+    new_node->path = file_path;
     new_node->next = NULL;
 
     /* Aggiunge il nuovo nodo in coda */
@@ -81,12 +83,12 @@ int add_fifo(char *name_file){
     return 0;
 }
 
-int del(char *name_file){
+int del(char *file_path){
     node_c* curr, *prev;
     
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
-    if (strcmp(curr->path, name_file) == 0){
+    if (strcmp(curr->path, file_path) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
         
@@ -98,7 +100,7 @@ int del(char *name_file){
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
-        if (strcmp(curr->path, name_file) == 0){
+        if (strcmp(curr->path, file_path) == 0){
             prev->next = curr->next; 
             fifo_queue->elements--;
             free(curr);
@@ -112,9 +114,9 @@ int del(char *name_file){
     return -1;
 }
 
-char* remove_fifo(list_c *queue){
+char* head_name(list_c *queue){
     char *name = (char*)(queue->head)->path;
-    printf("name: %s\n", name);
+    
     return name;
 }
 
@@ -181,7 +183,7 @@ request* pop_queue(lista_richieste *queue){
     return temp;
 }
 
-int create_req(lista_richieste **queue){ //TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy
+int create_req(lista_richieste **queue){ 
     *queue = malloc(sizeof(lista_richieste));
     CHECK_OPERATION((*queue) == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
