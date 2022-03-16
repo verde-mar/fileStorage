@@ -386,7 +386,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia il buffer */
     byte_scritti += write_msg(fd_skt, buf, size); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-   
+    printf("SIZE DEL BUFFER: %ld E IL PATH: %s\n", size, pathname);
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
@@ -406,7 +406,7 @@ int writeFile(const char* pathname, const char* dirname){
             size_t size_old = 0, size_path = 0;
             void *old_file;
             char *path;
-            printf("PRIMA DELLA FREED.\n");
+            printf("PRIMA DELLA FREED IN WRITES.\n");
             int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
             CHECK_OPERATION(err_freed == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
@@ -494,18 +494,22 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             size_t size_old, size_path = 0;
             void *old_file;
             char *path;
-            
+            printf("PRIMA DELLA FREED IN WORKER.\n");
             int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
             CHECK_OPERATION(err_freed == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                 free(path);
                 free(old_file);
+                free(actual_request);
                 return -1;);
             printf("path: %s in appendtofile PRIMA DELLA SAVEONDISK\n", path);
             /* Salva il file su disco */
             int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
             CHECK_OPERATION(check_save == -1,
                 fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
+                free(path);
+                free(old_file);
+                free(actual_request);
                 return -1);
 
             free(path);
@@ -516,6 +520,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             byte_scritti += write_msg(fd_skt, actual_request, len); 
             CHECK_OPERATION(errno == EFAULT,
                 free(buf);
+                free(actual_request);
                 return -1);
             
 

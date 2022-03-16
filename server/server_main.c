@@ -135,15 +135,20 @@ int main(int argc, char const *argv[]) {
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                     }
-                    //TODO: se la richiesta era delete allora elimino deleted
+                    
                     if(risp->deleted){
-                        printf("NEL SERVER_MAIN CONTROLLANDO IL NODO ELIMINATO.\n");
+                        printf("NEL SERVER_MAIN CONTROLLANDO IL NODO ELIMINATO: RISP->PATH %s\n", risp->deleted->path);
                         if((risp->deleted)->buffer){
                             printf("NEL SERVER MAIN CONTROLLANDO IL BUFFER DEL NODO ELIMINATO.\n");
-                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path) + 1);
+                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((risp->deleted)->path) + 1)*sizeof(char));
                             CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
                             printf("SIZE DEL FILE: %ld\n", risp->deleted->size_buffer);
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
+                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
+                        } else {
+                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((risp->deleted)->path) + 1)*sizeof(char));
+                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); return -1);
+                            int err_buff = write_msg(risp->fd_richiesta, NULL, 0);
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); return -1);
                         }
                     }

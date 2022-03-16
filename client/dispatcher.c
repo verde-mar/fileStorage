@@ -134,8 +134,14 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(err_caller == -1, free(rest); break);
                 
                 /* Richiede la scrittura dei file nella directory identificata da rest */
-                int err_W = caller_write(rest, dirnameD); //TODO:non gestisce la appendToFile
-                CHECK_OPERATION(err_W == -1, free(rest); break);
+                int err_W = caller_write(rest, dirnameD);
+                CHECK_OPERATION(err_W == -1, 
+                    err_close = caller(closeFile, rest); 
+                    CHECK_OPERATION(err_close == -1, free(rest); break);
+                    err_unlock = caller(unlockFile, rest); 
+                    CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                    free(rest); 
+                    break);
 
                 /* Richiede la chiusura dei file nella directory identificata da rest */
                 err_close = caller(closeFile, rest); 

@@ -60,11 +60,11 @@ int caller_open(const char* pathname){
             free((char*)path);
         }
         int check = closedir(dir);
-        CHECK_OPERATION(check == -1, fprintf(stderr, " errore nella closedir.\n"); return -1);
+        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
     } else if(is_regular_file(pathname)){
         /* Gestisce la richiesta */
         err = openFile(pathname, O_CREATE | O_LOCK);
-        CHECK_OPERATION(err == -1, fprintf(stderr, " errore nella chiamata a openFile(pathname).\n"); return -1;);
+        CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a openFile(pathname).\n"); return -1;);
     }
     return 0;
 }
@@ -94,23 +94,22 @@ int caller_write(const char* pathname, const char *dirname){
                     CHECK_OPERATION(err == 808, 
                         size_t size;
                         void *buf;
+                        printf("IL CODICE E' 808 PRIMA DELLA READFROMFILE.\n");
                         int err_rbuf = read_from_file((char*)path, &buf, &size);
                         CHECK_OPERATION(err_rbuf == -1,
                             int err_close = closeFile(path);
                             CHECK_OPERATION(err_close == -1, free((char*)path); break);
                             int err_unlock = unlockFile(path);
                             CHECK_OPERATION(err_unlock == -1, free((char*)path); break);
-                            free((char*)path);
-                            break;);
-                        
+                        );
+                        printf("IL CODICE E' 808 PRIMA DELLA APPENDTOFILE: path %s\n", path);
                         int err_append = appendToFile(path, buf, size, dirname);
                         CHECK_OPERATION(err_append == -1, 
                             int err_close = closeFile(path);
                             CHECK_OPERATION(err_close == -1, break);
                             int err_unlock = unlockFile(path);
-                            CHECK_OPERATION(err_unlock == -1, break);
-                            free((char*)path);
-                            break;);
+                            CHECK_OPERATION(err_unlock == -1, break););
+                        free(buf);
                     );
                 } else if(is_directory(path)){
                     int result = caller_write(path, dirname);
@@ -134,12 +133,13 @@ int caller_write(const char* pathname, const char *dirname){
 }
 
 int freed(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old){
-    
+    printf("ENTRATO NELLA FREED.\n");
     errno = 0;
     *byte_letti += read_size(fd_skt, &size_path); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
         return -1);
+    printf("DOPO LA READ SIZE IN FREED\n");
                 
     *path = malloc(size_path);
     CHECK_OPERATION(*path == NULL,
