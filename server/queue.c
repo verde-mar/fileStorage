@@ -129,6 +129,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags){
 
     } else if((flags == 5 || flags == 0 || flags == 4) && check_exists != NULL){
         PTHREAD_LOCK(check_exists->mutex);
+        printf("MODIFICA L'APERTURA DI STO FILE DEL MENGA\n");
             check_exists->open = 1;
         PTHREAD_UNLOCK(check_exists->mutex);
         if(!flags) return 0;
@@ -252,18 +253,12 @@ int closes(list_t **lista_trabocco, char* file_path, int fd){
     PTHREAD_LOCK(nodo->mutex);
     
     /* Se il nodo e' aperto */
-    if(nodo->open == 1 && nodo->fd_c == fd){
+    if(nodo->open == 1){
         nodo->open = 0;
         PTHREAD_UNLOCK(nodo->mutex);
         
         return 0;
     } 
-    /* Se non ha acquisito la lock */
-    else if(nodo->fd_c != fd && nodo->fd_c != -1){
-        PTHREAD_UNLOCK(nodo->mutex);
-        
-        return 202;
-    }
     /* Il nodo non e' stato aperto */
     else{
         PTHREAD_UNLOCK(nodo->mutex);
@@ -288,11 +283,17 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd){
         return 505);
 
     PTHREAD_LOCK(nodo->mutex);
-    /* Se ha acquisito la lock */ //TODO: specifica nella relazione che hai tolto il controllo per capire se il file e' open, ma sostituito dalla lock
-    if(nodo->fd_c == fd){
+    /* Se ha acquisito la lock e il nodo e' aperto */
+    if(nodo->fd_c == fd && nodo->open){
         nodo->fd_c = -1;
         PTHREAD_COND_SIGNAL(nodo->locked);
     } 
+    /* Se il nodo non e' aperto */
+    else if(!nodo->open){
+        PTHREAD_UNLOCK(nodo->mutex);
+        
+        return 303;
+    }
     /* Se la lock non e' stata acquisita da nessuno */
     else if(nodo->fd_c == -1){
         PTHREAD_UNLOCK(nodo->mutex);
