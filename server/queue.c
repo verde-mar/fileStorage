@@ -133,15 +133,21 @@ int add(list_t **lista_trabocco, char* name_file, int fd, int flags){
         fprintf(stderr, "Flag non validi.\n");
         return 404;);
 
-    CHECK_OPERATION(check_exists!=NULL, fprintf(stderr, "Il nodo esiste gia'.\n"); return 505);
+    CHECK_OPERATION(check_exists!=NULL, fprintf(stderr, "Il nodo esiste gia'.\n"); return 101);
     
-    return 101;
+    return 505;
 }
 
 int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd, int *curr_size){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
+    
+    /* Ricerca il nodo */
+    node* nodo = look_for_node(lista_trabocco, name_file);
+    CHECK_OPERATION(nodo == NULL,
+        fprintf(stderr, "Il nodo non e' stato trovato.\n");
+        return 505);
             
     PTHREAD_LOCK(fifo_queue->mutex);
     PTHREAD_LOCK((*lista_trabocco)->mutex);
@@ -248,13 +254,13 @@ int closes(list_t **lista_trabocco, char* name_file, int fd){
 int unlock(list_t **lista_trabocco, char* name_file, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1);
+        return -1);
 
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato.\n");
-                    return 505);
+        return 505);
 
     PTHREAD_LOCK(nodo->mutex);
     /* Se ha acquisito la lock e il flag open e' a 1 */
@@ -262,12 +268,19 @@ int unlock(list_t **lista_trabocco, char* name_file, int fd){
         nodo->fd_c = -1;
         PTHREAD_COND_SIGNAL(nodo->locked);
     } 
+    /* Se la lock non e' stata acquisita da nessuno */
+    else if(nodo->fd_c == -1){
+        PTHREAD_UNLOCK(nodo->mutex);
+        
+        return 555;
+    }
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
         PTHREAD_UNLOCK(nodo->mutex);
         
         return 202;
     } 
+    
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
@@ -308,6 +321,8 @@ int reads(list_t **lista_trabocco, char* name_file, void** buf, size_t *size_buf
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, name_file);
     CHECK_OPERATION(nodo == NULL,
+        *buf = NULL;
+        *size_buf = 0;
         fprintf(stderr, "Il nodo non e' stato trovato.\n"); return 505);
 
     PTHREAD_LOCK(nodo->mutex);
@@ -374,7 +389,7 @@ int append_buffer(list_t **lista_trabocco, char* name_file, void* buf, size_t si
 int writes(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1);
+        return -1);
             
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, name_file);
@@ -385,7 +400,8 @@ int writes(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf,
         return 505);
     
     PTHREAD_LOCK(nodo->mutex);
-    if(!nodo->buffer){
+    if(!nodo->buffer){ //TODO: da gestire la restituzione di write
+
         /* Se ha acquisito la lock e il flag open e' a 1 */
         if(nodo->fd_c == fd && nodo->open == 1 && buf){
             nodo->buffer = malloc(size_buf);
@@ -397,26 +413,30 @@ int writes(list_t **lista_trabocco, char* name_file, void* buf, size_t size_buf,
         
             return 0;
         } 
+        else if(nodo->fd_c == fd && nodo->open == 1){
+            PTHREAD_UNLOCK(nodo->mutex);
+        
+            return 0;
+        }
         /* Se non ha acquisito la lock */
         else if(nodo->fd_c != fd){
             if(buf) free(buf);
             PTHREAD_UNLOCK(nodo->mutex);
             return 202;
         } 
-        /* Il file non e' stato aperto */
+        /* Se il file non e' stato aperto */
         else if(nodo->open == 0){
             if(buf) free(buf);
             PTHREAD_UNLOCK(nodo->mutex);
             return 303;
         }
         
-    } else {
+    } 
+    /* Se ci e' gia' stato scritto sul nodo */
+    else {
         if(buf) free(buf);
         PTHREAD_UNLOCK(nodo->mutex);
+
         return 808;
     }
-    if(buf) free(buf);
-    PTHREAD_UNLOCK(nodo->mutex);
-
-    return -1;
 }

@@ -13,6 +13,7 @@ typedef struct hashtable {
     int curr_size;
     int max_size;
     int max_file;
+    int curr_file; //TODO:aggiorna in tutto il server
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
@@ -150,6 +151,9 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
  *              303 nel caso in cui si provi a fare la append dopo la close
  *              505 nel caso in cui il file non esista
  *              202 nel caso in cui la lock sia stata acquisita da un altro thread
+ *              444
+ *              909
+ *              808
  */
 int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd);
 
@@ -165,7 +169,17 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
  *             -1 in caso di generico fallimento
  *              303 nel caso in cui si provi a fare la read dopo la close
  *              505 nel caso in cui il file non esista
+ *              111 nel caso in cui non ci siano piu' file da leggere
  */
 int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path);
+
+/**
+ * @brief Elimina definitivamente il nodo just_deleted
+ * 
+ * @param path Path del file da eliminare
+ * @param just_deleted Nodo da eliminare
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int definitely_deleted(char *path, node** just_deleted);
 
 #endif
