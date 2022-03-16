@@ -259,7 +259,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd){
         return 0;
     } 
     /* Se non ha acquisito la lock */
-    else if(nodo->fd_c != fd){
+    else if(nodo->fd_c != fd && nodo->fd_c != -1){
         PTHREAD_UNLOCK(nodo->mutex);
         
         return 202;
@@ -359,11 +359,23 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
         fprintf(stderr, "Il nodo non e' stato trovato.\n"); return 505);
 
     PTHREAD_LOCK(nodo->mutex);
-    /* Se il nodo e' aperto*/ //TODO: fai notare nella relazione
-    if(nodo->open){
+    /* Se il nodo e' aperto*/
+    if(nodo->open && nodo->fd_c == fd){
         *size_buf = nodo->size_buffer;
         *buf = nodo->buffer;
     } 
+    /* Se la lock e' stata acquisita da un altro thread */
+    else if(nodo->fd_c!=fd && nodo->fd_c!=-1){
+        PTHREAD_UNLOCK(nodo->mutex);
+
+        return 202;
+    }
+    /* Se non e' stata acquisita la lock */
+    else if(nodo->fd_c==-1){
+        PTHREAD_UNLOCK(nodo->mutex);
+
+        return 555;
+    }
     /* Se il nodo e' chiuso */
     else {
         PTHREAD_UNLOCK(nodo->mutex);
@@ -475,4 +487,9 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
 
         return 808;
     }
+
+    if(buf) free(buf);
+    PTHREAD_UNLOCK(nodo->mutex);
+
+    return -1;
 }

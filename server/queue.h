@@ -183,6 +183,7 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
+ *             202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
 int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t* size_buf, int fd);
 

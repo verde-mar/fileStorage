@@ -164,7 +164,7 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
             
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, 0);
+                err_caller = openFile(rest, 5);
                 CHECK_OPERATION(err_caller == -1, free(rest); break);
 
                 void *buf;
@@ -216,6 +216,10 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
+                /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
+                err_caller = openFile(rest, 0);
+                CHECK_OPERATION(err_caller == -1, free(rest); break);
+
                 err_lock = lockFile(rest);
                 CHECK_OPERATION(err_lock == -1, free(rest); break);
                 free(rest);
@@ -239,6 +243,10 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
+                /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
+                err_caller = openFile(rest, 0);
+                CHECK_OPERATION(err_caller == -1, free(rest); break);
+                
                 /* Invia la richiesta di acquisizione della lock sul file */
                 int err_lock = lockFile(rest);
                 CHECK_OPERATION(err_lock == -1, free(rest); break);
