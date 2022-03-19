@@ -35,20 +35,18 @@ void routine_chiusura(threadpool_t **pool, pthread_t tid_signal){
  * @brief Invia un errore predefinito al client quando c'e' un errore nella comunicazione
  * 
  * @param fd File descriptor del client a cui inviare l'errore
- * @return int 0 in caso di successo
  */
-inline int failed_communication(int fd){
+void failed_communication(int fd){
     size_t risp = -1;
     int err_write = write_size(fd, &risp);
-    CHECK_OPERATION(err_write == -1, err_write = failed_communication(fd));
-
-    return err_write;
+    CHECK_OPERATION(err_write == -1, failed_communication(fd));
 }
 
 int main(int argc, char const *argv[]) {
     int size = 100; //temporaneo
     int fd_skt;
     char *socket_name = "socket"; //temporaneo
+    int num_file = 10;
 
     /* Crea la pipe da utilizzare per inviare l'avvenuta ricezione di un segnale al main */
     int signal_pipe[2];
@@ -77,7 +75,7 @@ int main(int argc, char const *argv[]) {
     CHECK_OPERATION(err_create_pool == -1, fprintf(stderr, "Errore nella creazione del theradpool.\n"); return -1);
 
     /* Crea la tabella hash */
-    int err_hash = create_hashtable(size);
+    int err_hash = create_hashtable(size, num_file);
     CHECK_OPERATION(err_hash == -1, fprintf(stderr, "Errore nella creazione della tabella hash.\n"); exit(-1));
 
     /* Avvia il thread gestore dei segnali */
@@ -128,27 +126,27 @@ int main(int argc, char const *argv[]) {
                 } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
                     response *risp;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
-                    CHECK_OPERATION(err_resp == -1 && errno == EFAULT, fprintf(stderr, "Errore sulla readn nella lettura della risposta."); continue); 
+                    CHECK_OPERATION(err_resp == -1 , fprintf(stderr, "Errore sulla readn nella lettura della risposta."); continue); 
                     
                     int err_write = write_size(risp->fd_richiesta, &risp->errore);
-                    CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); int failure = failed_communication(fd);); 
+                    CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); failed_communication(fd);); 
                    
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); int failure = failed_communication(fd););
+                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); failed_communication(fd););
                     }
                     
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
-                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); int failure = failed_communication(fd););
+                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); failed_communication(fd););
                     }
                     
                     if(risp->deleted){
                         if((risp->deleted)->buffer){
                             int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path) + 1);
-                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); int failure = failed_communication(fd););
+                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); failed_communication(fd););
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
-                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); int failure = failed_communication(fd););
+                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); failed_communication(fd););
                         }
                     }
 
@@ -160,7 +158,7 @@ int main(int argc, char const *argv[]) {
                     int sig;
                     /* Legge il tipo di segnale dalla pipe */
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
-                    CHECK_OPERATION(err_readn == -1 && errno == EFAULT, fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
+                    CHECK_OPERATION(err_readn == -1 , fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
                     
                     /* Assegna al flag 0 cosi' che non siano accettate nuove richieste di connessione */
                     no_more = 0;
@@ -180,22 +178,22 @@ int main(int argc, char const *argv[]) {
                     int err_read = read_size(fd, &size);
                     if(err_read != -1 && err_read!=0){
                         char* request = malloc(size); 
-                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); int failure = failed_communication(fd););
+                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); failed_communication(fd););
                         
                         err_read = read_msg(fd, request, size);
-                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); int failure = failed_communication(fd);); 
+                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); failed_communication(fd);); 
 
                         size_t size_buffer;
                         err_read = read_size(fd, &size_buffer);
-                        CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); int failure = failed_communication(fd););
+                        CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); failed_communication(fd););
 
                         void* buffer = NULL;
                         if(size_buffer > 0){
                             buffer = malloc(size_buffer);
-                            CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); int failure = failed_communication(fd););
+                            CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); failed_communication(fd););
 
                             err_read = read_msg(fd, buffer, size_buffer);
-                            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); int failure = failed_communication(fd););
+                            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); failed_communication(fd););
                         } 
                         
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
@@ -208,7 +206,7 @@ int main(int argc, char const *argv[]) {
                     /* Se fallisce la lettura del messaggio */
                     else if(err_read == -1){
                         fprintf(stderr, "Errore nella lettura della size del messaggio.\n");
-                        int failure = failed_communication(fd);
+                        failed_communication(fd);
                     }
                 }
             }
@@ -219,7 +217,8 @@ int main(int argc, char const *argv[]) {
             CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); exit(-1));
         }
     }
-    //STAMPA DI TUTTE LE VARIABILI
+    fprintf(stdout, "\nNumero di volte in cui e' stato chiamato l'algoritmo di sostituzione: %d\nMassima size ammessa: %d\nMassimo numero di file ammessi: %d\nSize del file storage raggiunta appena prima di chiudere il server: %d\nMassima size raggiunta: %f\nMassimo numero di file raggiunti: %d\n", fifo_queue->how_many_cache, table->max_size, table->max_file, table->curr_size, to_Mbytes(table->max_size_reached), table->max_file_reached);
+    print_elements();
     routine_chiusura(&pool, tid_signal);
 
     return 0;

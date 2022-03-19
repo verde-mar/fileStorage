@@ -54,6 +54,7 @@ int destroy_list(list_t **lista_trabocco);
  * @param file_path Path del nodo da aggiungere
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param flags Flag che indica l'operazione da eseguire (se una create e/o una lock)
+ * @param max_file_reached Massimo numero di file fino a quel momento
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
@@ -62,7 +63,7 @@ int destroy_list(list_t **lista_trabocco);
  *             404 nel caso in cui i flag passati non siano validi
  *             101 nel caso in cui il file esista gia' e si e' richiesta la sola creazione di esso
  */
-int add(list_t **lista_trabocco, char* file_path, int fd, int flags);
+int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_file_reached);
 
 /**
  * @brief Elimina un nodo dalla tabella hash
@@ -142,6 +143,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd);
  * @param max_size Massima size possibile della tabella hash
  * @param curr_size Size corrente della tabella hash
  * @param deleted Nodo in cui memorizzare quello appena eliminato
+ * @param max_size_reached Massima size raggiunta fino a quel momento
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -149,7 +151,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int fd);
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size,  int* max_size_reached, int fd);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da file_path
@@ -161,6 +163,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  * @param max_size Massima size possibile della tabella hash
  * @param curr_size Size corrente della tabella hash
  * @param deleted Nodo in cui memorizzare quello appena eliminato
+ * @param max_size_reached Massima size raggiunta fino a quel momento
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -171,7 +174,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  *              909 nel caso in cui sia stato eliminato un file
  *              808 nel caso in cui sia gia' stata fatta la writeFile su quel nodo
  */
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd);
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size,  int* max_size_reached, node** deleted, int fd);
 
 /**
  * @brief Legge il file identificato da file_path
@@ -188,5 +191,12 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
  *             202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
 int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t* size_buf, int fd);
+
+/**
+ * @brief Stampa gli elementi della lista di trabocco
+ * 
+ * @param queue Lista contenente gli elementi da stampare
+ */
+void print_hash(list_t *queue);
 
 #endif

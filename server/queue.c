@@ -7,7 +7,7 @@
 #include <errno.h>
 
 #include <fifo.h>
-
+#include <utils.h>
 
 int create_list(list_t **lista_trabocco){
     /* Crea la lista */
@@ -107,7 +107,7 @@ static node* node_create(list_t **queue, char* file_path, int fd, int flags){
     return curr;
 }
 
-int add(list_t **lista_trabocco, char* file_path, int fd, int flags){
+int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int* max_file_reached){
     CHECK_OPERATION(!(*lista_trabocco),
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -128,7 +128,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags){
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
             return -1);
-
+        *max_file_reached = max(*max_file_reached, fifo_queue->elements);
         nodo->next = (*lista_trabocco)->head; 
         (*lista_trabocco)->head = nodo;
         
@@ -421,7 +421,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     return 0;
 }
 
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int fd){
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int* max_size_reached, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -446,6 +446,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
         nodo->size_buffer += (size_buf); 
         free(buf);
         FD_CLR(fd, &(nodo->operation_open));
+        *max_size_reached = max(*curr_size, *max_size_reached);
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -471,7 +472,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
     return -1;
 }
 
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, node** deleted, int fd){
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, int* max_size_reached, node** deleted, int fd){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -493,9 +494,9 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
             memcpy(nodo->buffer, buf, size_buf);  
             nodo->size_buffer = size_buf;
             free(buf);
-            printf("PATH DEL FILE SU CUI E' STATO SCRITTO: %s\n", file_path);
             FD_CLR(fd, &(nodo->operation_open));
             nodo->written = 1;
+            *max_size_reached = max(*curr_size, *max_size_reached);
 
             PTHREAD_UNLOCK(nodo->mutex);
         
@@ -540,4 +541,15 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;
+}
+
+void print_hash(list_t *queue){
+    node* curr = queue->head;
+    while(curr){
+        if(!curr->buffer)   
+            fprintf(stdout, "Elemento con buffer vuoto nella tabella hash: %s\n", curr->path);
+        else
+            fprintf(stdout, "Elemento con buffer non vuoto nella tabella hash: %s\n", curr->path);
+        curr = curr->next;
+    }
 }

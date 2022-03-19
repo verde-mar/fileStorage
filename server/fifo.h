@@ -21,6 +21,7 @@ typedef struct l {
     struct node_c* head;    
     pthread_mutex_t *mutex; 
     pthread_cond_t *cond;
+    int how_many_cache; 
 } list_c;
 
 /**
@@ -32,6 +33,7 @@ typedef struct list_req {
     struct richiesta* head;    
     pthread_mutex_t *mutex; 
     pthread_cond_t *cond;
+    
 } lista_richieste;
 
 /**
@@ -51,10 +53,9 @@ list_c *fifo_queue;
 /**
  * @brief Crea la lista con ordinamento FIFO
  * 
- * @param queue Coda da creare
  * @return int int 0 in caso di successo, -1 altrimenti
  */
-int create_fifo(list_c **queue);
+int create_fifo();
 
 /**
  * @brief Elimina la lista con ordinamento FIFO

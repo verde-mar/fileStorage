@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <utils.h>
 
 unsigned long hash_function(char *str){
     unsigned long hash = 5381;
@@ -24,7 +25,7 @@ unsigned long hash_function(char *str){
     return (hash%16);
 }
 
-int create_hashtable(size_t size){
+int create_hashtable(size_t size, int num_file){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable));
     CHECK_OPERATION(table == NULL,
@@ -44,7 +45,7 @@ int create_hashtable(size_t size){
     }
 
     /* Inizia la coda FIFO */
-    int create = create_fifo(&fifo_queue);
+    int create = create_fifo();
     CHECK_OPERATION(create == -1,
         fprintf(stderr, "Errore nella creazione della coda FIFO.\n");
         return -1);
@@ -54,11 +55,7 @@ int create_hashtable(size_t size){
     /* Inizializza la size massima della tabella hash */
     table->max_size = size;
     /* Inizializza il numero massimo di file da avere nel file storage */
-    table->max_file = 0;
-    /* Inizializza il numero di volte in cui e' stato chiamato l'algoritmo di rimpiazzamento */
-    table->how_many_cache = 0;
-    /* Numero di file corrente nel file storage */
-    table->num_curr_file = 0;
+    table->max_file = num_file;
     /* Massimo numero di file raggiunti durante l'esecuzione */
     table->max_file_reached = 0;
     /* Massima size raggiunta durante l'esecuzione */
@@ -95,15 +92,24 @@ int add_hashtable(char *name_file, int fd, int flags){
         return -1);
 
     /* Aggiunge l' elemento nella tabella hash */
-    
     int hash = hash_function(name_file); 
-    printf("VALORE HASH DELL'ELEMENTO CHE STA PER ESSERE AGGIUNTO/CREATO/LOCKATO: %d", hash);
-    int success = add(&(table->queue[hash]), name_file, fd, flags);   
-    CHECK_OPERATION(success==-1, 
-        fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
-        return -1);
-
+    int success = -1;
+    if(fifo_queue->elements <= table->max_file){
+        success = add(&(table->queue[hash]), name_file, fd, flags, &(table->max_file_reached));   
+        CHECK_OPERATION(success==-1, 
+            fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
+            return -1);
+    } else {
+        success = 777;
+    }
     return success;    
+}
+
+void print_elements(){
+    for (int i = 0; i < 16; i++)
+        if (table->queue[i]) {
+            print_hash(table->queue[i]);
+        }
 }
 
 int del_hashtable(char *name_file, node **just_deleted, int fd){
@@ -130,7 +136,6 @@ int close_hashtable(char *name_file, int fd){
 
     
     int hash = hash_function(name_file); 
-    printf("VALORE HASH IN CLOSE_HASHTABLE: %d", hash);
    
     /* Chiude un nodo */
     int success = closes(&(table->queue[hash]), name_file, fd);
@@ -203,6 +208,7 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
         table->curr_size += *size_buf;
         if(table->curr_size > table->max_size){
             PTHREAD_LOCK(fifo_queue->mutex);
+            fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
@@ -210,10 +216,10 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
                 int hash_del = hash_function(to_delete);
                 int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size)); CHECK_OPERATION(del == -1, return -1;);
                 CHECK_OPERATION(del == -1, return -1);
-                if(!del){
-                    del = definitely_deleted(name_file, deleted);
-                    CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return -1);
-                }
+                //if(!del){
+                //    del = definitely_deleted(name_file, deleted);
+                //    CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return -1);
+                //} TODO:NON VA MICA BENE, COME FANNO AD ARRIVARE AL CLIENT, NONOSTANTE IO ABBIA VERIFICATO CHE GLI ARRIVANO?
                 if(buf) free(buf); 
             }
         }
@@ -232,7 +238,7 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
     CHECK_OPERATION(buf == NULL, return 707);
 
     /* Effettua la append su un nodo */
-    int success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), fd);
+    int success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), &(table->max_size_reached), fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
         return -1);
@@ -251,6 +257,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
         if(table->curr_size > table->max_size){
             /* Elimina l'elemento dalla lista cache */
             PTHREAD_LOCK(fifo_queue->mutex);
+            fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
@@ -279,7 +286,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
     int hash = hash_function(name_file);
 
     /* Effettua la write sull'elemento */
-    int success = writes(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), deleted, fd);
+    int success = writes(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), &(table->max_size_reached), deleted, fd);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
         return -1);
@@ -315,11 +322,14 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         return -1;);
     
     int success = -1;
-    printf("ENNE: %d\n", N);
+    
     /* Se il numero di elementi presenti e' maggiore o uguale dell' indice dell'elemento da leggere */
     if(fifo_queue->elements >= N){
 
         node_c *curr = fifo_queue->head;
+        if(curr == NULL)
+            success = 111;
+            
         /* Scorre la lista finche' non trova l'elemento di indice N */
         while(curr->next && N >= 1){
             curr = curr->next;
@@ -329,7 +339,7 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         /* Acquisisce la lock sull'elemento */
         int hash = hash_function((char*)curr->path); 
         *path = (char*)curr->path;
-        success = add(&(table->queue[hash]), (char*)curr->path, fd, 5);
+        success = add(&(table->queue[hash]), (char*)curr->path, fd, 5, &(table->max_size_reached));
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nella apertura di un elemento nella tabella hash.\n"); 
             return -1);

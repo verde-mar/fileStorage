@@ -15,24 +15,26 @@
 
 //TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy ---> metti nella relazione
 
-int create_fifo(list_c **queue){
-    *queue = malloc(sizeof(list_c));
-    CHECK_OPERATION((*queue) == NULL,
+int create_fifo(){
+    fifo_queue = malloc(sizeof(list_c));
+    CHECK_OPERATION(fifo_queue == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
         return -1);
 
     /* Inizializza il numero di elementi iniziali */
-    (*queue)->elements = 0;
+    fifo_queue->elements = 0;
     /* Inizializza la testa */
-    (*queue)->head = NULL;
+    fifo_queue->head = NULL;
     /* Inizializza la mutex */
-    (*queue)->mutex = malloc(sizeof(pthread_mutex_t));
-    CHECK_OPERATION((*queue)->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-    PTHREAD_INIT_LOCK((*queue)->mutex);
+    fifo_queue->mutex = malloc(sizeof(pthread_mutex_t));
+    CHECK_OPERATION(fifo_queue->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_LOCK(fifo_queue->mutex);
     /* Inizializza la variabile di condizione */
-    (*queue)->cond = malloc(sizeof(pthread_cond_t));
-    CHECK_OPERATION((*queue)->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-    PTHREAD_INIT_COND((*queue)->cond);
+    fifo_queue->cond = malloc(sizeof(pthread_cond_t));
+    CHECK_OPERATION(fifo_queue->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    PTHREAD_INIT_COND(fifo_queue->cond);
+    /* Inizializza il numero di volte in cui e' stato chiamato l'algoritmo di rimpiazzamento */
+    fifo_queue->how_many_cache = 0;
 
     return 0;
 }
@@ -125,7 +127,7 @@ char* head_name(list_c *queue){
 
 
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
-    CHECK_OPERATION(!(*queue) || fd_c < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
+    CHECK_OPERATION((*queue)==NULL, fprintf(stderr, "Parametri non validi -----> %d\n", fd_c); return -1);
 
     request *current, *new_node; 
 

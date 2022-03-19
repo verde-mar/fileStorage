@@ -45,6 +45,8 @@
             fprintf(stdout, "La %s e' terminata con successo, ma e' stato liberato dello spazio.\n", operazione); \
         } else if(codice == 444){\
             fprintf(stdout, "La %s non e' terminata con successo, perche' il file e' troppo grande e non c'erano altri elementi da eliminare.\n", operazione); \
+        } else if(codice == 777){\
+            fprintf(stdout, "La %s non e' terminata con successo, perche' non e' possibile aggiungere altri file al momento. Prova ad eliminarne qualcuno.\n", operazione); \
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\

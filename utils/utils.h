@@ -47,4 +47,21 @@ int caller(int (*fun) (const char*), const char* pathname);
  */
 int read_from_file(char *pathname, void** buf, size_t *size);
 
+/**
+ * @brief Calcola il massimo tra due interi
+ * 
+ * @param a Intero di cui calcolare il massimo
+ * @param b Intero di cui calcolare il massimo
+ * @return int a, se e' il massimo, b altrimenti
+ */
+int max(int a, int b);
+
+/**
+ * @brief Restituisce il parametro bytes in Mbyte
+ * 
+ * @param bytes Numero byte
+ * @return float bytes in Mbyte
+ */
+float to_Mbytes(int bytes);
+
 #endif

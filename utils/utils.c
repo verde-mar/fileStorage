@@ -142,3 +142,15 @@ int read_from_file(char *pathname, void** buf, size_t *size){
 
     return 0;
 }
+
+int max(int a, int b){
+    if(a>b)
+        return a;
+    else
+        return b;
+}
+
+float to_Mbytes(int bytes){
+    printf("BYTES IN MBYTES: %d\n", bytes);
+    return (bytes/1000000.0);
+}
