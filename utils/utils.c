@@ -151,6 +151,5 @@ int max(int a, int b){
 }
 
 float to_Mbytes(int bytes){
-    printf("BYTES IN MBYTES: %d\n", bytes);
     return (bytes/1000000.0);
 }

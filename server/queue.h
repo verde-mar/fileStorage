@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <sys/select.h>
+#include <stdio.h>
 
 /**
  * @brief Nodo di ciascuna lista di trabocco
@@ -55,6 +56,7 @@ int destroy_list(list_t **lista_trabocco);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param flags Flag che indica l'operazione da eseguire (se una create e/o una lock)
  * @param max_file_reached Massimo numero di file fino a quel momento
+  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
@@ -63,7 +65,7 @@ int destroy_list(list_t **lista_trabocco);
  *             404 nel caso in cui i flag passati non siano validi
  *             101 nel caso in cui il file esista gia' e si e' richiesta la sola creazione di esso
  */
-int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_file_reached);
+int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_file_reached, FILE* file_log);
 
 /**
  * @brief Elimina un nodo dalla tabella hash
@@ -73,13 +75,14 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
  * @param just_deleted Nodo in cui salvare il nodo appena eliminato
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param curr_size Size corrente nella tabella hash
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
  *             202 nel caso in cui un altro client detenga la lock
  *             505 nel caso in cui il file non esista
  */
-int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int* curr_size);
+int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int* curr_size, FILE* file_log);
 
 /**
  * @brief Ricerca un nodo
@@ -96,12 +99,13 @@ node* look_for_node(list_t **lista_trabocco, char* file_path);
  * @param lista_trabocco Lista in cui si trova il nodo
  * @param file_path Path del file ricercato
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si riprovi a fare la closeFile dopo averla gia' fatta
  *             505 nel caso in cui il file non esista
  */
-int closes(list_t **lista_trabocco, char* file_path, int fd);
+int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
 
 /**
  * @brief Resetta la variabile fd_c del nodo identificato da file_path
@@ -109,6 +113,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd);
  * @param lista_trabocco Lista di trabocco del nodo
  * @param file_path Path del nodo 
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
@@ -116,7 +121,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd);
  *             505 nel caso in cui il file non esista
  *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
-int unlock(list_t **lista_trabocco, char* file_path, int fd);
+int unlock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
 
 /**
  * @brief Setta la variabile fd_c del nodo identificato da file_path
@@ -124,13 +129,14 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd);
  * @param lista_trabocco Lista di trabocco del nodo
  * @param file_path Path del nodo
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si provi a fare la lockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int lock(list_t **lista_trabocco, char* file_path, int fd);
+int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
 
 
 /**
@@ -145,13 +151,14 @@ int lock(list_t **lista_trabocco, char* file_path, int fd);
  * @param deleted Nodo in cui memorizzare quello appena eliminato
  * @param max_size_reached Massima size raggiunta fino a quel momento
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             202 nel caso in cui la lock sia stata acquisita da un altro client
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size,  int* max_size_reached, int fd);
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size,  int* max_size_reached, int fd, FILE* file_log);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da file_path
@@ -165,6 +172,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  * @param deleted Nodo in cui memorizzare quello appena eliminato
  * @param max_size_reached Massima size raggiunta fino a quel momento
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *              303 nel caso in cui si provi a fare la append dopo la close
@@ -174,7 +182,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  *              909 nel caso in cui sia stato eliminato un file
  *              808 nel caso in cui sia gia' stata fatta la writeFile su quel nodo
  */
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size,  int* max_size_reached, node** deleted, int fd);
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size,  int* max_size_reached, node** deleted, int fd, FILE* file_log);
 
 /**
  * @brief Legge il file identificato da file_path
@@ -184,13 +192,14 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
  * @param buf Buffer di dati
  * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  *             202 nel caso in cui la lock sia stata acquisita da un altro thread
  */
-int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t* size_buf, int fd);
+int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t* size_buf, int fd, FILE* file_log);
 
 /**
  * @brief Stampa gli elementi della lista di trabocco

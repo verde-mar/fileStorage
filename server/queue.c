@@ -107,7 +107,7 @@ static node* node_create(list_t **queue, char* file_path, int fd, int flags){
     return curr;
 }
 
-int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int* max_file_reached){
+int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_file_reached, FILE* file_log){
     CHECK_OPERATION(!(*lista_trabocco),
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -132,6 +132,8 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int* max_fi
         nodo->next = (*lista_trabocco)->head; 
         (*lista_trabocco)->head = nodo;
         
+        fprintf(file_log, "E' stato creato il nodo con path: %s\n", nodo->path);
+
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return 0;
@@ -139,12 +141,15 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int* max_fi
         PTHREAD_LOCK(nodo->mutex);
         FD_SET(fd, &(nodo->open));
         FD_SET(fd, &(nodo)->operation_open);
+        fprintf(file_log, "E' stato aperto il nodo con path: %s\n", nodo->path);
+        
         PTHREAD_UNLOCK(nodo->mutex);
         if(!flags) return 0;
     }
 
     if(flags == 4 || flags == 5){
         PTHREAD_LOCK(nodo->mutex);
+        fprintf(file_log, "E' stata acquisita la lock sul nodo con path: %s\n", nodo->path);
         nodo->fd_c = fd;
         PTHREAD_UNLOCK(nodo->mutex);
         return 0;
@@ -156,12 +161,12 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int* max_fi
         return 404;);
 
     CHECK_OPERATION((flags == 2 || flags == 6) && nodo!=NULL, fprintf(stderr, "Il nodo %s esiste gia'.\n", nodo->path); return 101);
-    CHECK_OPERATION(nodo == NULL, fprintf(stderr, "Il nodo non e' stato trovato. OPEN\n"); return 505);
+    CHECK_OPERATION(nodo == NULL, fprintf(stderr, "Il nodo non e' stato trovato.\n"); return 505);
 
     return 505;
 }
 
-int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int *curr_size){
+int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int *curr_size, FILE* file_log){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -169,7 +174,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, file_path);
     CHECK_OPERATION(nodo == NULL,
-        fprintf(stderr, "Il nodo non e' stato trovato. DELETES\n");
+        fprintf(stderr, "Il nodo non e' stato trovato.\n");
         return 505);
             
     PTHREAD_LOCK(fifo_queue->mutex);
@@ -182,6 +187,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
+        fprintf(file_log, "Si e' tentato di eliminare un nodo, ma la lista era vuota.\n");
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
@@ -196,6 +202,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
+            fprintf(file_log, "E' stato eliminato il nodo con path: %s\n", curr->path);
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -230,6 +237,8 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
+
+            fprintf(file_log, "E' stato creato il nodo con path: %s\n", curr->path);
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -272,7 +281,7 @@ node* look_for_node(list_t **lista_trabocco, char* file_path){
     return NULL;
 }
 
-int closes(list_t **lista_trabocco, char* file_path, int fd){
+int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -287,6 +296,8 @@ int closes(list_t **lista_trabocco, char* file_path, int fd){
     if(FD_ISSET(fd, &(nodo->open))){
         FD_CLR(fd, &(nodo->open));
         FD_CLR(fd, &(nodo->operation_open));
+
+        fprintf(file_log, "E' stato chiuso il nodo con path: %s\n", nodo->path);
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -304,7 +315,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd){
     return -1;
 }
 
-int unlock(list_t **lista_trabocco, char* file_path, int fd){
+int unlock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -320,6 +331,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd){
     if(nodo->fd_c == fd && FD_ISSET(fd, &(nodo->open))){
         nodo->fd_c = -1;
         FD_CLR(fd, &(nodo->operation_open));
+        fprintf(file_log, "E' stata rilasciata la lock sul nodo con path: %s\n", nodo->path);
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -345,7 +357,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd){
     return 0;
 }
 
-int lock(list_t **lista_trabocco, char* file_path, int fd){
+int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -360,6 +372,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd){
     if(FD_ISSET(fd, &(nodo->open)) && (nodo->fd_c == fd || nodo->fd_c == -1)){     
         nodo->fd_c = fd;
         FD_CLR(fd, &(nodo->operation_open));
+        fprintf(file_log, "E' stata acquisita la lock sul nodo con path: %s\n", nodo->path);
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -379,7 +392,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd){
     return 0;
 }
 
-int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf, int fd){
+int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -397,6 +410,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
         *size_buf = nodo->size_buffer;
         *buf = nodo->buffer;
         FD_CLR(fd, &(nodo->operation_open));
+        fprintf(file_log, "E' stata letto il buffer del nodo con path: %s\n", nodo->path);
     } 
     /* Se la lock e' stata acquisita da un altro thread */
     else if(nodo->fd_c!=fd && nodo->fd_c!=-1){
@@ -421,7 +435,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     return 0;
 }
 
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int* max_size_reached, int fd){
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int* max_size_reached, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -447,6 +461,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
         free(buf);
         FD_CLR(fd, &(nodo->operation_open));
         *max_size_reached = max(*curr_size, *max_size_reached);
+        fprintf(file_log, "E' stata fatta la append sul nodo con path: %s di %ld byte.\n", nodo->path, size_buf);
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -472,7 +487,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
     return -1;
 }
 
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, int* max_size_reached, node** deleted, int fd){
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, int* max_size_reached, node** deleted, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -497,6 +512,7 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
             FD_CLR(fd, &(nodo->operation_open));
             nodo->written = 1;
             *max_size_reached = max(*curr_size, *max_size_reached);
+            fprintf(file_log, "E' stata fatta la write sul nodo con path: %s di %ld byte.\n", nodo->path, size_buf);
 
             PTHREAD_UNLOCK(nodo->mutex);
         

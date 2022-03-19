@@ -119,7 +119,7 @@ static void* working(void* pool){
             int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
             if(!err_rem){
-                err_rem = definitely_deleted(path, &deleted);
+                err_rem = definitely_deleted(&deleted);
                 CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return (void*)NULL);
             }
             int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, deleted);

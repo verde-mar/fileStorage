@@ -47,6 +47,7 @@ int main(int argc, char const *argv[]) {
     int fd_skt;
     char *socket_name = "socket"; //temporaneo
     int num_file = 10;
+    char *log_file = "./log_file.txt";
 
     /* Crea la pipe da utilizzare per inviare l'avvenuta ricezione di un segnale al main */
     int signal_pipe[2];
@@ -75,7 +76,7 @@ int main(int argc, char const *argv[]) {
     CHECK_OPERATION(err_create_pool == -1, fprintf(stderr, "Errore nella creazione del theradpool.\n"); return -1);
 
     /* Crea la tabella hash */
-    int err_hash = create_hashtable(size, num_file);
+    int err_hash = create_hashtable(size, num_file, log_file);
     CHECK_OPERATION(err_hash == -1, fprintf(stderr, "Errore nella creazione della tabella hash.\n"); exit(-1));
 
     /* Avvia il thread gestore dei segnali */
@@ -117,36 +118,48 @@ int main(int argc, char const *argv[]) {
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
-
                 if (fd == fd_skt && no_more) { /* E' arrivata una nuova richiesta */
                     fd_c = accept(fd_skt,NULL,0);
                     CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetazione di un client.\n"); exit(-1));
+                    fprintf(table->file_log, "E' stata accettata la connessione di %d.\n", fd_c);
                     FD_SET(fd_c, &set);
                     if (fd_c > fd_max) fd_max = fd_c; 
                 } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
                     response *risp;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
                     CHECK_OPERATION(err_resp == -1 , fprintf(stderr, "Errore sulla readn nella lettura della risposta."); continue); 
+                    fprintf(table->file_log, "Il worker ha elaborato la richiesta di %d ", fd_c);
                     
                     int err_write = write_size(risp->fd_richiesta, &risp->errore);
                     CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nella scrittura della size del messaggio .\n"); failed_communication(fd);); 
-                   
+                    fprintf(table->file_log, "con risultato: %ld.\n", risp->errore);
+                    
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
                         CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); failed_communication(fd););
+                        fprintf(table->file_log, "Per inviare la risposta della richiesta di %d e' stato necessario scrivere %ld byte per il path ", fd_c, (strlen(risp->path)+1)*sizeof(char));
+
                     }
                     
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); failed_communication(fd););
+                        fprintf(table->file_log, "Per inviare la risposta della richiesta di %d e' stato necessario scrivere %ld byte per il buffer.\n", fd_c, risp->size_buffer);
+
                     }
                     
                     if(risp->deleted){
                         if((risp->deleted)->buffer){
-                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, strlen((risp->deleted)->path) + 1);
+                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((risp->deleted)->path) + 1)*sizeof(char));
                             CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); failed_communication(fd););
+                            fprintf(table->file_log, "Per inviare la risposta della richiesta di %d e' stato necessario scrivere %ld byte per il path ", fd_c, (strlen(risp->path)+1)*sizeof(char));
+                            
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); failed_communication(fd););
+                            fprintf(table->file_log, "Per inviare la risposta della richiesta di %d e' stato necessario scrivere %ld byte per il buffer.\n", fd_c, risp->size_buffer);
+                            
+                            int del = definitely_deleted(&(risp->deleted));
+                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
                         }
                     }
 
@@ -159,14 +172,17 @@ int main(int argc, char const *argv[]) {
                     /* Legge il tipo di segnale dalla pipe */
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
                     CHECK_OPERATION(err_readn == -1 , fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
+                    fprintf(table->file_log, "E' stato ricevuto il segnale di %d ", sig);
                     
                     /* Assegna al flag 0 cosi' che non siano accettate nuove richieste di connessione */
-                    no_more = 0;
-
+                    no_more = 0; 
+                
                     if(sig == 2||sig == 3){ /* Se arriva un SIGINT o un SIGQUIT */
                         end = 0;
                         close(response_pipe[0]);
+                        fprintf(table->file_log, "quindi si procede per la chiusura immediata.\n");
                     } else { /* Se arriva un SIGHUP */
+                        fprintf(table->file_log, "quindi si procede per la chiusura lenta.\n");
                         for(int i = 0; i < pool->num_thread; i++) {
                             int err_push = push_queue(NULL, -1, NULL, 0, &(pool->pending_requests));
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); exit(-1));
@@ -174,6 +190,7 @@ int main(int argc, char const *argv[]) {
                     }
                     close(signal_pipe[0]);
                 } else { /* E' arrivata una richiesta da un client registrato */
+                    fprintf(table->file_log, "E' arrivata una richiesta dal client %d: ", fd);
                     size_t size;
                     int err_read = read_size(fd, &size);
                     if(err_read != -1 && err_read!=0){
@@ -182,6 +199,8 @@ int main(int argc, char const *argv[]) {
                         
                         err_read = read_msg(fd, request, size);
                         CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); failed_communication(fd);); 
+
+                        fprintf(table->file_log, "%s\n", request);
 
                         size_t size_buffer;
                         err_read = read_size(fd, &size_buffer);

@@ -17,6 +17,7 @@ typedef struct hashtable {
     int max_file; 
     int max_size_reached; 
     int max_file_reached; 
+    FILE *file_log;
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
@@ -35,10 +36,18 @@ unsigned long hash_function(char *str);
  * 
  * @param size Size massima della tabella hash
  * @param num_file Numero massimo di file da memorizzare nella tabella hash
+ * @param name_log_file Nome del file di log
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int create_hashtable(size_t size, int num_file);
+int create_hashtable(size_t size, int num_file, char *name_log_file);
 
+/**
+ * @brief Trova un nodo in una lista di trabocco
+ * 
+ * @param lista_trabocco Lista di trabocco in cui cercare il nodo
+ * @param file_path Path del file da cercare
+ * @return node* Nodo trovato in caso di successo, NULL altrimenti
+ */
 node* look_for_node(list_t **lista_trabocco, char* file_path);
 
 /**
@@ -183,11 +192,10 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path);
 /**
  * @brief Elimina definitivamente il nodo just_deleted
  * 
- * @param path Path del file da eliminare
  * @param just_deleted Nodo da eliminare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int definitely_deleted(char *path, node** just_deleted);
+int definitely_deleted(node** just_deleted);
 
 /**
  * @brief Stampa gli elementi della tabella hash
