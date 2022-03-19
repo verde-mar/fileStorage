@@ -70,6 +70,8 @@ static void* working(void* pool){
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
         CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
         
+        
+
         /* Tokenizza la richiesta */
         char *operation, *path;
         int err_token = tokenizer(req->request, &operation, &path);
@@ -187,20 +189,21 @@ int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
 
+    /* Per terminare i thread, gli invia da gestire delle richieste NULL */
     if((*threadpool)->curr_threads>0)
         for(int i = 0; i < (*threadpool)->num_thread; i++) {
             int err_push = push_queue(NULL, -1, NULL, 0, &((*threadpool)->pending_requests));
             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
         }
-
+    /* Attende che i thread si autospengano */
     for(int i = 0; i < (*threadpool)->num_thread; i++) {
         if(pthread_join((*threadpool)->threads[i], NULL) != 0) {
             del = del_req(&(*threadpool)->pending_requests);
             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
         }
     }
+    /* Libera la memoria rimanente */
     free((*threadpool)->threads);
-
     del = del_req(&(*threadpool)->pending_requests);
     CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
 

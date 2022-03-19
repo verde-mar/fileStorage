@@ -55,9 +55,14 @@ int create_hashtable(size_t size){
     table->max_size = size;
     /* Inizializza il numero massimo di file da avere nel file storage */
     table->max_file = 0;
-    /* Inizializza */
+    /* Inizializza il numero di volte in cui e' stato chiamato l'algoritmo di rimpiazzamento */
     table->how_many_cache = 0;
-    
+    /* Numero di file corrente nel file storage */
+    table->num_curr_file = 0;
+    /* Massimo numero di file raggiunti durante l'esecuzione */
+    table->max_file_reached = 0;
+    /* Massima size raggiunta durante l'esecuzione */
+    table->max_size_reached = 0;   
 
     
     return 0;

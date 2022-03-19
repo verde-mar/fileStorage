@@ -2,15 +2,17 @@
 #define QUEUE_H_
 
 #include <pthread.h>
-
+#include <sys/select.h>
 
 /**
  * @brief Nodo di ciascuna lista di trabocco
  * 
  */
 typedef struct node {
-    int open;
+    fd_set open;
+    fd_set operation_open;
     int fd_c;
+    int written;
     const char* path;
     void *buffer;
     size_t size_buffer;

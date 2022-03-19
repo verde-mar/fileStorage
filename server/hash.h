@@ -14,8 +14,11 @@ typedef struct hashtable {
     list_t **queue;
     int curr_size;
     int max_size;
-    int max_file;
-    int curr_file; //TODO:aggiorna in tutto il server per le statistiche
+    int max_file; //TODO: NON C'E' ALCUN CONTROLLO SUL NUMERO DI FILE
+    int num_curr_file; //TODO:aggiorna in tutto il server per le statistiche
+    int how_many_cache; //TODO:aggiorna in tutto il server per le statistiche
+    int max_size_reached; //TODO:aggiorna in tutto il server per le statistiche
+    int max_file_reached; //TODO:aggiorna in tutto il server per le statistiche
 } hashtable;
 
 /* Tabella hash utilizzata da tutti i thread del server */
@@ -36,6 +39,8 @@ unsigned long hash_function(char *str);
  * @return int 0 in caso di successo, -1 altrimenti
  */
 int create_hashtable(size_t size);
+
+node* look_for_node(list_t **lista_trabocco, char* file_path);
 
 /**
  * @brief Libera la memoria occupata dalla tabella hash

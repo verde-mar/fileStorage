@@ -19,7 +19,7 @@ int create_fifo(list_c **queue){
     *queue = malloc(sizeof(list_c));
     CHECK_OPERATION((*queue) == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return -1);
+        return -1);
 
     /* Inizializza il numero di elementi iniziali */
     (*queue)->elements = 0;
@@ -38,6 +38,8 @@ int create_fifo(list_c **queue){
 }
 
 int delete_fifo(list_c **queue){
+    CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     /* Rimuove ogni elemento della coda */
     while ((*queue)->head!=NULL) {
         node_c *tmp = (*queue)->head;
@@ -121,14 +123,17 @@ char* head_name(list_c *queue){
     return name;
 }
 
+
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
+    CHECK_OPERATION(!(*queue) || fd_c < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     request *current, *new_node; 
 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(request));
     CHECK_OPERATION(new_node == NULL,
-            fprintf(stderr, "Allocazione non andata a buon fine.\n");
-                return -1);
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+        return -1);
 
     if(req_path!=NULL){
         new_node->request = req_path;
@@ -207,6 +212,8 @@ int create_req(lista_richieste **queue){
 }
 
 int del_req(lista_richieste **queue){
+    CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     /* Rimuove ogni elemento della coda */
     request *tmp = NULL;
     while ((*queue)->head) {
