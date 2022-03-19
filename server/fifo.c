@@ -25,14 +25,17 @@ int create_fifo(){
     fifo_queue->elements = 0;
     /* Inizializza la testa */
     fifo_queue->head = NULL;
+
     /* Inizializza la mutex */
     fifo_queue->mutex = malloc(sizeof(pthread_mutex_t));
     CHECK_OPERATION(fifo_queue->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
     PTHREAD_INIT_LOCK(fifo_queue->mutex);
+
     /* Inizializza la variabile di condizione */
     fifo_queue->cond = malloc(sizeof(pthread_cond_t));
     CHECK_OPERATION(fifo_queue->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
     PTHREAD_INIT_COND(fifo_queue->cond);
+
     /* Inizializza il numero di volte in cui e' stato chiamato l'algoritmo di rimpiazzamento */
     fifo_queue->how_many_cache = 0;
 
@@ -46,12 +49,11 @@ int delete_fifo(list_c **queue){
     while ((*queue)->head!=NULL) {
         node_c *tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
-
         free(tmp);
     }
     
     /* Distrugge la lock di ciascun nodo */
-    PTHREAD_DESTROY_LOCK((*queue)->mutex, "delete_fifo: queue->mutex");
+    PTHREAD_DESTROY_LOCK((*queue)->mutex);
     free((*queue)->mutex);
     /* Distrugge la variabile di condizione di ciascun nodo */
     PTHREAD_DESTROY_COND((*queue)->cond);
@@ -120,14 +122,13 @@ int del(char *file_path){
 
 char* head_name(list_c *queue){
     char *name = (char*)(queue->head)->path;
-    fprintf(stdout, "Questo file sta per essere eliminato: %s\n", name);
 
     return name;
 }
 
 
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
-    CHECK_OPERATION((*queue)==NULL, fprintf(stderr, "Parametri non validi -----> %d\n", fd_c); return -1);
+    CHECK_OPERATION((*queue)==NULL, fprintf(stderr, "Parametri non validi."); return -1);
 
     request *current, *new_node; 
 
@@ -227,7 +228,7 @@ int del_req(lista_richieste **queue){
     }
     
     /* Distrugge la lock di ciascun nodo */
-    PTHREAD_DESTROY_LOCK((*queue)->mutex, "del_req: queue->mutex");
+    PTHREAD_DESTROY_LOCK((*queue)->mutex);
     free((*queue)->mutex);
     /* Distrugge la variabile di condizione di ciascun nodo */
     PTHREAD_DESTROY_COND((*queue)->cond);

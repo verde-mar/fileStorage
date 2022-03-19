@@ -113,4 +113,4 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
  */
 int readNFiles(int N, const char* dirname);
 
-#endif // WORKER_H_
+#endif 

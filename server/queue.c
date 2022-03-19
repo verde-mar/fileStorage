@@ -41,7 +41,7 @@ int destroy_list(list_t **lista_trabocco){
         (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
 
         /* Libera la memoria del nodo corrente */
-        PTHREAD_DESTROY_LOCK(tmp->mutex, "destroy_list: tmp->mutex");
+        PTHREAD_DESTROY_LOCK(tmp->mutex);
         PTHREAD_DESTROY_COND(tmp->locked); 
         free(tmp->mutex);
         free(tmp->locked);
@@ -52,7 +52,7 @@ int destroy_list(list_t **lista_trabocco){
         free(tmp);
     }
     /* Distrugge la lock della lista di trabocco */
-    PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex, "destroy_list: lista_trabocco->mutex");
+    PTHREAD_DESTROY_LOCK((*lista_trabocco)->mutex);
     free((*lista_trabocco)->mutex);
 
     /* Libera la memoria occupata dalla lista di trabocco */
@@ -132,7 +132,10 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
         nodo->next = (*lista_trabocco)->head; 
         (*lista_trabocco)->head = nodo;
         
-        fprintf(file_log, "E' stato creato il nodo con path: %s\n", nodo->path);
+        if(flags == 2)
+            fprintf(file_log, "Create.\n");
+        else
+            fprintf(file_log, "Create_Lock.\n");
 
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -141,7 +144,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
         PTHREAD_LOCK(nodo->mutex);
         FD_SET(fd, &(nodo->open));
         FD_SET(fd, &(nodo)->operation_open);
-        fprintf(file_log, "E' stato aperto il nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Open.\n");
         
         PTHREAD_UNLOCK(nodo->mutex);
         if(!flags) return 0;
@@ -149,7 +152,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
 
     if(flags == 4 || flags == 5){
         PTHREAD_LOCK(nodo->mutex);
-        fprintf(file_log, "E' stata acquisita la lock sul nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Lock.\n");
         nodo->fd_c = fd;
         PTHREAD_UNLOCK(nodo->mutex);
         return 0;
@@ -184,17 +187,19 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return -1);
-    
+    printf("SUBITO DOPO LA DEL.\n");
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
-        fprintf(file_log, "Si e' tentato di eliminare un nodo, ma la lista era vuota.\n");
+        fprintf(file_log, "Delete.\n"); //TODO: specifica nella relazione
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
         return 0;
     }
+    
     curr = (*lista_trabocco)->head;
     if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
+    
         if(curr->fd_c == fd && FD_ISSET(fd, &(curr->open))){
             *just_deleted = curr;
             (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
@@ -202,7 +207,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
-            fprintf(file_log, "E' stato eliminato il nodo con path: %s\n", curr->path);
+            fprintf(file_log, "Delete.\n");
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -225,7 +230,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
         }
         
     }
-
+    
     /* Scansione della lista a partire dal secondo nodo */
     node* prev = curr;
     curr = curr->next;
@@ -238,7 +243,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
 
-            fprintf(file_log, "E' stato creato il nodo con path: %s\n", curr->path);
+            fprintf(file_log, "Delete.\n");
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -297,7 +302,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
         FD_CLR(fd, &(nodo->open));
         FD_CLR(fd, &(nodo->operation_open));
 
-        fprintf(file_log, "E' stato chiuso il nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Close.\n");
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -331,7 +336,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     if(nodo->fd_c == fd && FD_ISSET(fd, &(nodo->open))){
         nodo->fd_c = -1;
         FD_CLR(fd, &(nodo->operation_open));
-        fprintf(file_log, "E' stata rilasciata la lock sul nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Unlock.\n");
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -372,7 +377,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     if(FD_ISSET(fd, &(nodo->open)) && (nodo->fd_c == fd || nodo->fd_c == -1)){     
         nodo->fd_c = fd;
         FD_CLR(fd, &(nodo->operation_open));
-        fprintf(file_log, "E' stata acquisita la lock sul nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Lock.\n");
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -410,7 +415,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
         *size_buf = nodo->size_buffer;
         *buf = nodo->buffer;
         FD_CLR(fd, &(nodo->operation_open));
-        fprintf(file_log, "E' stata letto il buffer del nodo con path: %s\n", nodo->path);
+        fprintf(file_log, "Read %ld\n", nodo->size_buffer);
     } 
     /* Se la lock e' stata acquisita da un altro thread */
     else if(nodo->fd_c!=fd && nodo->fd_c!=-1){
@@ -438,12 +443,14 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
 int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size, int* max_size_reached, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1);
+        if(buf) free(buf);
+        return -1);
 
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, file_path);
     CHECK_OPERATION(nodo == NULL,
         fprintf(stderr, "Il nodo non e' stato trovato. APPEND_BUFFER\n");
+        if(buf) free(buf);
         return 505);
 
     PTHREAD_LOCK(nodo->mutex);
@@ -461,7 +468,8 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
         free(buf);
         FD_CLR(fd, &(nodo->operation_open));
         *max_size_reached = max(*curr_size, *max_size_reached);
-        fprintf(file_log, "E' stata fatta la append sul nodo con path: %s di %ld byte.\n", nodo->path, size_buf);
+        fprintf(file_log, "Append %ld\n", size_buf);
+
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -490,6 +498,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
 int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, int* max_size_reached, node** deleted, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
+        if(buf) free(buf);
         return -1);
             
     /* Ricerca il nodo */
@@ -505,14 +514,14 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
         /* Se ha acquisito la lock e il flag open e' a 1 */
         if(nodo->fd_c == fd && (FD_ISSET(fd, &(nodo->open)) && buf) && !nodo->written){
             nodo->buffer = malloc(size_buf);
-            CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+            CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); free(buf); return -1);
             memcpy(nodo->buffer, buf, size_buf);  
             nodo->size_buffer = size_buf;
             free(buf);
             FD_CLR(fd, &(nodo->operation_open));
             nodo->written = 1;
             *max_size_reached = max(*curr_size, *max_size_reached);
-            fprintf(file_log, "E' stata fatta la write sul nodo con path: %s di %ld byte.\n", nodo->path, size_buf);
+            fprintf(file_log, "Write %ld\n", size_buf);
 
             PTHREAD_UNLOCK(nodo->mutex);
         

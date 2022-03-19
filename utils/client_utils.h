@@ -29,6 +29,6 @@ int caller_write(const char* pathname, const char *dirname);
  * @param size_old Size del file da memorizzare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int freed(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old);
+int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old);
 
 #endif

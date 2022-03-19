@@ -10,4 +10,4 @@
  */
 int dispatcher(int argc, char* argv[]);
 
-#endif // !DISPATCHER_H_
+#endif 

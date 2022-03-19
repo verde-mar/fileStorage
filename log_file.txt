@@ -1,0 +1,79 @@
+E' stata creata la tabella hash.
+E' stata accettata la connessione di 9.
+E' arrivata una richiesta dal client 9: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato creato il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 9: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+Byte scritti 12
+E' arrivata una richiesta dal client 9: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 9: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 9: Client 9 disconnesso.
+E' stata accettata la connessione di 10.
+E' arrivata una richiesta dal client 10: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 10: open_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato aperto il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata acquisita la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 10: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 10: append;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+Byte scritti 12
+E' arrivata una richiesta dal client 10: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 10: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 10: Client 10 disconnesso.
+E' stata accettata la connessione di 11.
+E' arrivata una richiesta dal client 11: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato creato il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 11: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+Byte scritti 10
+E' arrivata una richiesta dal client 11: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 11: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 11: Client 11 disconnesso.
+E' stata accettata la connessione di 12.
+E' arrivata una richiesta dal client 12: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 12: open_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato aperto il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stata acquisita la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 12: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 12: append;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+Byte scritti 10
+E' arrivata una richiesta dal client 12: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 12: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 12: Client 12 disconnesso.
+E' stata accettata la connessione di 13.
+E' arrivata una richiesta dal client 13: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 13: open_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato aperto il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata acquisita la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 13: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 13: append;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+Byte scritti 12
+E' arrivata una richiesta dal client 13: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 13: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 13: Client 13 disconnesso.
+E' stata accettata la connessione di 14.
+E' arrivata una richiesta dal client 14: create_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 14: open_lock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato aperto il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stata acquisita la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 14: write;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 14: append;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato applicato l'algoritmo di rimpiazzamento sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt, per fare spazio a /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt.
+E' stato aperto il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' stata acquisita la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova.txt
+E' arrivata una richiesta dal client 14: append;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+Byte scritti 10
+E' arrivata una richiesta dal client 14: unlock;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stata rilasciata la lock sul nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 14: close;/home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' stato chiuso il nodo con path: /home/verdemar/Documenti/uni/SOL/newFileStorage/test_directory/prova2.txt
+E' arrivata una richiesta dal client 14: Client 14 disconnesso.
+E' stato ricevuto il segnale di 2 quindi si procede per la chiusura immediata.
+E' stata distrutta la tabella hash.

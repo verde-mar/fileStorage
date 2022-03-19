@@ -158,7 +158,7 @@ int caller_write(const char* pathname, const char *dirname){
     return 0;
 }
 
-int freed(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old){
+int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old){
     printf("ENTRATO NELLA FREED.\n");
     errno = 0;
     *byte_letti += read_size(fd_skt, &size_path); 

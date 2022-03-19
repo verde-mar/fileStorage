@@ -61,7 +61,8 @@ int create_hashtable(size_t size, int num_file, char* log_file){
     /* Massima size raggiunta durante l'esecuzione */
     table->max_size_reached = 0;   
 
-    table->file_log = fopen(log_file, "rw");
+    table->file_log = fopen(log_file, "w");
+    CHECK_OPERATION(table->file_log == NULL, fprintf(stderr, "Errore nell'apertura/creazione del file di log.\n"); return -1);
     fprintf(table->file_log, "E' stata creata la tabella hash.\n");
 
     return 0;
@@ -216,11 +217,13 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
             fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
-            fprintf(table->file_log, "E' stato applicato l'algoritmo di rimpiazzamento sul nodo con path: %s, per fare spazio a %s.\n", to_delete, name_file);
+            fprintf(table->file_log, "Algoritmo rimpiazzamento.\n");
             PTHREAD_UNLOCK(fifo_queue->mutex);
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
                 int hash_del = hash_function(to_delete);
+                int open = add(&(table->queue[hash_del]), to_delete, fd, 5, &(table->max_size_reached), table->file_log);
+                CHECK_OPERATION(open ==-1, return -1);
                 int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
                 CHECK_OPERATION(del == -1, return -1);
                 if(buf) free(buf); 
@@ -241,6 +244,7 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
     int success = append_buffer(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), &(table->max_size_reached), fd, table->file_log);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
+        if(buf) free(buf);
         return -1);
     return success;
 }
@@ -248,7 +252,8 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
 int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted, int fd){
     CHECK_OPERATION((name_file==NULL || fd<0) || buf==NULL ,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1;);
+        if(buf) free(buf);
+        return -1;);
     
     /* Vengono fatti controlli sulla size dell'elemento da inserire */
     int been_deleted = 0;
@@ -261,7 +266,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
             fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
-            fprintf(table->file_log, "E' stato applicato l'algoritmo di rimpiazzamento sul nodo con path: %s, per fare spazio a %s.\n", to_delete, name_file);
+            fprintf(table->file_log, "Algoritmo rimpiazzamento.\n");
             PTHREAD_UNLOCK(fifo_queue->mutex);
 
             if(to_delete){
@@ -275,7 +280,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
     } 
     /* L'elemento da inserire e' troppo grande */
     else {
-        free(buf);
+        if(buf) free(buf);
         return 444;
     }   
     
@@ -287,6 +292,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
     int success = writes(&(table->queue[hash]), name_file, buf, *size_buf, &(table->max_size), &(table->curr_size), &(table->max_size_reached), deleted, fd, table->file_log);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
+        if(buf) free(buf);
         return -1);
 
     return success;
@@ -295,7 +301,7 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
 int definitely_deleted(node** just_deleted){
     CHECK_OPERATION((*just_deleted)==NULL, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
-    PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
+    PTHREAD_DESTROY_LOCK((*just_deleted)->mutex);
     PTHREAD_DESTROY_COND((*just_deleted)->locked); 
     free((*just_deleted)->locked);
     free((*just_deleted)->mutex);

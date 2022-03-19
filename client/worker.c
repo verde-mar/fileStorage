@@ -56,8 +56,8 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
 int closeConnection(const char* sockname){
     CHECK_OPERATION((strcmp(sockname, socketname)!=0), 
         fprintf(stderr, "Il nome assegnato al socket e' scorretto.\n"); 
-            errno = EINVAL;   
-                return -1);
+        errno = EINVAL;   
+        return -1);
 
     close(fd_skt);
     free((char*)socketname);
@@ -117,12 +117,13 @@ int openFile(const char *pathname, int flags){
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
         free(actual_request);
         return -1);
+
     if(codice!=303){
         CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
     } else {
-        fprintf(stderr, "Byte scritti: %d e byte letti:%d\n", byte_scritti, byte_letti); \
-        fprintf(stderr, "Il file era gia' stato creato, prova a rifare la richiesta inserendo il flag '5': ti aprira' il file acquisendo la lock.\n");
+        fprintf(stderr, "Il file era gia' stato creato, prova a rifare la richiesta inserendo il flag '5': ti aprira' il file acquisendo la lock, oppure usa il flag '2' che ti fara' solo acquisire la lock.\n");
     }
+
     return codice;
 }
 
@@ -312,7 +313,7 @@ int closeFile(const char* pathname){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
         free(actual_request);
         return -1);
-    printf("PATH DEL FILE DA CHIUDERE, PRIMA DELL'ESITO DELLA STAMPA: %s\n", pathname);
+
     CHECK_CODICE(printer, codice, "closeFile", byte_letti, byte_scritti);
 
     return 0;
@@ -415,8 +416,8 @@ int writeFile(const char* pathname, const char* dirname){
             size_t size_old = 0, size_path = 0;
             void *old_file;
             char *path;
-            int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
-            CHECK_OPERATION(err_freed == -1, 
+            int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
+            CHECK_OPERATION(err_receiver == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                 free(path);
                 free(old_file);
@@ -501,9 +502,9 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             size_t size_old, size_path = 0;
             void *old_file;
             char *path;
-            printf("PRIMA DELLA FREED IN WORKER.\n");
-            int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
-            CHECK_OPERATION(err_freed == -1, 
+
+            int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
+            CHECK_OPERATION(err_receiver == -1, 
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                 free(path);
                 free(old_file);
@@ -529,7 +530,11 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
                 free(buf);
                 free(actual_request);
                 return -1);
-            
+
+            byte_scritti += write_msg(fd_skt, buf, size); 
+            CHECK_OPERATION(byte_scritti == -1,
+                free(actual_request);
+                return -1);
 
             /* Legge la risposta  */
             int byte_letti = read_size(fd_skt, &codice); 
@@ -584,8 +589,8 @@ int readNFiles(int N, const char* dirname){
                     return -1);
 
             if(codice!=111) {            
-                int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
-                CHECK_OPERATION(err_freed == -1, 
+                int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
+                CHECK_OPERATION(err_receiver == -1, 
                     fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                     free(path);
                     free(file);
@@ -637,8 +642,8 @@ int readNFiles(int N, const char* dirname){
                 free(actual_request);
                 return -1;);
             if(codice != 111){
-                int err_freed = freed(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
-                CHECK_OPERATION(err_freed == -1, 
+                int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
+                CHECK_OPERATION(err_receiver == -1, 
                     fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                     free(path);
                     free(file);
