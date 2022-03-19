@@ -67,26 +67,26 @@ int delete_fifo(list_c **queue);
 /**
  * @brief Aggiunge un elemento nella coda FIFO
  * 
- * @param name_file Path del file da aggiungere
+ * @param file_path Path del file da aggiungere
  * @return int 0
  */
-int add_fifo(char *name_file);
+int add_fifo(char *file_path);
 
 /**
  * @brief Rimuove l' elemento identificato dal path della coda
  * 
- * @param name_file Path dell'elemento da rimuovere
+ * @param file_path Path dell'elemento da rimuovere
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int del(char *name_file);
+int del(char *file_path);
 
 /**
- * @brief Rimuove l' elemento in testa della coda
+ * @brief Restituisce il path dell' elemento in testa alla coda cache
  * 
- * @param queue Coda da cui rimuovere la testa
- * @return Path dell'elemento appena eliminato
+ * @param queue Coda cache
+ * @return Path dell'elemento in testa
  */
-char* remove_fifo(list_c *queue);
+char* head_name(list_c *queue);
 
 /**
  * @brief Crea la lista delle richieste

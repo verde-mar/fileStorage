@@ -70,6 +70,8 @@ static void* working(void* pool){
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
         CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
         
+        
+
         /* Tokenizza la richiesta */
         char *operation, *path;
         int err_token = tokenizer(req->request, &operation, &path);
@@ -114,24 +116,12 @@ static void* working(void* pool){
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "remove")){
             node* deleted = NULL;
-            //TODO: se la richiesta era delete allora elimino deleted
             int err_rem = del_hashtable(path, &deleted, req->fd); 
             CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); return (void*)NULL);
-            printf("*just_deleted->path: %s IN THREADPOOL.C\n", deleted->path);
-            /*
-            PTHREAD_LOCK((table->queue[hash])->mutex);
-            PTHREAD_DESTROY_LOCK((*just_deleted)->mutex, "deletes: nodo->mutex");
-            PTHREAD_DESTROY_COND((*just_deleted)->locked); 
-            free((*just_deleted)->locked);
-            free((*just_deleted)->mutex);
-
-            if((*just_deleted)->buffer)   
-                free((*just_deleted)->buffer);
-            free((char*)(*just_deleted)->path);
-            free((*just_deleted));
-
-            PTHREAD_UNLOCK((table->queue[hash])->mutex);
-            */
+            if(!err_rem){
+                err_rem = definitely_deleted(path, &deleted);
+                CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return (void*)NULL);
+            }
             int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, deleted);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "readN")){
@@ -199,20 +189,21 @@ int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
 
+    /* Per terminare i thread, gli invia da gestire delle richieste NULL */
     if((*threadpool)->curr_threads>0)
         for(int i = 0; i < (*threadpool)->num_thread; i++) {
             int err_push = push_queue(NULL, -1, NULL, 0, &((*threadpool)->pending_requests));
             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); return -1);
         }
-
+    /* Attende che i thread si autospengano */
     for(int i = 0; i < (*threadpool)->num_thread; i++) {
         if(pthread_join((*threadpool)->threads[i], NULL) != 0) {
             del = del_req(&(*threadpool)->pending_requests);
             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
         }
     }
+    /* Libera la memoria rimanente */
     free((*threadpool)->threads);
-
     del = del_req(&(*threadpool)->pending_requests);
     CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella liberazione della memoria durante la destroy_threadpool.\n"); return -1);
 

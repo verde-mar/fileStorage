@@ -13,11 +13,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+//TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy ---> metti nella relazione
+
 int create_fifo(list_c **queue){
     *queue = malloc(sizeof(list_c));
     CHECK_OPERATION((*queue) == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            return -1);
+        return -1);
 
     /* Inizializza il numero di elementi iniziali */
     (*queue)->elements = 0;
@@ -36,6 +38,8 @@ int create_fifo(list_c **queue){
 }
 
 int delete_fifo(list_c **queue){
+    CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     /* Rimuove ogni elemento della coda */
     while ((*queue)->head!=NULL) {
         node_c *tmp = (*queue)->head;
@@ -56,7 +60,7 @@ int delete_fifo(list_c **queue){
     return 0;
 }
 
-int add_fifo(char *name_file){
+int add_fifo(char *file_path){
     node_c *current, *new_node; 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(node_c));
@@ -64,7 +68,7 @@ int add_fifo(char *name_file){
         fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
         return -1);
 
-    new_node->path = name_file;
+    new_node->path = file_path;
     new_node->next = NULL;
 
     /* Aggiunge il nuovo nodo in coda */
@@ -81,12 +85,12 @@ int add_fifo(char *name_file){
     return 0;
 }
 
-int del(char *name_file){
+int del(char *file_path){
     node_c* curr, *prev;
     
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
-    if (strcmp(curr->path, name_file) == 0){
+    if (strcmp(curr->path, file_path) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
         
@@ -98,7 +102,7 @@ int del(char *name_file){
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
-        if (strcmp(curr->path, name_file) == 0){
+        if (strcmp(curr->path, file_path) == 0){
             prev->next = curr->next; 
             fifo_queue->elements--;
             free(curr);
@@ -112,20 +116,24 @@ int del(char *name_file){
     return -1;
 }
 
-char* remove_fifo(list_c *queue){
+char* head_name(list_c *queue){
     char *name = (char*)(queue->head)->path;
-    printf("name: %s\n", name);
+    fprintf(stdout, "Questo file sta per essere eliminato: %s\n", name);
+
     return name;
 }
 
+
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
+    CHECK_OPERATION(!(*queue) || fd_c < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     request *current, *new_node; 
 
     /* Crea il nodo da aggiungere */
     new_node = malloc(sizeof(request));
     CHECK_OPERATION(new_node == NULL,
-            fprintf(stderr, "Allocazione non andata a buon fine.\n");
-                return -1);
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+        return -1);
 
     if(req_path!=NULL){
         new_node->request = req_path;
@@ -181,7 +189,7 @@ request* pop_queue(lista_richieste *queue){
     return temp;
 }
 
-int create_req(lista_richieste **queue){ //TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy
+int create_req(lista_richieste **queue){ 
     *queue = malloc(sizeof(lista_richieste));
     CHECK_OPERATION((*queue) == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
@@ -204,6 +212,8 @@ int create_req(lista_richieste **queue){ //TODO: per usare una sola funzione si 
 }
 
 int del_req(lista_richieste **queue){
+    CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
+
     /* Rimuove ogni elemento della coda */
     request *tmp = NULL;
     while ((*queue)->head) {

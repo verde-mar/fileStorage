@@ -18,11 +18,11 @@
     if(printer == 1){\
         fprintf(stderr, "Byte scritti: %d e byte letti:%d\n", byte_scritti, byte_letti); \
         if(codice == 101) {\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia'.\n", operazione); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia'. Prova a rieseguirla con il flag 5 per aprire il file e acquisire la lock, con il flag 0 solo per aprirlo o con il flag 2 solo per acquisire la lock.\n", operazione); \
         } else if(codice == 202){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro thread.\n", operazione); \
         } else if(codice == 303){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile o dalla lockFile dopo la closeFile.\n", operazione); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile dopo la closeFile.\n", operazione); \
         } else if(codice == 404){ \
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste e non e' stato specificato O_CREATE.\n", operazione); \
         } else if(codice == 505){\
@@ -37,6 +37,8 @@
             fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
         } else if(codice == 333){\
             fprintf(stderr, "Il buffer era vuoto.\n"); \
+        } else if(codice == 555){\
+            fprintf(stderr, "La lock non e' stata acquisita.\n");\
         } else if(codice == 0){\
             fprintf(stdout, "La %s e' terminata con successo.\n", operazione); \
         } else if(codice == 909){\
@@ -46,7 +48,8 @@
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
-        fprintf(stderr, "Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \
+        perror("Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \
+        exit(-1);\
     }
     
 #define PTHREAD_LOCK(mtx) \
@@ -95,4 +98,5 @@
         fprintf(stderr, "Qualcosa e' andato storto in fase di gestione della sincronizzazione (pthread_cond_signal).\nRiprova al prossimo avvio.\n");\
         exit(-1);\
     }
+
 #endif

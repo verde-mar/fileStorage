@@ -45,16 +45,24 @@ int caller_open(const char* pathname){
                     err = openFile((const char*)path, O_CREATE | O_LOCK);
                     CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a openFile.\n"); 
                         free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
+                        int check = closedir(dir);
+                        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                        return -1);
+                    CHECK_OPERATION(err == 101,
+                        err = openFile((const char*)path, 5);
+                        CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a openFile.\n"); 
+                        free((char*)path);
+                        int check = closedir(dir);
+                        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                        return -1;);
+                    );
                 } else if(is_directory(path)){
                     int result = caller_open(path);
                     CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
                         free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
+                        int check = closedir(dir);
+                        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                        return -1;);
                 }
             }
             free((char*)path);
@@ -91,6 +99,23 @@ int caller_write(const char* pathname, const char *dirname){
                         int check = closedir(dir);
                         CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
                         return -1;);
+                    
+                    CHECK_OPERATION(err == 606,
+                        err = openFile((const char*)path, 5);
+                        CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a openFile.\n"); 
+                            free((char*)path);
+                            int check = closedir(dir);
+                            CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                            return -1;);
+                        
+                        err = writeFile(path, dirname);
+                        CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a writeFile.\n"); 
+                            free((char*)path);
+                            int check = closedir(dir);
+                            CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                            return -1;);
+                    );
+
                     CHECK_OPERATION(err == 808, 
                         size_t size;
                         void *buf;
@@ -101,23 +126,24 @@ int caller_write(const char* pathname, const char *dirname){
                             CHECK_OPERATION(err_close == -1, free((char*)path); break);
                             int err_unlock = unlockFile(path);
                             CHECK_OPERATION(err_unlock == -1, free((char*)path); break);
-                        );
-                        printf("IL CODICE E' 808 PRIMA DELLA APPENDTOFILE: path %s\n", path);
+                            free((char*)path);
+                            return -1;);
                         int err_append = appendToFile(path, buf, size, dirname);
                         CHECK_OPERATION(err_append == -1, 
                             int err_close = closeFile(path);
                             CHECK_OPERATION(err_close == -1, break);
                             int err_unlock = unlockFile(path);
-                            CHECK_OPERATION(err_unlock == -1, break););
-                        free(buf);
+                            CHECK_OPERATION(err_unlock == -1, break);
+                            free((char*)path);
+                            return -1;);
                     );
                 } else if(is_directory(path)){
                     int result = caller_write(path, dirname);
                     CHECK_OPERATION(result == -1, fprintf(stderr, "Errore nella caller.\n"); 
                         free((char*)path);
-                            int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
+                        int check = closedir(dir);
+                        CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                        return -1;);
                 }
             }
             free((char*)path);

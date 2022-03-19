@@ -1,6 +1,6 @@
 if (success == 0) {
         /* Rimuove l'elemento anche dalla coda FIFO */
-        int succ_fifo = remove(name_file); 
+        int succ_fifo = remove(file_path); 
         CHECK_OPERATION(succ_fifo == -1, 
             fprintf(stderr, "Errore nell'eliminazione di un elemento nella coda FIFO.\n"); 
                 return -1);
@@ -8,7 +8,7 @@ if (success == 0) {
 
 if (success == 0) {
             /* Aggiunge l'elemento in coda alla lista FIFO */
-            int succ_fifo = add_fifo(name_file); 
+            int succ_fifo = add_fifo(file_path); 
             CHECK_OPERATION(succ_fifo == -1, 
                 fprintf(stderr, "Errore nell'inserimento di un elemento nella coda FIFO.\n"); 
                     return -1);
@@ -17,8 +17,8 @@ if (success == 0) {
 
 
 
-int add(list_t **lista_trabocco, char* name_file, int flags){
-    CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
+int add(list_t **lista_trabocco, char* file_path, int flags){
+    CHECK_OPERATION(file_path == NULL || (*lista_trabocco) == NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
    
@@ -27,12 +27,12 @@ int add(list_t **lista_trabocco, char* name_file, int flags){
         CHECK_OPERATION(curr == NULL,
             fprintf(stderr, "Allocazione non andata a buon fine.\n");
                 return -1);
-        curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
-        strcpy((char*)curr->path, name_file);
+        curr->path = malloc(sizeof(char)*(strlen(file_path)+1));
+        strcpy((char*)curr->path, file_path);
         int m_init = pthread_mutex_init(curr->mutex, NULL);
         CHECK_OPERATION(m_init =
-int add(list_t **lista_trabocco, char* name_file, int flags){
-    CHECK_OPERATION(name_file == NULL || (*lista_trabocco) == NULL,
+int add(list_t **lista_trabocco, char* file_path, int flags){
+    CHECK_OPERATION(file_path == NULL || (*lista_trabocco) == NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
    
@@ -41,8 +41,8 @@ int add(list_t **lista_trabocco, char* name_file, int flags){
         CHECK_OPERATION(curr == NULL,
             fprintf(stderr, "Allocazione non andata a buon fine.\n");
                 return -1);
-        curr->path = malloc(sizeof(char)*(strlen(name_file)+1));
-        strcpy((char*)curr->path, name_file);
+        curr->path = malloc(sizeof(char)*(strlen(file_path)+1));
+        strcpy((char*)curr->path, file_path);
         int m_init = pthread_mutex_init(curr->mutex, NULL);
         CHECK_OPERATION(m_init == -1,
             fprintf(stderr, "Errore nella inizializzazione della mutex.\n");
@@ -69,14 +69,14 @@ int add(list_t **lista_trabocco, char* name_file, int flags){
     return 0;
 }
 
-node* delete(list_t **lista_trabocco, char* name_file){
-    CHECK_OPERATION(!*lista_trabocco || !name_file,
+node* delete(list_t **lista_trabocco, char* file_path){
+    CHECK_OPERATION(!*lista_trabocco || !file_path,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
 
     node* curr, *prev;
     curr = (*lista_trabocco)->head;
-    if (strcmp(curr->path, name_file) == 0){
+    if (strcmp(curr->path, file_path) == 0){
 
         pthread_mutex_lock((*lista_trabocco)->mutex);
         (*lista_trabocco)->head = curr->next; 
@@ -88,7 +88,7 @@ node* delete(list_t **lista_trabocco, char* name_file){
     prev = curr;
     curr = curr->next;
     while (curr != NULL) {
-        if (strcmp(curr->path, name_file) == 0){
+        if (strcmp(curr->path, file_path) == 0){
 
             pthread_mutex_lock((*lista_trabocco)->mutex);
             prev->next = curr->next; 
@@ -103,16 +103,16 @@ node* delete(list_t **lista_trabocco, char* name_file){
     return NULL;
 }
 
-node* look_for_node(char* name_file){
-    CHECK_OPERATION(name_file == NULL, 
+node* look_for_node(char* file_path){
+    CHECK_OPERATION(file_path == NULL, 
         fprintf(stderr, "Parametro non valido.\n");
             return -1);
 
-    int hash = hash_function(name_file); //TODO:CREA
+    int hash = hash_function(file_path); //TODO:CREA
     node* curr;
     //TODO: metti in lock da qui
     for (curr=table->queue[hash]; curr != NULL; curr=curr->next)
-        if (strcmp(curr->path, name_file) == 0)
+        if (strcmp(curr->path, file_path) == 0)
             return(curr);
 
     return NULL;
@@ -232,7 +232,7 @@ push_queue((char*)argv[1], &(pool->pending_requests));
     push_queue((char*)argv[2], &(pool->pending_requests)); 
 
 
-int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int fd){
+int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
             return -1);
@@ -241,7 +241,7 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
     
     PTHREAD_LOCK((*lista_trabocco)->mutex);
     
-    int remover = del(name_file);
+    int remover = del(file_path);
     CHECK_OPERATION(remover == -1, return -1);
     node* curr; /* Puntatore al nodo corrente */
     node *prev; /* Puntatore al nodo precedente */
@@ -249,7 +249,7 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
         return 0;
     
     curr = *head_ptr;
-    if (strcmp(curr->path, name_file) == 0) { /* Cancellazione del primo nodo */
+    if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
         (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
         if((*just_deleted) == NULL) {
             PTHREAD_DESTROY_LOCK(curr->mutex);
@@ -271,7 +271,7 @@ int deletes(list_t **lista_trabocco, char* name_file, node** just_deleted, int f
     previous = current;
     current = current->next;
     while (current != NULL) {
-        if (strcmp(curr->path, name_file) == 0) {
+        if (strcmp(curr->path, file_path) == 0) {
             if(curr->fd_c == fd){
                 previous->next = current->next; 
                 if((*just_deleted) == NULL) {
