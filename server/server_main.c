@@ -42,13 +42,38 @@ void failed_communication(int fd){
     CHECK_OPERATION(err_write == -1, failed_communication(fd));
 }
 
-int main(int argc, char const *argv[]) {
-    int size = 100; //temporaneo
-    int fd_skt;
-    char *socket_name = "socket"; //temporaneo
-    int num_file = 10;
-    char *log_file = "./log_file.txt";
+int read_input(const char* file_config, char **socketname, size_t *size, int *num_workers, int *num_file){
+    FILE *config = fopen(file_config, "r");
+    CHECK_OPERATION(config == NULL, fprintf(stderr, "Errore sulla fopen.\n"); return -1);
 
+    int scan1 = fscanf(config, "socketname: %s\n", *socketname);
+    CHECK_OPERATION(scan1 == -1, fprintf(stderr, "Errore nella fscanf leggendo la socketname.\n"); return -1);
+
+    scan1 = fscanf(config, "size: %ld\n", size);
+    CHECK_OPERATION(scan1 == -1, fprintf(stderr, "Errore nella fscanf leggendo la size totale.\n"); return -1);
+
+    scan1 = fscanf(config, "numero di workers: %d\n", num_workers);
+    CHECK_OPERATION(scan1 == -1, fprintf(stderr, "Errore nella fscanf leggendo il numero di workers.\n"); return -1);
+
+    scan1 = fscanf(config, "numero massimo di file accettabili: %d\n", num_file);
+    CHECK_OPERATION(scan1 == -1, fprintf(stderr, "Errore nella fscanf leggendo il numero di file accettabili.\n"); return -1);
+
+    int closing = fclose(config);
+    CHECK_OPERATION(closing == -1, fprintf(stderr, "Errore sulla fclose.\n"); return -1);
+
+    return 0;
+}
+
+int main(int argc, char const *argv[]) {
+    int fd_skt, num_file, num_workers;
+    size_t size;
+    char *socketname = malloc(sizeof(char)*255);
+    CHECK_OPERATION(socketname == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); exit(-1));
+
+    /* Inizializza le variabili necessarie al funzionamento del server */
+    int readers = read_input(argv[1], &socketname, &size, &num_workers, &num_file);
+    CHECK_OPERATION(readers == -1, fprintf(stderr, "Errore nella lettura del file di configurazione.\n"); exit(-1));
+    
     /* Crea la pipe da utilizzare per inviare l'avvenuta ricezione di un segnale al main */
     int signal_pipe[2];
     int err_pipe_signal = pipe(signal_pipe);
@@ -72,11 +97,11 @@ int main(int argc, char const *argv[]) {
 
     /* Crea il threadpool */
     threadpool_t* pool;
-    int err_create_pool = create_threadpool(&pool, 2, response_pipe[1]);
+    int err_create_pool = create_threadpool(&pool, num_workers, response_pipe[1]);
     CHECK_OPERATION(err_create_pool == -1, fprintf(stderr, "Errore nella creazione del theradpool.\n"); return -1);
 
     /* Crea la tabella hash */
-    int err_hash = create_hashtable(size, num_file, log_file);
+    int err_hash = create_hashtable(size, num_file, (char*)argv[2]);
     CHECK_OPERATION(err_hash == -1, fprintf(stderr, "Errore nella creazione della tabella hash.\n"); exit(-1));
 
     /* Avvia il thread gestore dei segnali */
@@ -87,7 +112,7 @@ int main(int argc, char const *argv[]) {
 
     /* Effettua le operazioni di bind e listen */
     fd_set set, rdset;
-    int fd_num = bind_listen(&fd_skt, &set, socket_name);
+    int fd_num = bind_listen(&fd_skt, &set, socketname);
     CHECK_OPERATION(err_signal==-1, exit(-1));
     
     /* Crea e inizializza i set di file descriptor */
@@ -166,7 +191,7 @@ int main(int argc, char const *argv[]) {
                     /* Legge il tipo di segnale dalla pipe */
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
                     CHECK_OPERATION(err_readn == -1 , fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
-                    fprintf(table->file_log, "Segnale: %d.\n", sig);
+                    fprintf(table->file_log, "Tipo di segnale ricevuto per la chiusura: %d.\n", sig);
                     
                     /* Assegna al flag 0 cosi' che non siano accettate nuove richieste di connessione */
                     no_more = 0; 
@@ -228,7 +253,7 @@ int main(int argc, char const *argv[]) {
     fprintf(table->file_log, "Max_size_reached: %d\nMax_files_reached: %d\nReplaced: %d\n", table->max_size_reached, table->max_file_reached, fifo_queue->how_many_cache);
     print_elements();
     routine_chiusura(&pool, tid_signal);
-
+    free(socketname);
     //TODO: mancano: - n. di richieste servite da ogni worker thread      
             // - massimo n. di connessioni contemporanee.
     //TODO: manca il secondo elemento che era opzionale nella specifica

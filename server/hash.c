@@ -102,12 +102,22 @@ int add_hashtable(char *name_file, int fd, int flags){
     /* Aggiunge l' elemento nella tabella hash */
     int hash = hash_function(name_file); 
     int success = -1;
-    if(fifo_queue->elements <= table->max_file){
+    /* Se devono essere fatte operazioni di creazione */
+    if((flags == 2 || flags == 6) && fifo_queue->elements <= table->max_file){
         success = add(&(table->queue[hash]), name_file, fd, flags, &(table->max_file_reached), table->file_log);   
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
             return -1);
-    } else {
+    } 
+    /* Se non devono essere fatte operazioni di creazione */
+    else if(flags != 2 && flags != 6){
+        success = add(&(table->queue[hash]), name_file, fd, flags, &(table->max_file_reached), table->file_log);   
+        CHECK_OPERATION(success==-1, 
+            fprintf(stderr, "Errore nell'inserimento di un elemento nella tabella hash.\n"); 
+            return -1);
+    } 
+    /* Se dovevano essere fatte operazioni di creazione ma non c'e' abbastanza spazio */
+    else {
         success = 777;
     }
     return success;    
@@ -217,7 +227,6 @@ int append_hashtable(char* name_file, void* buf, size_t* size_buf, node** delete
             fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
-            fprintf(table->file_log, "Algoritmo rimpiazzamento.\n");
             PTHREAD_UNLOCK(fifo_queue->mutex);
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
@@ -266,7 +275,6 @@ int write_hashtable(char* name_file, void* buf, size_t* size_buf, node** deleted
             fifo_queue->how_many_cache++;
             been_deleted = 1;
             char* to_delete = head_name(fifo_queue);
-            fprintf(table->file_log, "Algoritmo rimpiazzamento.\n");
             PTHREAD_UNLOCK(fifo_queue->mutex);
 
             if(to_delete){

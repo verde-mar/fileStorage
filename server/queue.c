@@ -133,9 +133,9 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
         (*lista_trabocco)->head = nodo;
         
         if(flags == 2)
-            fprintf(file_log, "Create.\n");
+            fprintf(file_log, "Create\n");
         else
-            fprintf(file_log, "Create_Lock.\n");
+            fprintf(file_log, "Create_Lock\n");
 
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -144,7 +144,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
         PTHREAD_LOCK(nodo->mutex);
         FD_SET(fd, &(nodo->open));
         FD_SET(fd, &(nodo)->operation_open);
-        fprintf(file_log, "Open.\n");
+        fprintf(file_log, "Open\n");
         
         PTHREAD_UNLOCK(nodo->mutex);
         if(!flags) return 0;
@@ -152,7 +152,7 @@ int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_fi
 
     if(flags == 4 || flags == 5){
         PTHREAD_LOCK(nodo->mutex);
-        fprintf(file_log, "Lock.\n");
+        fprintf(file_log, "Lock\n");
         nodo->fd_c = fd;
         PTHREAD_UNLOCK(nodo->mutex);
         return 0;
@@ -190,7 +190,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     printf("SUBITO DOPO LA DEL.\n");
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
-        fprintf(file_log, "Delete.\n"); //TODO: specifica nella relazione
+        fprintf(file_log, "Delete\n"); //TODO: specifica nella relazione
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
@@ -207,7 +207,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
-            fprintf(file_log, "Delete.\n");
+            fprintf(file_log, "Delete\n");
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -243,7 +243,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
             FD_CLR(fd, &(curr->operation_open));
             FD_CLR(fd, &(curr->open));
 
-            fprintf(file_log, "Delete.\n");
+            fprintf(file_log, "Delete\n");
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -302,7 +302,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
         FD_CLR(fd, &(nodo->open));
         FD_CLR(fd, &(nodo->operation_open));
 
-        fprintf(file_log, "Close.\n");
+        fprintf(file_log, "Close\n");
 
         PTHREAD_UNLOCK(nodo->mutex);
         
@@ -336,7 +336,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     if(nodo->fd_c == fd && FD_ISSET(fd, &(nodo->open))){
         nodo->fd_c = -1;
         FD_CLR(fd, &(nodo->operation_open));
-        fprintf(file_log, "Unlock.\n");
+        fprintf(file_log, "Unlock\n");
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -377,7 +377,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     if(FD_ISSET(fd, &(nodo->open)) && (nodo->fd_c == fd || nodo->fd_c == -1)){     
         nodo->fd_c = fd;
         FD_CLR(fd, &(nodo->operation_open));
-        fprintf(file_log, "Lock.\n");
+        fprintf(file_log, "Lock\n");
     } 
     /* Se il nodo non e' aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
