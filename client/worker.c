@@ -73,15 +73,13 @@ int openFile(const char *pathname, int flags){
 
     /* Determina il tipo di richiesta da effettuare in base al valore di flags */
     char *request = NULL;
-    if(flags == 6){
+    if(flags == (O_CREATE | O_LOCK)){
         request = "create_lock;";
-    } else if(flags == 2){
+    } else if(flags == O_CREATE){
         request = "create;";
-    } else if(flags == 4){
-        request = "lock_open;";
     } else if(flags == 0){
         request = "open;";
-    } else if(flags == 5){
+    } else if(flags == O_LOCK){
         request = "open_lock;";
     }
 
@@ -118,11 +116,8 @@ int openFile(const char *pathname, int flags){
         free(actual_request);
         return -1);
 
-    if(codice!=303){
-        CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
-    } else {
-        fprintf(stderr, "Il file era gia' stato creato, prova a rifare la richiesta inserendo il flag '5': ti aprira' il file acquisendo la lock, oppure usa il flag '2' che ti fara' solo acquisire la lock.\n");
-    }
+    CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
+    
 
     return codice;
 }
@@ -164,26 +159,8 @@ int lockFile(const char* pathname){
         free(actual_request);
         return -1);
 
-    CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
-
-    /* Se la lock era occupata da qualcun altro, attende la risposta di rilascio e reinvia la richiesta*/
-    while(codice == 202){ 
-        /* Reinvia la richiesta */
-        byte_scritti = write_msg(fd_skt, actual_request, len); 
-        CHECK_OPERATION(byte_scritti == -1,
-            fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
-            free(actual_request);
-            return -1);
-        errno = 0;
-        
-        /* Legge la risposta */
-        byte_letti += read_size(fd_skt, &codice); 
-        CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
-            free(actual_request);
-            return -1);
-    }
     free(actual_request);
+    CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -396,7 +373,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia il buffer */
     byte_scritti += write_msg(fd_skt, buf, size); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-    printf("SIZE DEL BUFFER: %ld E IL PATH: %s\n", size, pathname);
+
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
@@ -424,10 +401,10 @@ int writeFile(const char* pathname, const char* dirname){
                 free(actual_request);
                 free(buf);     
                 return -1);
-                
-            int err_save = save_on_disk((char*)dirname, optarg, old_file, size_old);
+
+            int err_save = save_on_disk((char*)dirname, path, old_file, size_old);
             CHECK_OPERATION(err_save == -1, 
-                fprintf(stderr, "Errore nel salvataggio su disco");
+                fprintf(stderr, "Errore nel salvataggio su disco\n");
                     free(path);
                     free(old_file);
                     free(actual_request);
@@ -607,11 +584,10 @@ int readNFiles(int N, const char* dirname){
                     return -1);
 
                 free(file);
-                free(path); 
+                free(path);
+                i++; 
             }
             free(actual_request);
-
-            i++;
         }
     } else if(dirname && N>0){
         
@@ -660,8 +636,10 @@ int readNFiles(int N, const char* dirname){
                     return -1);
                 free(file);
                 free(path);
-            } 
-            free(actual_request);
+            } else {
+                free(actual_request);
+                break;
+            }
         }
     }
     

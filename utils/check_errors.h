@@ -3,7 +3,7 @@
  * @author Sara Grecu (s.grecu1@studenti.unipi.it)
  * @brief Contiene le macro necessarie alla verifica dell'esito delle operazioni
  * @version 0.1
- * 
+ * TODO: sti codici di errore sono da sistemare
  */
 #ifndef _CHECK_ERRORS_
 #define _CHECK_ERRORS_
@@ -14,6 +14,7 @@
     if(condition) { \
         operation; \
     }
+
 #define CHECK_CODICE(printer, codice, operazione, byte_letti, byte_scritti) \
     if(printer == 1){\
         fprintf(stderr, "Byte scritti: %d e byte letti:%d\n", byte_scritti, byte_letti); \
@@ -27,8 +28,6 @@
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste e non e' stato specificato O_CREATE.\n", operazione); \
         } else if(codice == 505){\
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste.\n", operazione); \
-        } else if(codice == 606){\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' prima della writeFile devi fare la openFile.\n", operazione); \
         } else if(codice == 707){\
             fprintf(stderr, "Non e' stato possibile eseguire la %s perche' prima della appendFile devi fare la writeFile.\n", operazione); \
         } else if(codice == 808){\
@@ -47,6 +46,8 @@
             fprintf(stdout, "La %s non e' terminata con successo, perche' il file e' troppo grande e non c'erano altri elementi da eliminare.\n", operazione); \
         } else if(codice == 777){\
             fprintf(stdout, "La %s non e' terminata con successo, perche' non e' possibile aggiungere altri file al momento. Prova ad eliminarne qualcuno.\n", operazione); \
+        } else if(codice == 606){\
+            fprintf(stdout, "La %s non e' terminata con successo, perche' prima di fare la writeFile devi fare la openFile(path, O_CREATE | O_LOCK).\n", operazione); \
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\

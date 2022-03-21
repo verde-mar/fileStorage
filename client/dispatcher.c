@@ -67,65 +67,10 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
-                /* Richiede l'apertura e la lock sul file identificato da rest */
-                err_caller = openFile(rest, O_CREATE | O_LOCK);
-                CHECK_OPERATION(err_caller == -1, free(rest); break);
-                int err_w = 0; 
+                int err_ = open_write_append(rest, dirnameD);
+                CHECK_OPERATION(err_ == -1, fprintf(stderr, "L'operazione di write/append e' fallita.\n"); break);
                 
-                if(err_caller == 101){
-                    err_caller = openFile(rest, 5);
-                    CHECK_OPERATION(err_caller == -1, free(rest); break);
-                }
-
-                if(err_caller==0){
-                    /* Richiede la scrittura sul file identificato da rest */
-                    err_w = writeFile(rest, dirnameD);
-                    CHECK_OPERATION(err_w == 444 || err_w == -1,  
-                        err_unlock = unlockFile(rest);
-                        CHECK_OPERATION(err_unlock == -1, free(rest); break);
-                        err_close = closeFile(rest);
-                        CHECK_OPERATION(err_close == -1, free(rest); break);
-                        free(rest);
-                        break;);
-                } 
-
-                /* Se la prima scrittura del file su disco e' gia' stata fatta, si richiede l'apertura e la append del file identificato da rest */
-                if(err_w == 808){
-                    size_t size;
-                    void *buf;
-
-                    int err_rbuf = read_from_file((char*)rest, &buf, &size);
-                    CHECK_OPERATION(err_rbuf == -1,
-                        err_close = closeFile(rest);
-                        CHECK_OPERATION(err_close == -1, free(rest); break);
-                        err_unlock = unlockFile(rest);
-                        CHECK_OPERATION(err_unlock == -1, free(rest); break);
-                        free(rest);
-                        break;);
-                    
-                    int err_append = appendToFile(rest, buf, size, dirnameD);
-                    CHECK_OPERATION(err_append == -1, 
-                        err_close = closeFile(rest);
-                        CHECK_OPERATION(err_close == -1, break);
-                        err_unlock = unlockFile(rest);
-                        CHECK_OPERATION(err_unlock == -1, break);
-                        free(rest);
-                        break;);
-                }
-
-                /* Richiede il rilascio della lock sul file iile identificato da rest */
-                err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1, free(rest); break);
-
-                /* Richiede la chiusura del file identificato da rest */  
-                err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1, 
-                    err_unlock = unlockFile(rest);
-                    CHECK_OPERATION(err_unlock == -1, free(rest); break);
-                    free(rest);
-                    break;);
-                
-                free(rest);
+                free((char*)rest);
                 
                 break;
             
@@ -135,23 +80,11 @@ int dispatcher(int argc, char *argv[]){
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
-                /* Richiede l'apertura e la lock dei file nella directory identificata da rest */
-                err_caller = caller_open(rest);
-                CHECK_OPERATION(err_caller == -1, free(rest); break);
-                
-                /* Richiede la scrittura dei file nella directory identificata da rest */
-                int err_W = caller_write(rest, dirnameD); 
-                CHECK_OPERATION(err_W == -1, free(rest); break);
+                int err_mixed = caller_two(open_write_append, rest, dirnameD);
+                CHECK_OPERATION(err_mixed == -1, fprintf(stderr, "L'operazione di write/append e' fallita.\n"); free((char*)rest); break);
 
-                /* Richiede il rilascio della lock dei file nella directory identificata da rest */
-                err_unlock = caller(unlockFile, rest); 
-                CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                free((char*)rest);
 
-                /* Richiede la chiusura dei file nella directory identificata da rest */
-                err_close = caller(closeFile, rest); 
-                CHECK_OPERATION(err_close == -1, free(rest); break);
-
-                free(rest);
                 break;
 
             case 'D':
@@ -170,30 +103,30 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
             
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, 5);
-                CHECK_OPERATION(err_caller == -1, free(rest); break);
+                err_caller = openFile(rest, O_LOCK);
+                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
                 void *buf;
                 size_t size;
 
                 /* Invia la richiesta di lettura del file identificato da rest */
                 int err_r = readFile(rest, &buf, &size);
-                CHECK_OPERATION(err_r == -1, free(rest); break);
+                CHECK_OPERATION(err_r == -1, free((char*)rest); break);
                 if(!err_r && buf){
                     /* Se riceve un buffer non vuoto lo salva su disco */
                     int err_save = save_on_disk(dirnamed, optarg, buf, size);
-                    CHECK_OPERATION(err_save == -1, free(rest); break);
+                    CHECK_OPERATION(err_save == -1, free((char*)rest); break);
                     free(buf);
                 }
 
                 /* Richiede il rilascio della lock sul file iile identificato da rest */
                 err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1, free(rest); break);
+                CHECK_OPERATION(err_unlock == -1, free((char*)rest); break);
 
                 /* Richiede la chiusura del file identificato da rest */  
                 err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1, free(rest); break);
-                free(rest);
+                CHECK_OPERATION(err_close == -1, free((char*)rest); break);
+                free((char*)rest);
 
                 break;
 
@@ -204,7 +137,7 @@ int dispatcher(int argc, char *argv[]){
                 
                 /* Invia la richiesta di lettura di R file */
                 int num_file = readNFiles(R, dirnamed);
-                CHECK_OPERATION(num_file == 0, free(rest); break);
+                CHECK_OPERATION(num_file == 0, free((char*)rest); break);
             
                 break;
             
@@ -228,11 +161,11 @@ int dispatcher(int argc, char *argv[]){
 
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, 0);
-                CHECK_OPERATION(err_caller == -1, free(rest); break);
+                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
                 err_lock = lockFile(rest);
-                CHECK_OPERATION(err_lock == -1, free(rest); break);
-                free(rest);
+                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
+                free((char*)rest);
 
                 break;
             
@@ -243,8 +176,8 @@ int dispatcher(int argc, char *argv[]){
 
                 /* Invia la richiesta di rilascio della lock sul file identificato da rest */
                 err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1, free(rest); break);
-                free(rest);
+                CHECK_OPERATION(err_unlock == -1, free((char*)rest); break);
+                free((char*)rest);
                 
                 break;
             
@@ -255,17 +188,17 @@ int dispatcher(int argc, char *argv[]){
 
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                 err_caller = openFile(rest, 0);
-                CHECK_OPERATION(err_caller == -1, free(rest); break);
+                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
                 /* Invia la richiesta di acquisizione della lock sul file */
                 int err_lock = lockFile(rest);
-                CHECK_OPERATION(err_lock == -1, free(rest); break);
+                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
 
                 /* Invia la richiesta di rimozione del file identificato da rest */
                 int err_rem = removeFile(rest);
-                CHECK_OPERATION(err_rem == -1, free(rest); break);
+                CHECK_OPERATION(err_rem == -1, free((char*)rest); break);
                 
-                free(rest);
+                free((char*)rest);
                 
                 break;
             

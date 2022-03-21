@@ -1,6 +1,9 @@
 BEGIN {
     count_accept = 0
+    count_create = 0
     count_create_lock = 0
+    count_open_lock = 0
+    count_open = 0
     count_unlock = 0
     count_close = 0
     count_open = 0
@@ -18,7 +21,10 @@ BEGIN {
 }
 
 $1 == "Accept" { count_accept++ }
+$1 == "Create" { count_create++ }
 $1 == "Create_Lock" {count_create_lock++}
+$1 == "Open_Lock" { count_open_lock++ }
+$1 == "Open" { count_open++ }
 $1 == "Unlock" {count_unlock++}
 $1 == "Close" {count_close++}
 $1 == "Open" {count_open++}

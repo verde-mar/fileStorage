@@ -1,23 +1,18 @@
 E' stata creata la tabella hash.
 Accept
 Create_Lock
+Unlock
+Close
+Create_Lock
 Write 12
 Unlock
 Close
-Open
-Lock
-Unlock
-Accept
-Open
-Lock
-Append 12
+Create_Lock
+Write 10
 Unlock
 Close
-Open
-Lock
-Unlock
 Tipo di segnale ricevuto per la chiusura: 2.
-Max_size_reached: 36
-Max_files_reached: 1
+Max_size_reached: 22
+Max_files_reached: 3
 Replaced: 0
 E' stata distrutta la tabella hash.

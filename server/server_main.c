@@ -178,7 +178,7 @@ int main(int argc, char const *argv[]) {
                             int del = definitely_deleted(&(risp->deleted));
                             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
                         } else {
-
+                            printf("IL BUFFER E' NULL.\n");
                         }
                     }
 

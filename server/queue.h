@@ -11,9 +11,8 @@
  */
 typedef struct node {
     fd_set open;
-    fd_set operation_open;
+    int fd_create_open;
     int fd_c;
-    int written;
     const char* path;
     void *buffer;
     size_t size_buffer;
@@ -49,23 +48,59 @@ int create_list(list_t **lista_trabocco);
 int destroy_list(list_t **lista_trabocco);
 
 /**
- * @brief Aggiunge nodo
+ * @brief Crea un nodo all'interno del server 
  * 
- * @param lista_trabocco Lista di trabocco a cui aggiungere il nodo
- * @param file_path Path del nodo da aggiungere
- * @param fd File descriptor del client che ha effettuato la richiesta
- * @param flags Flag che indica l'operazione da eseguire (se una create e/o una lock)
- * @param max_file_reached Massimo numero di file fino a quel momento
-  * @param file_log File di log
- * @return int 0 in caso di successo
- *            -1 in caso di generico fallimento
- *             202 nel caso in cui la lock sia stata acquisita da un altro client
- *             303 nel caso in cui si provi a fare la lock dopo la close
- *             505 nel caso in cui il file non esista
- *             404 nel caso in cui i flag passati non siano validi
- *             101 nel caso in cui il file esista gia' e si e' richiesta la sola creazione di esso
+ * @param lista_trabocco Lista di trabocco in cui inserire il nodo
+ * @param file_path Path del file da inserire
+ * @param fd File descriptor del client che lo vuole inserire
+ * @param max_file_reached Massimo numero di file nel server
+ * @param file_log File di log
+ * @return int, -1 in caso di generico fallimento
+ *              101 nel caso in cui il nodo sia gia' presente
+ *              0 in caso di successo
+ *              
  */
-int add(list_t **lista_trabocco, char* file_path, int fd, int flags, int *max_file_reached, FILE* file_log);
+int creates(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log);
+
+/**
+ * @brief Crea un nodo all'interno del server e ne acquisisce la lock
+ * 
+ * @param lista_trabocco Lista di trabocco in cui inserire il nodo
+ * @param file_path Path del file da inserire
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param max_file_reached Massimo numero di file nel server
+ * @param file_log File di log
+ * @return int, -1 in caso di generico fallimento
+ *              101 nel caso in cui il nodo sia gia' presente
+ *              0 in caso di successo
+ */
+int creates_locks(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log);
+
+/**
+ * @brief Apre e acquisisce la lock di un nodo
+ * 
+ * @param lista_trabocco Lista di trabocco in cui si trova il nodo
+ * @param file_path Path del nodo da aprire e di cui acquisire la lock
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
+ * @return int, -1 in caso di generico fallimento
+ *              404 nel caso in cui il nodo non esista
+ *              0 in caso di successo
+ */
+int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
+
+/**
+ * @brief Apre un nodo
+ * 
+ * @param lista_trabocco Lista di trabocco in cui si trova il nodo
+ * @param file_path Path del nodo da aprire 
+ * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param file_log File di log
+ * @return int, -1 in caso di generico fallimento
+ *              404 nel caso in cui il nodo non esista
+ *              0 in caso di successo
+ */
+int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
 
 /**
  * @brief Elimina un nodo dalla tabella hash
@@ -146,7 +181,6 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  * @param file_path Path che identifica il nodo
  * @param buf Buffer su cui effettuare la append
  * @param size_buf Size di buf
- * @param max_size Massima size possibile della tabella hash
  * @param curr_size Size corrente della tabella hash
  * @param deleted Nodo in cui memorizzare quello appena eliminato
  * @param max_size_reached Massima size raggiunta fino a quel momento
@@ -158,7 +192,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* max_size, int* curr_size,  int* max_size_reached, int fd, FILE* file_log);
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* curr_size,  int* max_size_reached, int fd, FILE* file_log);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da file_path

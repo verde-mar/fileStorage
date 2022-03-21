@@ -69,8 +69,6 @@ static void* working(void* pool){
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
         CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
-        
-        
 
         /* Tokenizza la richiesta */
         char *operation, *path;
@@ -132,24 +130,26 @@ static void* working(void* pool){
             CHECK_OPERATION(err_read == -1, errno=EFAULT; return (void*)NULL);
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
-        } else if(!strcmp(operation, "create_lock") || !strcmp(operation, "open") || !strcmp(operation, "lock_open") || !strcmp(operation, "open")  || !strcmp(operation, "open_lock")){
-            int flags = -1;
-            if(!strcmp(operation, "create_lock"))
-                flags = 6;
-            else if(!strcmp(operation, "create"))
-                flags = 2;
-            else if(!strcmp(operation, "lock_open"))
-                flags = 4;
-            else if(!strcmp(operation, "open"))
-                flags = 0;
-            else if(!strcmp(operation, "open_lock"))
-                flags = 5;
-            
-            int err_open_create = add_hashtable(path, req->fd, flags); 
-            CHECK_OPERATION(err_open_create == -1, fprintf(stderr, "Errore sulla add_hashtable.\n"); return (void*)NULL);
-            int err_invio = invia_risposta((*threadpool), err_open_create, req->fd, NULL, 0, NULL, NULL);
+        } else if(!strcmp(operation, "create_lock")){
+            int err_clh = creates_locks_hashtable(path, req->fd); 
+            CHECK_OPERATION(err_clh == -1, fprintf(stderr, "Errore sulla creates_locks_hashtable.\n"); return (void*)NULL);
+            int err_invio = invia_risposta((*threadpool), err_clh, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
-            
+        } else if(!strcmp(operation, "create")){
+            int err_ch = creates_hashtable(path, req->fd); 
+            CHECK_OPERATION(err_ch == -1, fprintf(stderr, "Errore sulla creates.\n"); return (void*)NULL);
+            int err_invio = invia_risposta((*threadpool), err_ch, req->fd, NULL, 0, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
+        } else if(!strcmp(operation, "open")){
+            int err_oh = opens_hashtable(path, req->fd); 
+            CHECK_OPERATION(err_oh == -1, fprintf(stderr, "Errore sulla opens.\n"); return (void*)NULL);
+            int err_invio = invia_risposta((*threadpool), err_oh, req->fd, NULL, 0, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);   
+        } else if(!strcmp(operation, "open_lock")){
+            int err_lh = opens_locks_hashtable(path, req->fd); 
+            CHECK_OPERATION(err_lh == -1, fprintf(stderr, "Errore sulla opens_locks_hashtable.\n"); return (void*)NULL);
+            int err_invio = invia_risposta((*threadpool), err_lh, req->fd, NULL, 0, NULL, NULL);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);   
         }
         free(req->request);
         free(req);
