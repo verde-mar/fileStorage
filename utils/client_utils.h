@@ -1,10 +1,23 @@
 #ifndef CLIENT_UTILS_H_
 #define CLIENT_UTILS_H_
 
+/**
+ * @brief Operazione che svolge le operazioni di open, write e append
+ * 
+ * @param rest Path del file su cui effettuare le operazioni
+ * @param dirnameD Directory in cui memorizzare eventuali file espulsi
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
 int open_write_append(const char* rest, const char* dirnameD);
 
-int caller_one(int (*fun) (const char*), const char* pathname);
-
+/**
+ * @brief Funzione ricorsiva che chiama la funzione fun sui parametri pathname e dirnameD
+ * 
+ * @param fun Funzione da chiamare
+ * @param pathname Primo parametro
+ * @param dirnameD Secondo parametro
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
 int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD);
 
 /**

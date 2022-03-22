@@ -64,6 +64,12 @@ int max(int a, int b);
  */
 float to_Mbytes(int bytes);
 
+/**
+ * @brief Restituisce il valore del parametro in secondi
+ * 
+ * @param msec Millisecondi
+ * @return int msec in secondi
+ */
 int msleep(long msec);
 
 #endif

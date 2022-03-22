@@ -27,7 +27,6 @@
 //TODO: dovrei documentare questa funzione nella relazione
 
 int open_write_append(const char* rest, const char* dirnameD){
-    printf("PATH DEL FILE INTERESSATO: %s\n", rest);
     int err_caller = -1, err_unlock = -1, err_close = -1;
     /* Richiede l'apertura e la lock sul file identificato da rest */
     err_caller = openFile(rest, O_CREATE | O_LOCK);
@@ -106,14 +105,14 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
                     err = fun(path, dirnameD);
                     CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a fun(pathname).\n"); 
                             int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
+                            CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                                return -1;);
                 } else if(is_directory(path)){
                     int result = caller_two(fun, path, dirnameD);
                     CHECK_OPERATION(result == -1, 
                             int check = closedir(dir);
-                                CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
-                                    return -1;);
+                            CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
+                                return -1;);
                 }
             }
             free((char*)path);

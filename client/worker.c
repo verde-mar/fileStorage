@@ -42,7 +42,7 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
     /* Cerca di connettersi con il server tramite la socket creata */
     int success_connection = connect(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     while(success_connection == -1 && abstime_temp.tv_nsec>0){
-        struct timespec t={0, (msec*90)};
+        struct timespec t={(msec*90), (msec*90)};
         int success_nanosleep = nanosleep(&t, &abstime_temp); 
         CHECK_OPERATION((success_nanosleep==-1)&& printer == 1, fprintf(stderr, "Errore sulla nanosleep.\n"); free((char*)socketname); return -1);
         abstime_temp.tv_nsec -= t.tv_nsec;
@@ -116,9 +116,7 @@ int openFile(const char *pathname, int flags){
         free(actual_request);
         return -1);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
     CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
-    
 
     return codice;
 }
@@ -161,7 +159,7 @@ int lockFile(const char* pathname){
         return -1);
 
     free(actual_request);
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
 
     return 0;
@@ -205,7 +203,7 @@ int unlockFile(const char* pathname){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
         return -1);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "unlockFile", byte_letti, byte_scritti);
     
     return 0;
@@ -248,7 +246,7 @@ int removeFile(const char* pathname){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
         return -1);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "removeFile", byte_letti, byte_scritti);
 
     return 0;
@@ -292,7 +290,7 @@ int closeFile(const char* pathname){
         fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
         return -1);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "closeFile", byte_letti, byte_scritti);
 
     return 0;
@@ -346,7 +344,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
         *buf = NULL;
     }
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
     
     return 0;
@@ -442,7 +440,7 @@ int writeFile(const char* pathname, const char* dirname){
     free(actual_request);
     free(buf);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
 
     return codice;
@@ -530,7 +528,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     free(actual_request);
     free(buf);
 
-    printf("\nSUL FILE: %s ----> ", pathname);
+    
     CHECK_CODICE(printer, codice, "appendToFile", byte_letti, byte_scritti);
     
     return 0;
@@ -562,8 +560,6 @@ int readNFiles(int N, const char* dirname){
                 fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
                     free(actual_request);
                     return -1);
-             printf("DOPO LA WRITE MSG\n");
-
             /* Legge la risposta dal server */
             errno = 0;
             byte_letti = read_size(fd_skt, &codice); 
@@ -571,7 +567,6 @@ int readNFiles(int N, const char* dirname){
                 fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                     free(actual_request);
                     return -1);
-             printf("DOPO LA READ_SIZE\n");
 
             if(codice == 0) {            
                 int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
@@ -581,7 +576,6 @@ int readNFiles(int N, const char* dirname){
                     free(file);
                     free(actual_request);
                     return -1);
-                printf("DOPO LA RECEIVER\n");
 
                 /* Salva il file su disco */
                 int check_save = save_on_disk((char*)dirname, path, file, size_file);
@@ -591,7 +585,7 @@ int readNFiles(int N, const char* dirname){
                     free(file);
                     free(actual_request);
                     return -1);
-                printf("DOPO LA SAVE_ON_DISK\n");
+                    
 
                 free(file);
                 free(path);
@@ -619,7 +613,7 @@ int readNFiles(int N, const char* dirname){
                 fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
                 free(actual_request);
                 return -1);
-             printf("DOPO LA WRITE MSG\n");
+                
             /* Legge la risposta dal server */
             errno = 0;
             byte_letti = read_size(fd_skt, &codice); 
@@ -627,7 +621,7 @@ int readNFiles(int N, const char* dirname){
                 fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
                 free(actual_request);
                 return -1;);
-             printf("DOPO LA READ_SIZE\n");
+
             if(codice == 0){
                 int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
                 CHECK_OPERATION(err_receiver == -1, 
@@ -636,7 +630,6 @@ int readNFiles(int N, const char* dirname){
                     free(file);
                     free(actual_request);
                     return -1);
-                printf("DOPO LA RECEIVER\n");
                 /* Salva il file su disco */
                 int check_save = save_on_disk((char*)dirname, path, file, size_file);
                 CHECK_OPERATION(check_save == -1,
@@ -647,7 +640,6 @@ int readNFiles(int N, const char* dirname){
                     return -1);
                 free(file);
                 free(path);
-                printf("DOPO LA SAVE_ON_DISK\n");
             } else {
                 free(actual_request);
                 break;

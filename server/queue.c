@@ -39,7 +39,7 @@ int destroy_list(list_t **lista_trabocco){
     while ((*lista_trabocco)->head) {
         tmp = (*lista_trabocco)->head;
         (*lista_trabocco)->head = ((*lista_trabocco)->head)->next;
-
+        
         /* Libera la memoria del nodo corrente */
         PTHREAD_DESTROY_LOCK(tmp->mutex);
         PTHREAD_DESTROY_COND(tmp->locked); 
@@ -269,7 +269,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
         return 0;
     }
-    printf("TESTA DELLA LISTA: %s\n", (*lista_trabocco)->head->path);
+
     curr = (*lista_trabocco)->head;
     if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
     
@@ -308,8 +308,6 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
             FD_CLR(fd, &(curr->open));
 
             fprintf(file_log, "Delete\n");
-            printf("STO PER ELIMINARE un ELEMENTO: %s\n", (*just_deleted)->path);
-
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -529,7 +527,9 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
             PTHREAD_UNLOCK(nodo->mutex);
             free(buf);
             return -1);
-        memcpy(nodo->buffer + nodo->size_buffer, buf, size_buf);  
+
+        memcpy(nodo->buffer + nodo->size_buffer, buf, size_buf);
+        
         nodo->size_buffer += (size_buf); 
 
         /* Aggiorna la massima size raggiunta */
@@ -569,7 +569,7 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
     node* nodo = look_for_node(lista_trabocco, file_path);
     CHECK_OPERATION(nodo == NULL,
         size_buf = 0;
-        free(buf);
+        if(buf)free(buf);
         return 505);
     
     PTHREAD_LOCK(nodo->mutex);
@@ -583,7 +583,7 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
             free(buf);
             *max_size_reached = max(*curr_size, *max_size_reached);
             fprintf(file_log, "Write %ld\n", size_buf);
-
+            nodo->fd_create_open = -1;
             PTHREAD_UNLOCK(nodo->mutex);
         
             return 0;

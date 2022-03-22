@@ -68,7 +68,7 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); fprintf(stderr, "HO RICEVUTO UN SEGNALE SIGHUP, PER CUI STO ELIMINANDO LENTAMENTE.\n"); pthread_exit(0));
+        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
 
         /* Tokenizza la richiesta */
         char *operation, *path;
@@ -131,13 +131,23 @@ static void* working(void* pool){
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "create_lock")){
-            int err_clh = creates_locks_hashtable(path, req->fd); 
+            node *just_deleted = NULL;
+            int err_clh = creates_locks_hashtable(path, req->fd, &just_deleted); 
             CHECK_OPERATION(err_clh == -1, fprintf(stderr, "Errore sulla creates_locks_hashtable.\n"); return (void*)NULL);
+            if(err_clh == 909){
+                int err_cd = definitely_deleted(&just_deleted);
+                CHECK_OPERATION(err_cd == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return (void*)NULL);
+            }
             int err_invio = invia_risposta((*threadpool), err_clh, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "create")){
-            int err_ch = creates_hashtable(path, req->fd); 
+            node *just_deleted = NULL;
+            int err_ch = creates_hashtable(path, req->fd, &just_deleted); 
             CHECK_OPERATION(err_ch == -1, fprintf(stderr, "Errore sulla creates.\n"); return (void*)NULL);
+            if(err_ch == 909){
+                int err_cdh = definitely_deleted(&just_deleted);
+                CHECK_OPERATION(err_cdh == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); return (void*)NULL);
+            }
             int err_invio = invia_risposta((*threadpool), err_ch, req->fd, NULL, 0, NULL, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); return (void*)NULL);
         } else if(!strcmp(operation, "open")){

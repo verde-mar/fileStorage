@@ -34,9 +34,9 @@ test1: all
 	./script/create_config.sh socket 10000 128000000 1 ./file_config.txt
 	./script/primo_test.sh
 
-test2: 
+test2: all
 	./script/create_config.sh socket 10 1000000 4 ./file_config.txt
-	
+	./script/secondo_test.sh
 
 test3: 
 	./script/create_config.sh socket 100 32000000 8 ./file_config.txt
