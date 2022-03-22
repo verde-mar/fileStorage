@@ -68,7 +68,7 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); return (void*)NULL);
+        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); fprintf(stderr, "HO RICEVUTO UN SEGNALE SIGHUP, PER CUI STO ELIMINANDO LENTAMENTE.\n"); pthread_exit(0));
 
         /* Tokenizza la richiesta */
         char *operation, *path;

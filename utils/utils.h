@@ -64,4 +64,6 @@ int max(int a, int b);
  */
 float to_Mbytes(int bytes);
 
+int msleep(long msec);
+
 #endif

@@ -28,10 +28,12 @@ int dispatcher(int argc, char *argv[]){
     int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0, R = -1;
     char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *rest = NULL;
     
+    
     /* Inizializza la variabile globale che abilita le stampe delle API */
     printer = 0;
     while ((opt = getopt(argc, argv, "hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
-        sleep(time);
+        int res = msleep(time);
+        CHECK_OPERATION(res == -1, fprintf(stderr, "Errore nella nanosleep.\n"); break);
         switch(opt) {
             
             /* Stampa le opzioni accettate dal client */
@@ -66,9 +68,8 @@ int dispatcher(int argc, char *argv[]){
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-
                 int err_ = open_write_append(rest, dirnameD);
-                CHECK_OPERATION(err_ == -1, fprintf(stderr, "L'operazione di write/append e' fallita.\n"); break);
+                CHECK_OPERATION(err_ == -1, fprintf(stderr, "L'operazione di write/append e' fallita.\n"); free((char*) rest); break);
                 
                 free((char*)rest);
                 
@@ -78,6 +79,7 @@ int dispatcher(int argc, char *argv[]){
             case 'W': 
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
+                printf("\n\nSONO NEL -W\n");
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
                 int err_mixed = caller_two(open_write_append, rest, dirnameD);
@@ -137,7 +139,7 @@ int dispatcher(int argc, char *argv[]){
                 
                 /* Invia la richiesta di lettura di R file */
                 int num_file = readNFiles(R, dirnamed);
-                CHECK_OPERATION(num_file == 0, free((char*)rest); break);
+                CHECK_OPERATION(num_file == 0, break);
             
                 break;
             

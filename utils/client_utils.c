@@ -31,13 +31,13 @@ int open_write_append(const char* rest, const char* dirnameD){
     int err_caller = -1, err_unlock = -1, err_close = -1;
     /* Richiede l'apertura e la lock sul file identificato da rest */
     err_caller = openFile(rest, O_CREATE | O_LOCK);
-    CHECK_OPERATION(err_caller == -1, free((char*)rest); return -1);
+    CHECK_OPERATION(err_caller == -1, return -1);
     int err_w = 0, was_open = -1; 
     
     if(err_caller == 101){
         was_open = err_caller;
         err_caller = openFile(rest, O_LOCK);
-        CHECK_OPERATION(err_caller == -1, free((char*)rest); return -1);
+        CHECK_OPERATION(err_caller == -1, return -1);
     }
 
     if(err_caller==0){
@@ -45,12 +45,11 @@ int open_write_append(const char* rest, const char* dirnameD){
         err_w = writeFile(rest, dirnameD);
         CHECK_OPERATION(err_w == 444 || err_w == -1,  
             err_unlock = unlockFile(rest);
-            CHECK_OPERATION(err_unlock == -1, free((char*)rest); return -1);
+            CHECK_OPERATION(err_unlock == -1, return -1);
             err_close = closeFile(rest);
-            CHECK_OPERATION(err_close == -1, free((char*)rest); return -1);
-            free((char*)rest);
+            CHECK_OPERATION(err_close == -1, return -1);
             return -1;);
-    } 
+    }
 
     if(was_open == 101 && err_w == 606){
         size_t size;
@@ -59,10 +58,9 @@ int open_write_append(const char* rest, const char* dirnameD){
         int err_rbuf = read_from_file((char*)rest, &buf, &size);
         CHECK_OPERATION(err_rbuf == -1,
             err_close = closeFile(rest);
-            CHECK_OPERATION(err_close == -1, free((char*)rest); return -1);
+            CHECK_OPERATION(err_close == -1, return -1);
             err_unlock = unlockFile(rest);
-            CHECK_OPERATION(err_unlock == -1, free((char*)rest); return -1);
-            free((char*)rest);
+            CHECK_OPERATION(err_unlock == -1, return -1);
             return -1;);
         
         int err_append = appendToFile(rest, buf, size, dirnameD);
@@ -77,14 +75,13 @@ int open_write_append(const char* rest, const char* dirnameD){
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
     err_unlock = unlockFile(rest);
-    CHECK_OPERATION(err_unlock == -1, free((char*)rest); return -1);
+    CHECK_OPERATION(err_unlock == -1, return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
     err_close = closeFile(rest);
     CHECK_OPERATION(err_close == -1, 
         err_unlock = unlockFile(rest);
-        CHECK_OPERATION(err_unlock == -1, free((char*)rest); return -1);
-        free((char*)rest);
+        CHECK_OPERATION(err_unlock == -1, return -1);
         return -1;);
 
     return 0;

@@ -370,17 +370,18 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
     
     /* Se il numero di elementi presenti e' maggiore o uguale dell' indice dell'elemento da leggere */
     if(fifo_queue->elements >= N){
-
         node_c *curr = fifo_queue->head;
-        if(curr == NULL)
+        if(curr == NULL){
+            *path = NULL;
+            *buf = NULL;
             success = 111;
-            
+            return success;
+        }
         /* Scorre la lista finche' non trova l'elemento di indice N */
         while(curr->next && N >= 1){
             curr = curr->next;
             N--;
         }
-        
         /* Acquisisce la lock sull'elemento */
         int hash = hash_function((char*)curr->path); 
         *path = (char*)curr->path;
@@ -388,19 +389,21 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nella apertura di un elemento nella tabella hash.\n"); 
             return -1);
-
+        printf("success DOPO LA OPENS_LOCKS: %d\n", success);
         /* Legge i dati dell'elemento */
         success = reads(&(table->queue[hash]), (char*)curr->path, buf, size_buf, fd, table->file_log);
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
             return -1);
+        printf("success DOPO LA READS: %d\n", success);
 
         /* Chiude l'elemento */
         success = closes(&(table->queue[hash]), (char*)curr->path, fd, table->file_log);
         CHECK_OPERATION(success==-1, 
             fprintf(stderr, "Errore nella chiusura di un elemento nella tabella hash.\n"); 
             return -1);
-                  
+        printf("success DOPO LA CLOSES: %d\n", success);
+        
     } 
     /* Se N e' maggiore degli elementi restituiti viene generato un errore */
     else {

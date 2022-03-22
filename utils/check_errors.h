@@ -48,7 +48,7 @@
             fprintf(stdout, "La %s non e' terminata con successo, perche' non e' possibile aggiungere altri file al momento. Prova ad eliminarne qualcuno.\n", operazione); \
         } else if(codice == 606){\
             fprintf(stdout, "La %s non e' terminata con successo, perche' prima di fare la writeFile devi fare la openFile(path, O_CREATE | O_LOCK).\n", operazione); \
-        }\
+        } \
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
         perror("Qualcosa e' andato storto, riprova al prossimo avvio.\n"); \

@@ -483,18 +483,21 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     } 
     /* Se non e' stata acquisita la lock */
     else if(nodo->fd_c==-1){
+        *buf = NULL;
         PTHREAD_UNLOCK(nodo->mutex);
 
         return 555;
     }
     /* Se la lock e' stata acquisita da un altro thread */
     else if(nodo->fd_c!=fd){
+        *buf = NULL;
         PTHREAD_UNLOCK(nodo->mutex);
 
         return 202; //TODO: anche qui non dovrei ciclare?
     }
     /* Se il nodo e' chiuso */
     else {
+        *buf = NULL;
         PTHREAD_UNLOCK(nodo->mutex);
 
         return 303;

@@ -222,9 +222,10 @@ int del_req(lista_richieste **queue){
     while ((*queue)->head) {
         tmp = (*queue)->head;
         (*queue)->head = ((*queue)->head)->next;
-        free(tmp->buffer);
+        if(tmp->buffer)
+            free(tmp->buffer);
         free(tmp->request);
-        free(tmp);
+        free(tmp); 
     }
     
     /* Distrugge la lock di ciascun nodo */

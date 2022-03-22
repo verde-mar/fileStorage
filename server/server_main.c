@@ -139,13 +139,13 @@ int main(int argc, char const *argv[]) {
     while(end){
         rdset = set;
         err_select = select(fd_max+1, &rdset, NULL, NULL, NULL);
-        CHECK_OPERATION(err_select==-1, fprintf(stderr, "Errore nella select.\n"); exit(-1));
+        CHECK_OPERATION(err_select==-1, fprintf(stderr, "Errore nella select.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
                 if (fd == fd_skt && no_more) { /* E' arrivata una nuova richiesta */
                     fd_c = accept(fd_skt,NULL,0);
-                    CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetazione di un client.\n"); exit(-1));
+                    CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetazione di un client.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     fprintf(table->file_log, "Accept\n");
                     FD_SET(fd_c, &set);
                     if (fd_c > fd_max) fd_max = fd_c; 
@@ -165,7 +165,7 @@ int main(int argc, char const *argv[]) {
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); failed_communication(fd););
-                    }
+                    } 
                     
                     if(risp->deleted){
                         if((risp->deleted)->buffer){
@@ -177,14 +177,11 @@ int main(int argc, char const *argv[]) {
                             
                             int del = definitely_deleted(&(risp->deleted));
                             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
-                        } else {
-                            printf("IL BUFFER E' NULL.\n");
-                        }
+                        } 
                     }
 
                     FD_SET(risp->fd_richiesta, &set);
-                    if(risp->fd_richiesta > fd_max) fd_max = fd;
-
+                    if(risp->fd_richiesta > fd_max) fd_max = risp->fd_richiesta;
                     free(risp);
                 } else if(fd == signal_pipe[0]){ /* E' arrivato un segnale di chiusura */
                     int sig;
@@ -200,9 +197,10 @@ int main(int argc, char const *argv[]) {
                         end = 0;
                         close(response_pipe[0]);
                     } else { /* Se arriva un SIGHUP */
+                        fprintf(stderr, "E' ARRIVATO UN SIGHUP.\n\n");
                         for(int i = 0; i < pool->num_thread; i++) {
                             int err_push = push_queue(NULL, -1, NULL, 0, &(pool->pending_requests));
-                            CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); exit(-1));
+                            CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         }
                     }
                     close(signal_pipe[0]);
@@ -230,7 +228,7 @@ int main(int argc, char const *argv[]) {
                         } 
                         
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
-                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); exit(-1));
+                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     } else if(err_read == 0){
                         FD_CLR(fd, &set); 
                         aggiorna(set, fd_max);
@@ -246,7 +244,7 @@ int main(int argc, char const *argv[]) {
         if(pool->curr_threads == 0){
             end = 0;
             int close_pipe = close(response_pipe[0]);
-            CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); exit(-1));
+            CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
         }
     }
     fprintf(stdout, "\nNumero di volte in cui e' stato chiamato l'algoritmo di sostituzione: %d\nMassima size ammessa: %d\nMassimo numero di file ammessi: %d\nSize del file storage raggiunta appena prima di chiudere il server: %d\nMassima size raggiunta: %f\nMassimo numero di file raggiunti: %d\n", fifo_queue->how_many_cache, table->max_size, table->max_file, table->curr_size, to_Mbytes(table->max_size_reached), table->max_file_reached);

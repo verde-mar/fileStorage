@@ -57,7 +57,6 @@ int save_on_disk(char *dirname, char* filename, void* buf, size_t size){
     path = strcpy(path, dirname);
     path = strcat(path, "/");
     path = strcat(path, new_path);
-    printf("PATH: %s\n", path);
     /* Crea il file nella directory */
     FILE *new_file = fopen(path, "wb");
     CHECK_OPERATION(new_file == NULL, fprintf(stderr, "Errore nella fopen.\n"); free(path); return -1);
@@ -107,4 +106,25 @@ int max(int a, int b){
 
 float to_Mbytes(int bytes){
     return (bytes/1000000.0);
+}
+
+int msleep(long msec)
+{
+    struct timespec ts;
+    int res;
+
+    if (msec < 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    do {
+        res = nanosleep(&ts, &ts);
+    } while (res && errno == EINTR);
+
+    return res;
 }

@@ -28,16 +28,16 @@ cl: $(CLIENT)/main.c $(CLIENT)/libcaller.so $(CLIENT)/libclient.so
 	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(CLIENT) -I $(UTILS) -c -o $@ $<
 
 clean:
-	rm ./server/*.o ./server/*.so smain ./utils/*.o socket ./client/*.o ./client/*.so cl
+	rm ./server/*.o ./server/*.so smain ./utils/*.o socket ./client/*.o ./client/*.so cl ./read/*
 
-test1: 
+test1: all
 	./script/create_config.sh socket 10000 128000000 1 ./file_config.txt
 	./script/primo_test.sh
 
 test2: 
 	./script/create_config.sh socket 10 1000000 4 ./file_config.txt
-	./smain ./file_config.txt ./log_file.txt
+	
 
 test3: 
 	./script/create_config.sh socket 100 32000000 8 ./file_config.txt
-	./smain ./file_config.txt ./log_file.txt
+	
