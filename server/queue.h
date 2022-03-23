@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <sys/select.h>
 #include <stdio.h>
+#include <fifo.h>
 
 /**
  * @brief Nodo di ciascuna lista di trabocco
@@ -17,8 +18,8 @@ typedef struct node {
     void *buffer;
     size_t size_buffer;
     pthread_mutex_t *mutex;
-    pthread_cond_t *locked;
     struct node* next;
+    clients_in_wait *waiting_list;
 } node;
 
 /**
@@ -147,6 +148,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  * @param lista_trabocco Lista di trabocco del nodo
  * @param file_path Path del nodo 
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param fd_next File descriptor del client appena risvegliato a cui e' stata appena data la lock
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
@@ -154,7 +156,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  *             505 nel caso in cui il file non esista
  *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
-int unlock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
+int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE* file_log);
 
 /**
  * @brief Setta la variabile fd_c del nodo identificato da file_path

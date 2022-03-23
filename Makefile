@@ -29,6 +29,7 @@ cl: $(CLIENT)/main.c $(CLIENT)/libcaller.so $(CLIENT)/libclient.so
 
 clean:
 	rm ./server/*.o ./server/*.so smain ./utils/*.o socket ./client/*.o ./client/*.so cl ./read/*
+	clear
 
 test1: all
 	./script/create_config.sh socket 10000 128000000 1 ./file_config.txt

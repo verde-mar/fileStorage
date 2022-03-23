@@ -44,7 +44,7 @@ int write_size(int fd_skt, size_t* size){
 int write_msg(int fd_skt, void *msg, size_t size){
     int byte_scritti = write_size(fd_skt, &size);
     CHECK_OPERATION(byte_scritti == -1,
-        fprintf(stderr, "Errore nell'invio della size del messaggio.\n");
+        fprintf(stderr, "Errore nell'invio della size del messaggio a %d.\n", fd_skt);
             return -1);
     
     byte_scritti = writen(fd_skt, msg, size);

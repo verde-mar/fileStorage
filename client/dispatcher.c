@@ -79,7 +79,6 @@ int dispatcher(int argc, char *argv[]){
             case 'W': 
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
-                printf("\n\nSONO NEL -W\n");
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
 
                 int err_mixed = caller_two(open_write_append, rest, dirnameD);
@@ -105,18 +104,21 @@ int dispatcher(int argc, char *argv[]){
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
             
                 /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, O_LOCK);
+                err_caller = openFile(rest, 0);
                 CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
-                void *buf;
-                size_t size;
+                err_lock = lockFile(rest);
+                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
+
+                void *buf = NULL;
+                size_t size = 0;
 
                 /* Invia la richiesta di lettura del file identificato da rest */
                 int err_r = readFile(rest, &buf, &size);
                 CHECK_OPERATION(err_r == -1, free((char*)rest); break);
                 if(!err_r && buf){
                     /* Se riceve un buffer non vuoto lo salva su disco */
-                    int err_save = save_on_disk(dirnamed, optarg, buf, size);
+                    int err_save = save_on_disk(dirnamed, rest, buf, size);
                     CHECK_OPERATION(err_save == -1, free((char*)rest); break);
                     free(buf);
                 }
@@ -187,10 +189,6 @@ int dispatcher(int argc, char *argv[]){
             case 'c':
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-
-                /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, 0);
-                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
                 /* Invia la richiesta di acquisizione della lock sul file */
                 int err_lock = lockFile(rest);

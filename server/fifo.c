@@ -16,7 +16,7 @@
 //TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy ---> metti nella relazione
 
 int create_fifo(){
-    fifo_queue = malloc(sizeof(list_c));
+    fifo_queue = malloc(sizeof(list_cache));
     CHECK_OPERATION(fifo_queue == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
         return -1);
@@ -31,18 +31,13 @@ int create_fifo(){
     CHECK_OPERATION(fifo_queue->mutex == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
     PTHREAD_INIT_LOCK(fifo_queue->mutex);
 
-    /* Inizializza la variabile di condizione */
-    fifo_queue->cond = malloc(sizeof(pthread_cond_t));
-    CHECK_OPERATION(fifo_queue->cond == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-    PTHREAD_INIT_COND(fifo_queue->cond);
-
     /* Inizializza il numero di volte in cui e' stato chiamato l'algoritmo di rimpiazzamento */
     fifo_queue->how_many_cache = 0;
 
     return 0;
 }
 
-int delete_fifo(list_c **queue){
+int delete_fifo(list_cache **queue){
     CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
 
     /* Rimuove ogni elemento della coda */
@@ -55,9 +50,6 @@ int delete_fifo(list_c **queue){
     /* Distrugge la lock di ciascun nodo */
     PTHREAD_DESTROY_LOCK((*queue)->mutex);
     free((*queue)->mutex);
-    /* Distrugge la variabile di condizione di ciascun nodo */
-    PTHREAD_DESTROY_COND((*queue)->cond);
-    free((*queue)->cond);
     /* Libera la memoria occupata dalla lista di trabocco */
     free((*queue));
 
@@ -120,12 +112,11 @@ int del(char *file_path){
     return -1;
 }
 
-char* head_name(list_c *queue){
+char* head_name(list_cache *queue){
     char *name = (char*)(queue->head)->path;
 
     return name;
 }
-
 
 int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista_richieste **queue){
     CHECK_OPERATION((*queue)==NULL, fprintf(stderr, "Parametri non validi."); return -1);
@@ -239,3 +230,73 @@ int del_req(lista_richieste **queue){
 
     return 0;
 }
+
+int create_list_wait(clients_in_wait **list){
+    *list = malloc(sizeof(clients_in_wait));
+    CHECK_OPERATION(*list == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.\n");
+        return -1);
+
+    /* Inizializza la testa */
+    (*list)->head = NULL;
+    /* Inizializza il numero di elementi */
+    (*list)->elements = 0;
+
+    return 0;
+}
+
+int delete_list_wait(clients_in_wait **queue){
+    CHECK_OPERATION(!(*queue), fprintf(stderr, "Parametri non validi.\n"); return -1);
+
+    /* Rimuove ogni elemento della coda */
+    while ((*queue)->head!=NULL) {
+        client *tmp = (*queue)->head;
+        (*queue)->head = ((*queue)->head)->next;
+        free(tmp);
+    }
+    /* Libera la memoria occupata dalla lista di trabocco */
+    free((*queue));
+
+    return 0;
+}
+
+int add_list_wait(int file_d, clients_in_wait* list){
+    CHECK_OPERATION(file_d < 0 || list == NULL, fprintf(stderr, "Parametri non validi.\n"); return -1;);
+
+    client *current, *new_node; 
+    /* Crea il nodo da aggiungere */
+    new_node = malloc(sizeof(client));
+    CHECK_OPERATION(new_node == NULL,
+        fprintf(stderr, "Allocazione non andata a buon fine.La coda e' piena.\n");
+        return -1);
+
+    new_node->file_descriptor = file_d;
+    new_node->next = NULL;
+
+    /* Aggiunge il nuovo nodo in coda */
+    current = list->head;
+    if (current == NULL)
+        list->head = new_node; 
+    else {
+        while(current->next!=NULL)
+            current = current->next;
+        current->next = new_node;
+    }
+    list->elements++;
+
+    return 0;
+}
+
+int del_list_wait(client **head_client, clients_in_wait* list){
+    CHECK_OPERATION(head_client == NULL || list == NULL, fprintf(stderr, "Parametri non validi.\n"); return -1;);
+    client* curr;
+    
+    curr = list->head;
+    *head_client = curr;
+    list->head = curr->next; 
+    
+    list->elements--;
+
+    return 0;
+}
+

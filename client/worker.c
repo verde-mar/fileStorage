@@ -55,11 +55,12 @@ int openConnection(const char* sockname, int msec, const struct timespec abstime
 
 int closeConnection(const char* sockname){
     CHECK_OPERATION((strcmp(sockname, socketname)!=0), 
-        fprintf(stderr, "Il nome assegnato al socket e' scorretto.\n"); 
+        fprintf(stderr, "Il nome assegnato alla socket e' scorretto.\n"); 
         errno = EINVAL;   
         return -1);
 
-    close(fd_skt);
+    int closed = close(fd_skt);
+    CHECK_OPERATION(closed == -1, fprintf(stderr, "Errore sulla chiusura della socket.\n"); return -1);
     free((char*)socketname);
     CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita la closeConnection con successo.\n"); return 0);
 
@@ -116,7 +117,7 @@ int openFile(const char *pathname, int flags){
         free(actual_request);
         return -1);
 
-    CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "openFile", byte_letti, byte_scritti);
 
     return codice;
 }
@@ -160,7 +161,7 @@ int lockFile(const char* pathname){
 
     free(actual_request);
     
-    CHECK_CODICE(printer, codice, "lockFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "lockFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -204,7 +205,7 @@ int unlockFile(const char* pathname){
         return -1);
 
     
-    CHECK_CODICE(printer, codice, "unlockFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "unlockFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -247,7 +248,7 @@ int removeFile(const char* pathname){
         return -1);
 
     
-    CHECK_CODICE(printer, codice, "removeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "removeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -291,7 +292,7 @@ int closeFile(const char* pathname){
         return -1);
 
     
-    CHECK_CODICE(printer, codice, "closeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "closeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -328,24 +329,26 @@ int readFile(const char* pathname, void** buf, size_t *size){
     /* Legge la risposta dal server */
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
-    CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
+    CHECK_OPERATION(byte_letti==-1, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
    
     if(codice == 0){
         errno = 0;
         byte_letti += read_size(fd_skt, size); 
         CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
-        
-        *buf = malloc(*size);
-        CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
-        
-        byte_letti += read_msg(fd_skt, *buf, (*size)); 
-        CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); free(*buf); return -1);
+        printf("NELLA READFILE RICEVE LA SIZE: *size %ld\n", *size);
+        if(*size > 0){
+            *buf = malloc(*size);
+            CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+            
+            byte_letti += read_msg(fd_skt, *buf, (*size)); 
+            CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); free(*buf); return -1);
+        }
     } else {
         *buf = NULL;
     }
 
     
-    CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "readFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -441,7 +444,7 @@ int writeFile(const char* pathname, const char* dirname){
     free(buf);
 
     
-    CHECK_CODICE(printer, codice, "writeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "writeFile", byte_letti, byte_scritti);
 
     return codice;
 }
@@ -529,7 +532,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     free(buf);
 
     
-    CHECK_CODICE(printer, codice, "appendToFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, pathname, "appendToFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -647,7 +650,7 @@ int readNFiles(int N, const char* dirname){
         }
     }
     
-    CHECK_CODICE(printer, codice, "readNFiles", byte_letti, byte_scritti);  
+    CHECK_CODICE(printer, codice, "ND", "readNFiles", byte_letti, byte_scritti);  
 
     return count;
 }

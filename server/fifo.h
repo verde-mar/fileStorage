@@ -20,9 +20,8 @@ typedef struct l {
     int elements;           
     struct node_c* head;    
     pthread_mutex_t *mutex; 
-    pthread_cond_t *cond;
     int how_many_cache; 
-} list_c;
+} list_cache;
 
 /**
  * @brief Lista delle richieste con ordinamento FIFO
@@ -33,8 +32,25 @@ typedef struct list_req {
     struct richiesta* head;    
     pthread_mutex_t *mutex; 
     pthread_cond_t *cond;
-    
 } lista_richieste;
+
+/**
+ * @brief Coda dei client in attesa su un nodo
+ * 
+ */
+typedef struct clients_waiting {
+    int elements;           
+    struct client* head;
+} clients_in_wait;
+
+/**
+ * @brief Client in attesa
+ * 
+ */
+typedef struct client {
+    int file_descriptor;
+    struct client *next;
+} client;
 
 /**
  * @brief Richiesta inviata dal client
@@ -48,7 +64,7 @@ typedef struct richiesta {
 } request;
 
 /* Lista di ordine FIFO utilizzata da tutti i thread del server per la politica di rimpiazzamento */
-list_c *fifo_queue;
+list_cache *fifo_queue;
 
 /**
  * @brief Crea la lista con ordinamento FIFO
@@ -63,7 +79,7 @@ int create_fifo();
  * @param queue Coda da eliminare
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int delete_fifo(list_c **queue);
+int delete_fifo(list_cache **queue);
 
 /**
  * @brief Aggiunge un elemento nella coda FIFO
@@ -87,7 +103,7 @@ int del(char *file_path);
  * @param queue Coda cache
  * @return Path dell'elemento in testa
  */
-char* head_name(list_c *queue);
+char* head_name(list_cache *queue);
 
 /**
  * @brief Crea la lista delle richieste
@@ -124,5 +140,39 @@ int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista
  * @return request* Elemento prelevato
  */
 request* pop_queue(lista_richieste *queue);
+
+/**
+ * @brief Crea la lista di attesa di un nodo
+ * 
+ * @param list Lista di attesa
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int create_list_wait(clients_in_wait **list);
+
+/**
+ * @brief Elimina la lista di attesa di un nodo
+ * 
+ * @param queue Coda di attesa
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int delete_list_wait(clients_in_wait **queue);
+
+/**
+ * @brief Aggiunge un client alla lista di attesa
+ * 
+ * @param file_d File descriptor del client da aggiungere nella lista di attesa
+ * @param list Lista di attesa
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int add_list_wait(int file_d, clients_in_wait* list);
+
+/**
+ * @brief Preleva dalla lista di attesa il primo client
+ * 
+ * @param head_client Primo client nella lista di attesa
+ * @param list Lista di attesa
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int del_list_wait(client **head_client, clients_in_wait* list);
 
 #endif

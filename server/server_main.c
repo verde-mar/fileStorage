@@ -114,14 +114,8 @@ int main(int argc, char const *argv[]) {
     FD_SET(response_pipe[0], &set);
 
     /* Calcola il massimo dei file descriptor, tra quelli delle pipe e quella rest */
-    int fd_max;
-    if(fd_num < signal_pipe[0])
-        fd_max = signal_pipe[0];
-    else
-        fd_max = fd_num;
-
-    if(fd_max < response_pipe[0])
-        fd_max = response_pipe[0]; 
+    int fd_max = max(fd_num, signal_pipe[0]);
+    fd_max = max(fd_max, response_pipe[0]);
 
     int err_select;
     int no_more = 1, end = 1;
@@ -133,54 +127,17 @@ int main(int argc, char const *argv[]) {
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
-                if (fd == fd_skt && no_more) { /* E' arrivata una nuova richiesta */
+
+                /* E' arrivata una nuova richiesta */
+                if (fd == fd_skt && no_more) { 
                     fd_c = accept(fd_skt,NULL,0);
-                    CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetazione di un client.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                    CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetatzione di un client.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     fprintf(table->file_log, "Accept\n");
                     FD_SET(fd_c, &set);
                     if (fd_c > fd_max) fd_max = fd_c; 
-                } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
-                    response *risp = NULL;
-                    int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
-                    CHECK_OPERATION(err_resp == -1 , fprintf(stderr, "Errore sulla readn nella lettura della risposta.");
-                        if (risp) {
-                            if(risp->buffer_file) 
-                                free(risp->buffer_file); 
-                            free(risp);
-                        }
-                        continue); 
-                    
-                    errno = 0;
-                    int err_write = write_size(risp->fd_richiesta, &(risp->errore));
-                    CHECK_OPERATION(err_write == -1, perror("risp->errore"); fprintf(stderr, "Errore nella scrittura della size del messaggio.\n"); ); 
-                    
-                    if(risp->path){
-                        int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
-                    }
-                    
-                    if(risp->buffer_file){
-                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
-                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
-                    } 
-                    
-                    if(risp->deleted){
-                        if((risp->deleted)->buffer){
-                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
-                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
-                            
-                            int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
-                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
-                            
-                            int del = definitely_deleted(&(risp->deleted));
-                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
-                        } 
-                    }
-
-                    FD_SET(risp->fd_richiesta, &set);
-                    if(risp->fd_richiesta > fd_max) fd_max = risp->fd_richiesta;
-                    free(risp);
-                } else if(fd == signal_pipe[0]){ /* E' arrivato un segnale di chiusura */
+                } 
+                /* E' arrivato un segnale di chiusura */
+                else if(fd == signal_pipe[0]){ 
                     int sig;
                     /* Legge il tipo di segnale dalla pipe */
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
@@ -200,10 +157,56 @@ int main(int argc, char const *argv[]) {
                         }
                     }
                     close(signal_pipe[0]);
+                } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
+                    response *risp = NULL;
+                    int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
+                    CHECK_OPERATION(err_resp == -1 , fprintf(stderr, "Errore sulla readn nella lettura della risposta.");
+                        if (risp) {
+                            if(risp->buffer_file) 
+                                free(risp->buffer_file); 
+                            free(risp);
+                        }
+                        continue); 
+                    
+                    errno = 0;
+                    int err_write = write_size(risp->fd_richiesta, &(risp->errore));
+                    CHECK_OPERATION(err_write == -1,
+                        perror("\nERRORE");
+                        fprintf(stderr, "fd: %d ----------- risp->errore: %ld ---- ISSET: %d instruction: %s\n", risp->fd_richiesta, risp->errore, FD_ISSET(fd, &set), (char*)risp->buffer_file);
+                    ); 
+                    
+                    if(risp->path){
+                        int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
+                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                    }
+                    
+                    if(risp->buffer_file){
+                        int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
+                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                    } 
+                    
+                    if(risp->deleted){
+                        if((risp->deleted)->buffer){
+                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
+                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            
+                            int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
+                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            
+                            int del = definitely_deleted(&(risp->deleted));
+                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
+                        } 
+                    }
+
+                    free(risp);
                 } else { /* E' arrivata una richiesta da un client registrato */
                     size_t size;
                     int err_read = read_size(fd, &size);
-                    if(err_read != -1 && err_read!=0){
+                    if(err_read == 0 || err_read == -1){
+                        printf("Il client %d ha chiuso la connessione\n", fd);
+                        FD_CLR(fd, &set); 
+                        aggiorna(set, fd_max);
+                    } else {
                         
                         char* request = malloc(size); 
                         CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
@@ -223,17 +226,9 @@ int main(int argc, char const *argv[]) {
                             err_read = read_msg(fd, buffer, size_buffer);
                             CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
                         } 
-                        
+                        fprintf(stderr, "Il client %d ha richiesto %s\n", fd, request);
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
-                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-                    } else if(err_read == 0){
-                        FD_CLR(fd, &set); 
-                        aggiorna(set, fd_max);
-                    } 
-                    /* Se fallisce la lettura del messaggio */
-                    else if(err_read == -1){
-                        fprintf(stderr, "Errore nella lettura della size del messaggio.\n");
-                        FD_CLR(fd, &set); aggiorna(set, fd_max);
+                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n");  free(request); if(buffer){free(buffer);} routine_chiusura(&pool, tid_signal); exit(-1));
                     }
                 }
             }
@@ -250,7 +245,7 @@ int main(int argc, char const *argv[]) {
     routine_chiusura(&pool, tid_signal);
     free(socketname);
     //TODO: mancano: - n. di richieste servite da ogni worker thread      
-            // - massimo n. di connessioni contemporanee.
+    // - massimo n. di connessioni contemporanee.
     //TODO: manca il secondo elemento che era opzionale nella specifica
 
     return 0;

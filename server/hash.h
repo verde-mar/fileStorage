@@ -134,12 +134,13 @@ int close_hashtable(char *file_path, int fd);
  * 
  * @param file_path Path del file
  * @param fd File descriptor del client che ha effettuato la richiesta
+ * @param fd_next File descriptor del client risvegliato dalla lista di attesa a cui e' stata appena data la lock
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
  *             505 nel caso in cui il file non esista
  *             555 nel caso in cui la lock non e' stata acquisita da nessuno
  */
-int unlock_hashtable(char *file_path, int fd);
+int unlock_hashtable(char *path, int fd, int* fd_next);
 
 /**
  * @brief Setta la variabile fd_c del file identificato da file_path

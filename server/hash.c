@@ -233,16 +233,16 @@ int close_hashtable(char *path, int fd){
     return success;
 }
 
-int unlock_hashtable(char *path, int fd){
+int unlock_hashtable(char *path, int fd, int* fd_next){
     CHECK_OPERATION(path==NULL || fd<0,
-        fprintf(stderr, "Parametri non validi.\n");
+        fprintf(stderr, "Parametri non validi %d\n", fd);
         return -1;);
 
     
     int hash = hash_function(path); 
 
     /* Rilascia la lock di un nodo */
-    int success = unlock(&(table->queue[hash]), path, fd, table->file_log);
+    int success = unlock(&(table->queue[hash]), path, fd, fd_next, table->file_log);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nel reset della lock di un elemento nella tabella hash.\n"); 
         return -1);
@@ -384,14 +384,18 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
 int definitely_deleted(node** just_deleted){
     CHECK_OPERATION((*just_deleted)==NULL, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
+    /* Elimina la mutex e ne libera la memoria */
     PTHREAD_DESTROY_LOCK((*just_deleted)->mutex);
-    PTHREAD_DESTROY_COND((*just_deleted)->locked); 
-    free((*just_deleted)->locked);
     free((*just_deleted)->mutex);
-
     if((*just_deleted)->buffer)   
         free((*just_deleted)->buffer);
+    /* Libera la memoria associata al path del nodo */
     free((char*)(*just_deleted)->path);
+
+    /* Elimina la lista di attesa */
+    int err_del_wl = delete_list_wait(&(*just_deleted)->waiting_list);
+    CHECK_OPERATION(err_del_wl == -1, fprintf(stderr, "Errore nella eliminazione della lista di attesa.\n"); return -1);
+
     free((*just_deleted));
     *just_deleted = NULL;
 
