@@ -61,6 +61,7 @@ int closeConnection(const char* sockname){
 
     int closed = close(fd_skt);
     CHECK_OPERATION(closed == -1, fprintf(stderr, "Errore sulla chiusura della socket.\n"); return -1);
+    //ma se mettessi una nanosleep per aspettare?
     free((char*)socketname);
     CHECK_OPERATION(printer == 1, fprintf(stdout, "E' stata eseguita la closeConnection con successo.\n"); return 0);
 

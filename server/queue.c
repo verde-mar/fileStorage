@@ -222,7 +222,7 @@ int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
 
-    /* Cerca per verificare se il file esiste gia' nella tabella */
+    /* Cerca per verificare se il file esiste nella tabella */
     node* nodo = look_for_node(lista_trabocco, file_path);
     CHECK_OPERATION(nodo == NULL, return 404);
     
@@ -230,7 +230,6 @@ int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log
 
     int err_lock = lock_acquire(nodo, fd, file_log);
     CHECK_OPERATION(err_lock == -1, fprintf(stderr, "Errore nella acquisizione della lock nel nodo %s\n", nodo->path); PTHREAD_UNLOCK(nodo->mutex); return -1);
-
     /* Apre il file */
     FD_SET(fd, &(nodo->open));
 

@@ -156,7 +156,8 @@ int main(int argc, char const *argv[]) {
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         }
                     }
-                    close(signal_pipe[0]);
+                    int closed_pipe = close(signal_pipe[0]);
+                    CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                 } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
                     response *risp = NULL;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
@@ -164,6 +165,8 @@ int main(int argc, char const *argv[]) {
                         if (risp) {
                             if(risp->buffer_file) 
                                 free(risp->buffer_file); 
+                            if(risp->path)
+                                free(risp->path);
                             free(risp);
                         }
                         continue); 
@@ -236,6 +239,8 @@ int main(int argc, char const *argv[]) {
         if(pool->curr_threads == 0){
             end = 0;
             int close_pipe = close(response_pipe[0]);
+            CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+            close_pipe = close(response_pipe[1]); //TODO: aggiungere questo va bene?
             CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
         }
     }
