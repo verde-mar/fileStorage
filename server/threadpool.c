@@ -157,8 +157,10 @@ static void* working(void* pool){
             int N = strtol(path, NULL, 10);
             int err_read = readN_hashtable(N, &buf, &size_buf, req->fd, &path);
             CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella readN_hashtable.\n"); continue);
+            
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
             CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+            
         } else if(!strcmp(operation, "create_lock")){
             node *just_deleted = NULL;
             int err_clh = creates_locks_hashtable(path, req->fd, &just_deleted); 

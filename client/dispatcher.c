@@ -141,7 +141,7 @@ int dispatcher(int argc, char *argv[]){
                 
                 /* Invia la richiesta di lettura di R file */
                 int num_file = readNFiles(R, dirnamed);
-                CHECK_OPERATION(num_file == 0, break);
+                CHECK_OPERATION(num_file == -1, break);
             
                 break;
             

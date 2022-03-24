@@ -336,7 +336,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
         errno = 0;
         byte_letti += read_size(fd_skt, size); 
         CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
-        printf("NELLA READFILE RICEVE LA SIZE: *size %ld\n", *size);
+        
         if(*size > 0){
             *buf = malloc(*size);
             CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);

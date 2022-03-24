@@ -415,6 +415,7 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         if(curr == NULL){
             *path = NULL;
             *buf = NULL;
+            *size_buf = 0;
             success = 111;
             return success;
         }
@@ -427,32 +428,35 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         int hash = hash_function((char*)curr->path); 
         *path = (char*)curr->path;
         
-        success =  opens_locks(&(table->queue[hash]), *path, fd, table->file_log);
-        CHECK_OPERATION(success==-1, 
-            fprintf(stderr, "Errore nella apertura di un elemento nella tabella hash.\n"); 
-            return -1);
-            
-        /* Legge i dati dell'elemento */
-        if(!success){
-            success = reads(&(table->queue[hash]), (char*)curr->path, buf, size_buf, fd, table->file_log);
-            CHECK_OPERATION(success==-1, 
-                fprintf(stderr, "Errore nella lettura di un elemento nella tabella hash.\n"); 
-                return -1);
+        node *nodo = NULL;
+        PTHREAD_LOCK(table->queue[hash]->mutex);
+
+        for (nodo=table->queue[hash]->head; nodo != NULL; nodo=nodo->next)
+            if (strcmp(nodo->path, *path) == 0){
+                PTHREAD_UNLOCK(table->queue[hash]->mutex);
+                PTHREAD_LOCK(nodo->mutex);
+                *size_buf = nodo->size_buffer;
+                *buf = nodo->buffer;
+                PTHREAD_UNLOCK(nodo->mutex);
+                success = 0;
+                break;
+            }
+
+        if(nodo == NULL){
+            PTHREAD_UNLOCK(table->queue[hash]->mutex);
+            *path = NULL;
+            *buf = NULL;
+            *size_buf = 0;
+            success = 111;
         }
 
-        /* Chiude l'elemento */
-        if(!success){
-            success = closes(&(table->queue[hash]), (char*)curr->path, fd, table->file_log);
-            CHECK_OPERATION(success==-1, 
-                fprintf(stderr, "Errore nella chiusura di un elemento nella tabella hash.\n"); 
-                return -1);
-        }
-        CHECK_OPERATION(success != 0, *path = NULL; *buf = NULL);
+        CHECK_OPERATION(success != 0, *path = NULL; *buf = NULL; *size_buf = 0;);
     } 
     /* Se N e' maggiore degli elementi restituiti viene generato un errore */
     else {
         *path = NULL;
         *buf = NULL;
+        *size_buf = 0;
         success = 111;
     }
     
