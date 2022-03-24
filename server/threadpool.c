@@ -68,7 +68,12 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; free(req); break);
+        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; 
+            if((*threadpool)->curr_threads == 0) {
+                int closed = close((*threadpool)->response_pipe); 
+                    CHECK_OPERATION(closed == -1, fprintf(stderr, "Errore sulla chiusura della response_pipe.\n"); free(req); break;)}
+            free(req); 
+            break);
 
         /* Tokenizza la richiesta */
         char *operation, *path;

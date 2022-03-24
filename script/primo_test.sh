@@ -9,17 +9,15 @@ sleep 3
 pid=$!
 
 # Avvia i client
-./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -c ./test_directory/prova2.txt &
-#./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova.txt -l ./test_directory/prova.txt -u ./test_directory/prova.txt &
+./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -R 0 -c ./test_directory/prova2.txt &
 pidcl1=$!
-./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova3.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -c ./test_directory/prova.txt &
-#./cl -f socket -p -t 200 -w ./test_directory/prova2.txt -l ./test_directory/prova.txt -u ./test_directory/prova.txt &
+./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova3.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -R 0 -c ./test_directory/prova2.txt &
 pidcl2=$!
 
 wait $pidcl1 $pidcl2
 
 # Terminazione lenta del server
-kill -2 $pid
+kill -1 $pid
 
 # Aspetta il server
 wait $pid

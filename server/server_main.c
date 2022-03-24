@@ -121,9 +121,10 @@ int main(int argc, char const *argv[]) {
     int no_more = 1, end = 1;
 
     while(end){
+        printf("SONO NEL WHILE: %d\n", end);
         rdset = set;
         err_select = select(fd_max+1, &rdset, NULL, NULL, NULL);
-        CHECK_OPERATION(err_select==-1, fprintf(stderr, "Errore nella select.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+        CHECK_OPERATION(err_select==-1, perror("Errore nella select."); routine_chiusura(&pool, tid_signal); free(socketname); exit(-1));
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
@@ -146,22 +147,39 @@ int main(int argc, char const *argv[]) {
                     
                     /* Assegna al flag 0 cosi' che non siano accettate nuove richieste di connessione */
                     no_more = 0; 
-                
-                    if(sig == 2 || sig == 3){ /* Se arriva un SIGINT o un SIGQUIT */
+
+                    /* Se arriva un SIGINT o un SIGQUIT */
+                    if(sig == 2 || sig == 3){
                         end = 0;
-                        close(response_pipe[0]);
-                    } else { /* Se arriva un SIGHUP */
+                        int resp_pipe = close(response_pipe[0]);
+                        CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                        FD_CLR(response_pipe[0], &set); 
+                        aggiorna(set, fd_max);
+                    } 
+                    /* Se arriva un SIGHUP */
+                    else { 
+                        printf("HO RICEVUTO UN SIGHUP.\n");
                         for(int i = 0; i < pool->num_thread; i++) {
                             int err_push = push_queue(NULL, -1, NULL, 0, &(pool->pending_requests));
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         }
-                    }
+                        printf("HO MANDATO LE RICHIESTE NULLE.\n");
+                    } 
                     int closed_pipe = close(signal_pipe[0]);
                     CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-                } else if(fd == response_pipe[0]){ /* Uno worker ha elaborato la risposta */
+                    FD_CLR(signal_pipe[0], &set); 
+                    aggiorna(set, fd_max);
+                    closed_pipe = close(signal_pipe[1]);
+                    CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                    FD_CLR(signal_pipe[1], &set); 
+                    aggiorna(set, fd_max);
+                } 
+
+                /* Uno worker ha elaborato la risposta */
+                else if(fd == response_pipe[0]){ 
                     response *risp = NULL;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
-                    CHECK_OPERATION(err_resp == -1 , fprintf(stderr, "Errore sulla readn nella lettura della risposta.");
+                    CHECK_OPERATION(err_resp <= 0,
                         if (risp) {
                             if(risp->buffer_file) 
                                 free(risp->buffer_file); 
@@ -169,8 +187,19 @@ int main(int argc, char const *argv[]) {
                                 free(risp->path);
                             free(risp);
                         }
-                        continue); 
+                        end = 0;
+                        break;
+                    ); 
                     
+                    /* Se riceve 0, la pipe e' chiusa, per cui il thread la chiude sia in scrittura */
+                    /*if(err_resp == 0) {
+                        end = 0;
+                        int close_pipe = close(response_pipe[1]);
+                        CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                        FD_CLR(response_pipe[1], &set); 
+                        aggiorna(set, fd_max);
+                    }*/
+
                     errno = 0;
                     int err_write = write_size(risp->fd_richiesta, &(risp->errore));
                     CHECK_OPERATION(err_write == -1,
@@ -236,18 +265,12 @@ int main(int argc, char const *argv[]) {
                 }
             }
         }
-        if(pool->curr_threads == 0){
-            end = 0;
-            int close_pipe = close(response_pipe[0]);
-            CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-            close_pipe = close(response_pipe[1]); //TODO: aggiungere questo va bene?
-            CHECK_OPERATION(close_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-        }
     }
     fprintf(stdout, "\nNumero di volte in cui e' stato chiamato l'algoritmo di sostituzione: %d\nMassima size ammessa: %d\nMassimo numero di file ammessi: %d\nSize del file storage raggiunta appena prima di chiudere il server: %d\nMassima size raggiunta: %f\nMassimo numero di file raggiunti: %d\n", fifo_queue->how_many_cache, table->max_size, table->max_file, table->curr_size, to_Mbytes(table->max_size_reached), table->max_file_reached);
     fprintf(table->file_log, "Max_size_reached: %d\nMax_files_reached: %d\nReplaced: %d\n", table->max_size_reached, table->max_file_reached, fifo_queue->how_many_cache);
     print_elements();
     routine_chiusura(&pool, tid_signal);
+    
     free(socketname);
     //TODO: mancano: - n. di richieste servite da ogni worker thread      
     // - massimo n. di connessioni contemporanee.

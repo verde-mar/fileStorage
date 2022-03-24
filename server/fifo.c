@@ -300,3 +300,5 @@ int del_list_wait(client **head_client, clients_in_wait* list){
     return 0;
 }
 
+ 
+

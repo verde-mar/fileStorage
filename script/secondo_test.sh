@@ -21,7 +21,7 @@ pidcl4=$!
 wait $pidcl1 $pidcl2 $pidcl3 $pidcl4
 
 # Terminazione lenta del server
-kill -2 $pid
+kill -1 $pid
 
 # Aspetta il server
 wait $pid
