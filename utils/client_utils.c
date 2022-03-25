@@ -68,7 +68,6 @@ int open_write_append(const char* rest, const char* dirnameD){
             CHECK_OPERATION(err_close == -1, return -1);
             err_unlock = unlockFile(rest);
             CHECK_OPERATION(err_unlock == -1, return -1);
-            free((char*)rest);
             return -1;);
     }
 
@@ -133,7 +132,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     errno = 0;
     *byte_letti += read_size(fd_skt, &size_path); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere la size del path che sta per arrivare e che sta per essere memorizzato.\n"); 
         return -1);
                 
     *path = malloc(size_path);
@@ -144,13 +143,13 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     errno = 0;
     *byte_letti += read_msg(fd_skt, *path, size_path);
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il buffer che sta per arrivare e che sta per essere memorizzato.\n"); 
         return -1);
                 
     errno = 0;
     *byte_letti += read_size(fd_skt, size_old); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere la size del file che stavo per memorizzare.\n"); 
                 return -1);
     
     *old_file = malloc(*size_old);
@@ -161,7 +160,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     errno = 0;
     *byte_letti += read_msg(fd_skt, *old_file, *size_old);
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il file.\n"); 
                 return -1);
                 
     return 0;

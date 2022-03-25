@@ -538,7 +538,8 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
             free(buf);
             return -1);
 
-        memcpy(nodo->buffer + nodo->size_buffer, buf, size_buf);
+        void *check = memcpy(nodo->buffer + nodo->size_buffer, buf, size_buf);
+        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); return -1);
         
         nodo->size_buffer += (size_buf); 
 
@@ -548,13 +549,15 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
 
         /* Aggiorna la size corrente della tabella hash */
         *curr_size = *curr_size + nodo->size_buffer;
+
+        if(buf) free(buf);
     } 
     /* Se non ha acquisito la lock */
     else if(nodo->fd_c != fd){
         if(buf) free(buf);
         PTHREAD_UNLOCK(nodo->mutex);
 
-        return 202; //TODO: anche qui, perche' non ciclo?
+        return 202;
     } 
     /* Il nodo non e' stato aperto */
     else if(!FD_ISSET(fd, &(nodo->open))){
@@ -563,7 +566,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
 
         return 303;
     }
-    if(buf) free(buf);
+    
     PTHREAD_UNLOCK(nodo->mutex);
         
     return 0;
@@ -585,15 +588,22 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
     PTHREAD_LOCK(nodo->mutex);
     if(nodo->fd_create_open == fd){ //TODO: specificare nella relazione che solo chi crea puo' fare la write
         if(buf){
+            /* Alloca la dimensione per il buffer da scrivere e lo scrive*/
             nodo->buffer = malloc(size_buf);
             CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); free(buf); return -1);
-            memcpy(nodo->buffer, buf, size_buf);  
+            void* check = memcpy(nodo->buffer, buf, size_buf);  
+            CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); return -1);
+
+            /* Aggiorna la size del nodo, quella locale e la massima raggiunta */
             nodo->size_buffer = size_buf;
             *curr_size += size_buf;
-            free(buf);
             *max_size_reached = max(*curr_size, *max_size_reached);
+
+            /* Aggiorna il file di log */
             fprintf(file_log, "Write %ld\n", size_buf);
+            
             nodo->fd_create_open = -1;
+            free(buf);
             PTHREAD_UNLOCK(nodo->mutex);
         
             return 0;
@@ -608,7 +618,6 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
         return 606;
     }
 
-    if(buf) free(buf);
     PTHREAD_UNLOCK(nodo->mutex);
 
     return 0;

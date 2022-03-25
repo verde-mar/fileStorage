@@ -88,8 +88,10 @@ ssize_t  writen(int fd, void *ptr, size_t n) {
 }
 
 int aggiorna(fd_set set, int fdmax){
-    for(int i=(fdmax-1);i>=0;--i)
-	    if (FD_ISSET(i, &set)) return i;
+    for(int i=fdmax;i>=0;--i)
+	    if (FD_ISSET(i, &set)) {
+            return i;
+        }
     return -1;
 }
 
@@ -110,7 +112,6 @@ int set_mask(sigset_t *mask){
 
 int bind_listen(int *fd_skt, fd_set *set, char* socket_name){
     struct sockaddr_un sa;
-    int fd_num = 0;
 
     /* Crea la socket su cui collegarsi */
     strcpy(sa.sun_path, socket_name);
@@ -124,9 +125,7 @@ int bind_listen(int *fd_skt, fd_set *set, char* socket_name){
 
     /* Si mette in ascolto su quel socket */
     int err_listen = listen(*fd_skt, 10);
-    CHECK_OPERATION((err_listen==-1), fprintf(stderr, "Errore nella listen.\n"); return -1;);
-    if(*fd_skt > fd_num) fd_num = *fd_skt;
-    
+    CHECK_OPERATION((err_listen==-1), fprintf(stderr, "Errore nella listen.\n"); return -1;);    
 
-    return fd_num;
+    return 0;
 }

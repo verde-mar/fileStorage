@@ -15,43 +15,43 @@
         operation; \
     }
 
-#define CHECK_CODICE(printer, codice, path, operazione, byte_letti, byte_scritti) \
+#define CHECK_CODICE(printer, codice, operazione, byte_letti, byte_scritti) \
     if(printer == 1){\
         fprintf(stderr, "Byte scritti: %d e byte letti:%d\n", byte_scritti, byte_letti); \
         if(codice == 101) {\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' il file esiste gia'. Prova a rieseguirla con il flag 5 per aprire il file e acquisire la lock, con il flag 0 solo per aprirlo o con il flag 2 solo per acquisire la lock.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file esiste gia'. Prova a rieseguirla con il flag 5 per aprire il file e acquisire la lock, con il flag 0 solo per aprirlo o con il flag 2 solo per acquisire la lock.\n",operazione); \
         } else if(codice == 202){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' la lock del file e' stata acquisita da un altro thread.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' la lock del file e' stata acquisita da un altro thread.\n",operazione); \
         } else if(codice == 303){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' non e' possibile effettuare una operazione diversa dalla openFile dopo la closeFile.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' non e' possibile effettuare una operazione diversa dalla openFile dopo la closeFile.\n",operazione); \
         } else if(codice == 404){ \
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' il file non esiste e non e' stato specificato O_CREATE.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste e non e' stato specificato O_CREATE.\n",operazione); \
         } else if(codice == 505){\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' il file non esiste.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' il file non esiste.\n",operazione); \
         } else if(codice == 707){\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' prima della appendFile devi fare la writeFile.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' prima della appendFile devi fare la writeFile.\n",operazione); \
         } else if(codice == 808){\
-            fprintf(stderr, "Non e' stato possibile eseguire la %s su %s perche' e' gia' stata fatta. Puoi fare solo la appendToFile.\n", operazione, path); \
+            fprintf(stderr, "Non e' stato possibile eseguire la %s perche' e' gia' stata fatta. Puoi fare solo la appendToFile.\n",operazione); \
         } else if(codice == 111){\
             fprintf(stderr, "Non ci sono piu' file da leggere.\n");\
         } else if(codice == 333){\
             fprintf(stderr, "Il buffer era vuoto.\n"); \
         } else if(codice == 555){\
-            fprintf(stderr, "La lock su %s non e' stata acquisita.\n", path);\
+            fprintf(stderr, "La lock non e' stata acquisita.\n");\
         } else if(codice == 0){\
-            fprintf(stdout, "La %s su %s e' terminata con successo.\n", operazione, path); \
+            fprintf(stdout, "La %s e' terminata con successo.\n",operazione); \
         } else if(codice == 909){\
-            fprintf(stdout, "La %s su %s e' terminata con successo, ma e' stato liberato dello spazio.\n", operazione, path); \
+            fprintf(stdout, "La %s e' terminata con successo, ma e' stato liberato dello spazio.\n",operazione); \
         } else if(codice == 444){\
-            fprintf(stdout, "La %s su %s  non e' terminata con successo, perche' il file e' troppo grande e non c'erano altri elementi da eliminare.\n", operazione, path); \
+            fprintf(stdout, "La %s  non e' terminata con successo, perche' il file e' troppo grande e non c'erano altri elementi da eliminare.\n",operazione); \
         } else if(codice == 777){\
-            fprintf(stdout, "La %s su %s  non e' terminata con successo, perche' non e' possibile aggiungere altri file al momento. Prova ad eliminarne qualcuno.\n", operazione, path); \
+            fprintf(stdout, "La %s  non e' terminata con successo, perche' non e' possibile aggiungere altri file al momento. Prova ad eliminarne qualcuno.\n",operazione); \
         } else if(codice == 606){\
-            fprintf(stdout, "La %s su %s non e' terminata con successo, perche' prima di fare la writeFile devi fare la openFile(path, O_CREATE | O_LOCK).\n", operazione, path); \
+            fprintf(stdout, "La %s non e' terminata con successo, perche' prima di fare la writeFile devi fare la openFile(path, O_CREATE | O_LOCK).\n",operazione); \
         }  else if(codice == 888){\
-            fprintf(stdout, "La %s su %s non e' terminata con successo, perche' il nodo e' stato eliminato da un altro client.\n", operazione, path); \
+            fprintf(stdout, "La %s non e' terminata con successo, perche' il nodo e' stato eliminato da un altro client.\n",operazione); \
         } else if(codice == -1){\
-            fprintf(stdout, "E' avvenuto un errore generico dopo %s su %s.\n", operazione, path);\
+            fprintf(stdout, "E' avvenuto un errore generico dopo %s.\n",operazione);\
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\

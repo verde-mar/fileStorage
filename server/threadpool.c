@@ -68,7 +68,7 @@ static void* working(void* pool){
         /* Preleva una richiesta dalla coda  delle richieste */
         request* req = pop_queue((*threadpool)->pending_requests);
         /* Se la richiesta e' NULL allora e' iniziata la routine di chiusura */
-        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--; 
+        CHECK_OPERATION(req->request == NULL, (*threadpool)->curr_threads--;
             if((*threadpool)->curr_threads == 0) {
                 int closed = close((*threadpool)->response_pipe); 
                     CHECK_OPERATION(closed == -1, fprintf(stderr, "Errore sulla chiusura della response_pipe.\n"); free(req); break;)}
@@ -131,6 +131,7 @@ static void* working(void* pool){
             
             if(deleted)
                 while((deleted->waiting_list)->head){
+                    (deleted->waiting_list)->head = ((deleted->waiting_list)->head)->next;
                     client *in_wait = NULL;
                     
                     /* Preleva ogni client della lista di attesa */
@@ -231,6 +232,30 @@ int create_threadpool(threadpool_t** threadpool, int num_thread, int pipe_scritt
 int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
+
+    /* Verifica se ci siano client in attesa su ciascun nodo, ed eventualmente gli manda un errore */ //TODO: segnala nella relazione
+    for (int i = 0; i < 16; i++) {
+        node* curr = table->queue[i]->head;
+        while(curr){
+            while((curr->waiting_list)->head){
+                (curr->waiting_list)->head = ((curr->waiting_list)->head)->next;
+                client *in_wait = NULL;
+                
+                /* Preleva ogni client della lista di attesa */
+                int deln = del_list_wait(&in_wait, curr->waiting_list);
+                CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
+                
+                /* Invia il codice di notifica a tutti i client */
+                int code = -1;
+                int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
+                CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+
+                /* Libera la memoria associata al client in attesa */
+                free(in_wait);
+            }
+            curr = curr->next;
+        }
+    }
 
     /* Per terminare i thread, gli invia da gestire delle richieste NULL */
     if((*threadpool)->curr_threads>0)

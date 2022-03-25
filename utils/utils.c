@@ -36,10 +36,9 @@ int is_directory(const char *path) {
 
 
 int save_on_disk(char *dirname, char* filename, void* buf, size_t size){ 
-    CHECK_OPERATION(filename == NULL || size <= 0 || buf == NULL,
-        fprintf(stderr, "%s e' nullo.\n", filename); 
-            return -1);
+    CHECK_OPERATION(filename == NULL || size <= 0 || buf == NULL, return -1);
     CHECK_OPERATION(dirname == NULL, return 0;);
+    
     char* new_path;
     char *str1=NULL;
     char *pars1 = filename;

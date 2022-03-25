@@ -115,10 +115,9 @@ int openFile(const char *pathname, int flags){
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(byte_scritti == -1,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
-        free(actual_request);
         return -1);
 
-    CHECK_CODICE(printer, codice, pathname, "openFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, "openFile", byte_letti, byte_scritti);
 
     return codice;
 }
@@ -156,13 +155,13 @@ int lockFile(const char* pathname){
     errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la lockFile.\n"); 
         free(actual_request);
         return -1);
 
     free(actual_request);
     
-    CHECK_CODICE(printer, codice, pathname, "lockFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "lockFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -202,11 +201,11 @@ int unlockFile(const char* pathname){
     errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la unlockFile.\n"); 
         return -1);
 
     
-    CHECK_CODICE(printer, codice, pathname, "unlockFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "unlockFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -245,11 +244,11 @@ int removeFile(const char* pathname){
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la removeFile.\n");
         return -1);
 
     
-    CHECK_CODICE(printer, codice, pathname, "removeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "removeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -289,11 +288,11 @@ int closeFile(const char* pathname){
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la closeFile.\n"); 
         return -1);
 
     
-    CHECK_CODICE(printer, codice, pathname, "closeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "closeFile", byte_letti, byte_scritti);
 
     return 0;
 }
@@ -330,26 +329,26 @@ int readFile(const char* pathname, void** buf, size_t *size){
     /* Legge la risposta dal server */
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
-    CHECK_OPERATION(byte_letti==-1, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
+    CHECK_OPERATION(byte_letti==-1, fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la readFile.\n"); return -1);
    
     if(codice == 0){
         errno = 0;
         byte_letti += read_size(fd_skt, size); 
-        CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); return -1);
+        CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la size del path che stavo per leggere.\n"); return -1);
         
         if(*size > 0){
             *buf = malloc(*size);
             CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
             
             byte_letti += read_msg(fd_skt, *buf, (*size)); 
-            CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); free(*buf); return -1);
+            CHECK_OPERATION(errno == EFAULT, fprintf(stderr, "Non e' stato possibile leggere il buffer del file che e' stato richiesto di leggere.\n"); free(*buf); return -1);
         }
     } else {
         *buf = NULL;
     }
 
     
-    CHECK_CODICE(printer, codice, pathname, "readFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "readFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -383,7 +382,7 @@ int writeFile(const char* pathname, const char* dirname){
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
         free(actual_request);
         free(buf);     
         return -1);
@@ -430,7 +429,7 @@ int writeFile(const char* pathname, const char* dirname){
             /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
             byte_letti += read_size(fd_skt, &codice); 
             CHECK_OPERATION(errno == EFAULT,
-                fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
                 free(actual_request);
                 free(buf);     
                 return -1);
@@ -445,7 +444,7 @@ int writeFile(const char* pathname, const char* dirname){
     free(buf);
 
     
-    CHECK_CODICE(printer, codice, pathname, "writeFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer,  codice, "writeFile", byte_letti, byte_scritti);
 
     return codice;
 }
@@ -477,7 +476,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     size_t codice;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
-        fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+        fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la appendToFile.\n"); 
         free(actual_request);
         return -1);
 
@@ -523,7 +522,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             /* Legge la risposta  */
             int byte_letti = read_size(fd_skt, &codice); 
             CHECK_OPERATION(byte_letti == -1,
-                fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la appendToFile.\n"); 
                 free(actual_request);
                 free(buf);
                 return -1);
@@ -532,8 +531,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
     free(actual_request);
     free(buf);
 
-    
-    CHECK_CODICE(printer, codice, pathname, "appendToFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, "appendToFile", byte_letti, byte_scritti);
     
     return 0;
 }
@@ -568,7 +566,7 @@ int readNFiles(int N, const char* dirname){
             errno = 0;
             byte_letti = read_size(fd_skt, &codice); 
             CHECK_OPERATION(errno == EFAULT,
-                fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la readNFiles.\n"); 
                     free(actual_request);
                     return -1);
 
@@ -622,7 +620,7 @@ int readNFiles(int N, const char* dirname){
             errno = 0;
             byte_letti = read_size(fd_skt, &codice); 
             CHECK_OPERATION(errno == EFAULT,
-                fprintf(stderr, "Non e' stato possibile leggere la risposta del server.\n"); 
+                fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la readNFiles.\n"); 
                 free(actual_request);
                 return -1;);
 
@@ -651,7 +649,7 @@ int readNFiles(int N, const char* dirname){
         }
     }
     
-    CHECK_CODICE(printer, codice, "ND", "readNFiles", byte_letti, byte_scritti);  
+    CHECK_CODICE(printer, codice, "readNFiles", byte_letti, byte_scritti);  
 
     return count;
 }

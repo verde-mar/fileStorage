@@ -101,8 +101,8 @@ int main(int argc, char const *argv[]) {
 
     /* Effettua le operazioni di bind e listen */
     fd_set set, rdset;
-    int fd_num = bind_listen(&fd_skt, &set, socketname);
-    CHECK_OPERATION(err_signal==-1, exit(-1));
+    int err = bind_listen(&fd_skt, &set, socketname);
+    CHECK_OPERATION(err==-1, exit(-1));
     
     /* Crea e inizializza i set di file descriptor */
     FD_ZERO(&rdset); 
@@ -114,27 +114,28 @@ int main(int argc, char const *argv[]) {
     FD_SET(response_pipe[0], &set);
 
     /* Calcola il massimo dei file descriptor, tra quelli delle pipe e quella rest */
-    int fd_max = max(fd_num, signal_pipe[0]);
+    int fd_max = max(fd_skt, signal_pipe[0]);
     fd_max = max(fd_max, response_pipe[0]);
 
     int err_select;
-    int no_more = 1, end = 1;
+    int ended = 1;
 
-    while(end){
+    while(ended){
         rdset = set;
         err_select = select(fd_max+1, &rdset, NULL, NULL, NULL);
         CHECK_OPERATION(err_select==-1, perror("Errore nella select."); routine_chiusura(&pool, tid_signal); free(socketname); exit(-1));
+
         for (int fd = 0; fd<=fd_max;fd++) {
             int fd_c;
             if (FD_ISSET(fd, &rdset)) {
-
                 /* E' arrivata una nuova richiesta */
-                if (fd == fd_skt && no_more) { 
+                if (fd == fd_skt) { 
                     fd_c = accept(fd_skt,NULL,0);
                     CHECK_OPERATION(fd_c == -1, fprintf(stderr, "Errore nell'accetatzione di un client.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     fprintf(table->file_log, "Accept\n");
+                    fprintf(stdout, "E' stato accettato il client: %d\n", fd_c);
                     FD_SET(fd_c, &set);
-                    if (fd_c > fd_max) fd_max = fd_c; 
+                    fd_max = max(fd_max, fd_c); 
                 } 
                 /* E' arrivato un segnale di chiusura */
                 else if(fd == signal_pipe[0]){ 
@@ -143,17 +144,20 @@ int main(int argc, char const *argv[]) {
                     int err_readn = readn(signal_pipe[0], &sig, sizeof(int));
                     CHECK_OPERATION(err_readn == -1 , fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
                     fprintf(table->file_log, "Tipo di segnale ricevuto per la chiusura: %d.\n", sig);
-                    
-                    /* Assegna al flag 0 cosi' che non siano accettate nuove richieste di connessione */
-                    no_more = 0; 
+
+                    /* Chiude la welcoming socket */
+                    int socket_chiusa = close(fd_skt);
+                    CHECK_OPERATION(socket_chiusa == -1, fprintf(stderr, "C'e' stato un errore nella chiusura della welcoming socket.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                    FD_CLR(fd_skt, &set);
+                    fd_max = aggiorna(set, fd_max);
 
                     /* Se arriva un SIGINT o un SIGQUIT */
                     if(sig == 2 || sig == 3){
-                        end = 0;
+                        ended = 0;
                         int resp_pipe = close(response_pipe[0]);
                         CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         FD_CLR(response_pipe[0], &set); 
-                        aggiorna(set, fd_max);
+                        fd_max = aggiorna(set, fd_max);
                     } 
                     /* Se arriva un SIGHUP */
                     else { 
@@ -166,13 +170,13 @@ int main(int argc, char const *argv[]) {
                     int closed_pipe = close(signal_pipe[0]);
                     CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     FD_CLR(signal_pipe[0], &set); 
-                    aggiorna(set, fd_max);
+                    fd_max = aggiorna(set, fd_max);
 
                     /* Chiude la pipe dei segnali in scrittura e la elimina dal set */
                     closed_pipe = close(signal_pipe[1]);
                     CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     FD_CLR(signal_pipe[1], &set); 
-                    aggiorna(set, fd_max);
+                    fd_max = aggiorna(set, fd_max);
                 } 
 
                 /* Uno worker ha elaborato la risposta */
@@ -187,37 +191,34 @@ int main(int argc, char const *argv[]) {
                                 free(risp->path);
                             free(risp);
                         }
-                        end = 0;
+                        ended = 0;
                         break;
-                    ); 
+                    );
                     
                     errno = 0;
                     int err_write = write_size(risp->fd_richiesta, &(risp->errore));
-                    CHECK_OPERATION(err_write == -1,
-                        perror("\nERRORE");
-                        fprintf(stderr, "fd: %d ----------- risp->errore: %ld ---- ISSET: %d instruction: %s\n", risp->fd_richiesta, risp->errore, FD_ISSET(fd, &set), (char*)risp->buffer_file);
-                    ); 
+                    CHECK_OPERATION(err_write == -1, FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max);); //TODO: va bene???
                     
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                     }
                     
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
-                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                     } 
                     
                     if(risp->deleted){
                         if((risp->deleted)->buffer){
                             int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
-                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                             
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
-                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                             
                             int del = definitely_deleted(&(risp->deleted));
-                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
+                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                         } 
                     }
 
@@ -228,26 +229,25 @@ int main(int argc, char const *argv[]) {
                     if(err_read == 0 || err_read == -1){
                         fprintf(stderr, "Il client %d ha chiuso la connessione.\n", fd);
                         FD_CLR(fd, &set); 
-                        aggiorna(set, fd_max);
-                    } else {
-                        
+                        fd_max = aggiorna(set, fd_max);
+                    } else {  
                         char* request = malloc(size); 
-                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                         
                         err_read = read_msg(fd, request, size);
-                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max);); 
+                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max);); 
 
                         size_t size_buffer;
                         err_read = read_size(fd, &size_buffer);
-                        CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
 
                         void* buffer = NULL;
                         if(size_buffer > 0){
                             buffer = malloc(size_buffer);
-                            CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
 
                             err_read = read_msg(fd, buffer, size_buffer);
-                            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); aggiorna(set, fd_max););
+                            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                         } 
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
                         CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n");  free(request); if(buffer){free(buffer);} routine_chiusura(&pool, tid_signal); exit(-1));

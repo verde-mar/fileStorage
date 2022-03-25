@@ -15,7 +15,7 @@ pidcl1=$!
 pidcl2=$!
 ./cl -f socket -p -t 100 -D ./flushed -W ./test_directory -D ./flushed -w ./test_directory/prova4.txt -D ./flushed -w ./test_directory/prova5.txt &
 pidcl3=$!
-./cl -f socket -p -t 1250 -D ./flushed -w ./test_directory/prova3.txt -D ./flushed -w ./test_directory/prova2.txt -D ./flushed -w ./test_directory/prova9.txt -D ./flushed -w ./test_directory/prova5.txt &
+./cl -f socket -p -t 125 -D ./flushed -w ./test_directory/prova3.txt -D ./flushed -w ./test_directory/prova2.txt -D ./flushed -w ./test_directory/prova9.txt -D ./flushed -w ./test_directory/prova5.txt &
 pidcl4=$!
 
 wait $pidcl1 $pidcl2 $pidcl3 $pidcl4

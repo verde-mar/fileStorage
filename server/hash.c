@@ -293,7 +293,6 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla coda cache */
             PTHREAD_LOCK(fifo_queue->mutex);
-            if(buf) free(buf);
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
@@ -301,10 +300,11 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
             if(to_delete){
                 int hash_del = hash_function(to_delete);
                 int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-                CHECK_OPERATION(open ==-1, if(buf) free(buf); return -1);
+                CHECK_OPERATION(open ==-1,  return -1);
                 if(!open){
                     int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
                     CHECK_OPERATION(del == -1, return -1); 
+                    if(buf) free(buf);
                     been_deleted = 1;
                 }
             }
@@ -324,7 +324,6 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
     int success = append_buffer(&(table->queue[hash]), path, buf, *size_buf, &(table->curr_size), &(table->max_size_reached), fd, table->file_log);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella append su un elemento nella tabella hash.\n"); 
-        if(buf) free(buf);
         return -1);
         
     return success;
@@ -342,7 +341,6 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla lista cache */
             PTHREAD_LOCK(fifo_queue->mutex);
-            if(buf) free(buf);
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
 
@@ -351,11 +349,12 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
                 /* Elimina l'elemento dalla tabella hash */
                 int hash_del = hash_function(to_delete);
                 int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-                CHECK_OPERATION(open ==-1, if(buf) free(buf); return -1);
+                CHECK_OPERATION(open ==-1, return -1);
                 if(!open){
                     int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
                     CHECK_OPERATION(del == -1, return -1); 
                     been_deleted = 1;
+                    if(buf) free(buf);
                 }
             
             }
@@ -375,7 +374,6 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
     int success = writes(&(table->queue[hash]), path, buf, *size_buf, &(table->max_size), &(table->curr_size), &(table->max_size_reached), deleted, fd, table->file_log);
     CHECK_OPERATION(success==-1, 
         fprintf(stderr, "Errore nella scrittura di un elemento nella tabella hash.\n"); 
-        if(buf) free(buf);
         return -1);
         
     return success;
@@ -433,8 +431,8 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
 
         for (nodo=table->queue[hash]->head; nodo != NULL; nodo=nodo->next)
             if (strcmp(nodo->path, *path) == 0){
-                PTHREAD_UNLOCK(table->queue[hash]->mutex);
                 PTHREAD_LOCK(nodo->mutex);
+                PTHREAD_UNLOCK(table->queue[hash]->mutex);
                 *size_buf = nodo->size_buffer;
                 *buf = nodo->buffer;
                 PTHREAD_UNLOCK(nodo->mutex);
