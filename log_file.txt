@@ -1,17 +1,16 @@
 E' stata creata la tabella hash.
 Accept
 Accept
-Accept
 Create_Lock
+Accept
 Accept
 Accept
 Write 26
 Accept
 Accept
+Open_Lock
 Accept
 Unlock
-Accept
-Open_Lock
 Accept
 Accept
 Accept
@@ -19,6 +18,11 @@ Accept
 Accept
 Close
 Accept
+Accept
+Accept
+Accept
+Accept
+Accept
 Open_Lock
 Accept
 Accept
@@ -27,27 +31,8 @@ Accept
 Accept
 Accept
 Open_Lock
-Accept
-Accept
-Accept
-Accept
-Accept
-Accept
-Accept
-Accept
 Accept
 Write 26
-Open_Lock
-Accept
-Accept
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Open_Lock
-Accept
-Accept
 Accept
 Open_Lock
 Accept
@@ -57,35 +42,48 @@ Accept
 Accept
 Accept
 Open_Lock
+Accept
+Accept
+Accept
+Accept
+Accept
 Open_Lock
+Accept
+Accept
+Accept
+Accept
+Accept
+Accept
+Open_Lock
+Accept
 Create_Lock
 Unlock
+Open_Lock
 Open_Lock
 Open_Lock
 Open_Lock
 Open_Lock
 Open_Lock
 Write 84
+Open_Lock
 Close
 Open_Lock
 Unlock
 Write 26
 Open_Lock
 Close
+Open_Lock
 Unlock
 Open_Lock
-Open_Lock
 Create_Lock
-Open_Lock
 Write 84
 Close
 Open_Lock
 Open_Lock
 Open_Lock
 Open_Lock
+Unlock
 Write 1000000
-Unlock
-Open_Lock
 Write 26
 Open_Lock
 Open_Lock
@@ -93,321 +91,638 @@ Open_Lock
 Open_Lock
 Open_Lock
 Open_Lock
+Close
 Unlock
-Close
-Close
+Open_Lock
+Open_Lock
 Unlock
 Write 84
-Create_Lock
 Close
 Open_Lock
+Close
 Open_Lock
 Unlock
+Create_Lock
+Write 26
+Close
 Write 45126
+Unlock
+Write 1000000
+Write 84
+Unlock
+Open_Lock
+Close
+Unlock
+Open_Lock
+Unlock
+Close
+Close
 Write 26
 Close
-Unlock
-Unlock
-Write 84
-Close
-Write 1000000
-Close
-Open_Lock
-Open_Lock
-Unlock
 Create_Lock
 Unlock
-Write 26
-Close
-Write 1024
-Close
-Unlock
 Write 84
-Unlock
+Write 1024
+Open_Lock
 Open_Lock
 Close
-Unlock
-Open_Lock
-Close
-Open_Lock
-Create_Lock
 Write 1000000
-Close
+Open_Lock
+Unlock
+Unlock
+Unlock
 Write 26
-Write 1024
-Unlock
-Write 84
-Unlock
-Unlock
+Close
+Close
 Write 45126
 Close
-Open_Lock
 Unlock
-Close
-Close
-Unlock
-Open_Lock
-Close
-Write 26
-Create_Lock
-Close
-Write 1000000
-Open_Lock
 Write 84
+Create_Lock
 Unlock
+Open_Lock
+Close
+Open_Lock
+Unlock
+Write 1024
+Close
+Open_Lock
+Write 26
+Write 1000000
+Close
+Unlock
+Unlock
+Unlock
+Write 84
+Close
+Open_Lock
+Write 45126
+Open_Lock
+Close
+Close
+Open_Lock
+Unlock
+Create_Lock
+Unlock
+Write 26
+Close
 Write 15
-Unlock
-Open_Lock
-Unlock
-Open_Lock
-Close
-Unlock
-Open_Lock
-Close
-Write 45126
-Close
-Close
-Write 26
-Unlock
-Write 84
-Unlock
 Write 1024
-Open_Lock
-Write 1000000
-Close
-Open_Lock
-Unlock
-Open_Lock
-Close
-Unlock
-Open_Lock
-Unlock
-Close
-Write 26
-Close
-Write 45126
-Close
-Open_Lock
-Write 84
-Unlock
-Unlock
-Open_Lock
-Unlock
-Close
-Open_Lock
-Write 1000000
-Open_Lock
-Close
-Open_Lock
-Write 1024
-Close
-Write 26
-Unlock
-Unlock
-Write 84
-Unlock
-Write 1024
-Close
-Open_Lock
-Write 45126
-Close
-Open_Lock
-Unlock
-Close
-Unlock
-Open_Lock
-Unlock
-Close
-Write 26
 Close
 Write 1000000
+Unlock
 Open_Lock
-Close
-Open_Lock
-Write 1024
 Write 84
 Unlock
 Unlock
 Unlock
+Open_Lock
+Close
 Unlock
+Close
 Open_Lock
 Close
 Open_Lock
 Close
 Write 45126
-Write 1024
-Open_Lock
-Open_Lock
-Close
-Close
 Write 26
+Close
 Unlock
 Unlock
 Write 84
+Open_Lock
+Open_Lock
 Write 1000000
-Open_Lock
-Write 15
-Unlock
-Open_Lock
-Close
-Close
-Open_Lock
 Write 1024
 Open_Lock
+Close
+Close
+Open_Lock
 Open_Lock
 Unlock
 Unlock
 Unlock
+Write 26
+Close
+Write 1024
+Close
+Close
+Write 45126
+Open_Lock
+Unlock
+Write 84
+Unlock
+Unlock
+Open_Lock
+Close
+Write 1000000
+Open_Lock
+Unlock
+Close
+Open_Lock
+Open_Lock
+Close
+Write 1024
+Write 26
+Unlock
+Close
+Unlock
+Unlock
+Close
+Write 84
+Open_Lock
+Write 45126
+Write 1024
+Open_Lock
+Close
+Close
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Unlock
+Write 1000000
+Open_Lock
+Delete
 Open_Lock
 Close
 Open_Lock
 Delete
 Open_Lock
-Unlock
-Open_Lock
-Close
-Close
-Open_Lock
-Delete
-Close
-Open_Lock
-Delete
-Open_Lock
-Write 45126
-Open_Lock
-Close
-Write 1024
-Create_Lock
-Create_Lock
-Create_Lock
-Unlock
-Unlock
-Open_Lock
-Write 26
-Write 84
-Close
-Write 1000000
-Write 1024
 Write 15
 Close
+Close
+Open_Lock
+Write 1024
+Open_Lock
+Unlock
+Open_Lock
+Create_Lock
+Open_Lock
 Open_Lock
 Unlock
 Unlock
+Open_Lock
+Close
+Open_Lock
+Write 84
+Open_Lock
+Write 45126
+Open_Lock
+Delete
+Close
+Open_Lock
+Open_Lock
+Close
+Write 1024
+Unlock
+Unlock
+Create_Lock
+Unlock
+Open_Lock
+Close
+Close
+Write 26
+Write 1024
+Write 15
+Open_Lock
+Close
+Create_Lock
 Unlock
 Unlock
 Unlock
 Write 45126
-Close
-Close
+Open_Lock
+Open_Lock
+Open_Lock
 Open_Lock
 Close
 Close
+Write 1000000
 Close
-Open_Lock
 Write 1024
+Open_Lock
 Unlock
 Open_Lock
 Create_Lock
+Unlock
+Unlock
+Close
+Write 84
+Write 1024
+Write 61
+Open_Lock
+Open_Lock
+Close
+Close
+Write 15
+Write 45126
+Open_Lock
+Unlock
+Unlock
+Unlock
+Unlock
+Open_Lock
+Unlock
+Close
+Close
+Close
+Open_Lock
+Write 1000000
+Open_Lock
+Write 1024
+Open_Lock
+Write 26
+Open_Lock
+Open_Lock
+Close
+Open_Lock
+Close
+Open_Lock
+Delete
+Create_Lock
+Unlock
+Unlock
+Unlock
+Open_Lock
+Open_Lock
+Delete
+Create_Lock
+Open_Lock
+Delete
+Open_Lock
+Open_Lock
+Write 53
+Close
+Close
+Open_Lock
+Delete
+Open_Lock
+Open_Lock
+Delete
+Open_Lock
+Write 1024
+Open_Lock
+Unlock
+Create_Lock
+Open_Lock
+Create_Lock
+Open_Lock
+Delete
+Open_Lock
+Open_Lock
+Unlock
+Close
+Open_Lock
+Write 45126
+Open_Lock
+Write 15
+Open_Lock
+Delete
+Open_Lock
+Close
+Create_Lock
+Unlock
+Unlock
+Create_Lock
+Open_Lock
+Write 61
+Close
+Close
+Write 61
+Create_Lock
+Write 1024
+Open_Lock
+Unlock
+Unlock
+Write 26
+Open_Lock
+Unlock
+Close
+Write 15
+Open_Lock
+Open_Lock
+Close
+Open_Lock
+Unlock
+Close
+Write 1024
+Create_Lock
+Unlock
+Open_Lock
+Close
+Write 1024
+Unlock
+Write 58
+Close
+Open_Lock
+Write 61
+Write 26
+Open_Lock
+Unlock
+Close
+Unlock
+Write 45126
+Unlock
+Open_Lock
+Unlock
+Close
+Write 1024
+Close
+Open_Lock
+Unlock
+Write 53
+Close
+Close
+Write 15
+Open_Lock
+Unlock
+Create_Lock
+Close
+Unlock
+Write 61
+Unlock
+Open_Lock
+Close
+Write 1024
+Write 26
+Close
+Open_Lock
+Unlock
+Open_Lock
+Close
+Write 1024
+Unlock
+Unlock
+Open_Lock
+Close
+Write 15
+Unlock
+Open_Lock
+Close
+Close
+Open_Lock
+Write 53
+Write 61
+Open_Lock
+Unlock
+Close
+Open
+Write 1024
+Unlock
+Open_Lock
+Unlock
+Close
+Write 1024
+Lock
+Open_Lock
+Unlock
+Write 61
+Close
+Close
+Write 26
+Open_Lock
+Unlock
+Unlock
+Close
+Unlock
+Write 53
+Unlock
+Open_Lock
+Close
+Close
+Open_Lock
+Unlock
+Open_Lock
+Close
+Write 15
+Write 61
+Open_Lock
+Close
+Write 26
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Write 61
+Write 53
+Open_Lock
+Unlock
+Close
+Close
+Write 1024
+Unlock
+Open_Lock
+Unlock
+Close
+Write 15
+Unlock
+Write 58
+Close
+Close
+Write 61
+Open_Lock
+Unlock
+Open_Lock
+Close
+Unlock
+Write 61
+Unlock
+Open_Lock
+Close
+Close
+Open_Lock
+Unlock
+Open_Lock
+Close
+Write 26
+Write 53
+Open_Lock
+Close
+Write 61
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Write 58
+Write 61
+Open_Lock
+Unlock
+Close
+Close
+Write 15
+Unlock
+Open_Lock
+Unlock
+Close
+Write 26
+Unlock
+Write 1024
+Close
+Close
+Write 53
+Unlock
+Open_Lock
+Open_Lock
+Close
+Unlock
+Write 58
+Unlock
+Open_Lock
+Close
+Close
+Open_Lock
+Unlock
+Open_Lock
+Close
+Write 61
+Write 61
+Open_Lock
+Open
+Close
+Write 53
+Open_Lock
+Unlock
+Unlock
+Lock
+Write 1024
+Write 58
+Open_Lock
+Unlock
+Close
+Close
+Write 26
+Unlock
+Unlock
+Open_Lock
+Close
+Write 61
+Unlock
+Close
+Close
+Write 61
+Open_Lock
+Unlock
+Open_Lock
+Close
+Open
+Unlock
+Write 1024
+Open_Lock
+Close
+Unlock
+Lock
+Open_Lock
+Close
+Unlock
+Write 53
+Write 58
 Open_Lock
 Unlock
 Close
 Write 61
-Open_Lock
-Write 1024
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Write 15
-Close
 Unlock
-Write 84
+Open_Lock
 Unlock
-Unlock
-Write 1000000
 Open_Lock
-Close
-Unlock
-Close
-Open_Lock
-Delete
-Open_Lock
-Write 26
-Close
-Open_Lock
+Open
 Write 1024
 Unlock
-Open_Lock
-Open_Lock
-Delete
-Create_Lock
 Close
-Open_Lock
-Unlock
+Close
+Write 61
+Lock
 Unlock
 Close
-Open_Lock
-Open_Lock
 Write 53
-Open_Lock
-Open_Lock
-Open_Lock
-Close
-Open_Lock
-Close
-Create_Lock
-Open_Lock
-Write 15
 Unlock
-Open_Lock
-Create_Lock
-Open_Lock
-Open_Lock
-Write 1000000
-Unlock
-Unlock
-Open_Lock
-Write 45126
-Close
+Write 58
 Close
 Open_Lock
-Open_Lock
-Write 26
 Unlock
 Open_Lock
 Close
 Unlock
-Create_Lock
+Unlock
+Open
 Open_Lock
-Delete
+Close
+Close
+Lock
+Write 61
+Write 1024
+Open_Lock
+Unlock
+Write 58
+Unlock
+Open_Lock
+Unlock
 Open_Lock
 Unlock
 Close
-Open_Lock
-Delete
 Close
+Write 53
+Close
+Write 61
+Open
+Unlock
+Write 1024
 Open_Lock
-Delete
+Unlock
+Lock
+Close
+Unlock
 Open_Lock
-Delete
-Open_Lock
-Delete
-Create_Lock
+Close
 Unlock
 Close
-Create_Lock
+Write 58
+Open_Lock
+Write 1024
+Open
+Unlock
+Open_Lock
+Unlock
+Lock
+Close
+Write 61
+Close
+Unlock
+Write 58
+Unlock
+Open
+Open_Lock
 Unlock
 Close
-Create_Lock
+Lock
+Close
+Unlock
+Write 1024
+Open_Lock
+Unlock
+Open_Lock
+Close
+Write 58
+Open
+Write 1024
+Unlock
+Lock
 Unlock
 Close
-Create_Lock
+Close
+Unlock
+Open
+Open_Lock
+Lock
+Unlock
+Write 1024
 Unlock
 Close
 Open
 Lock
+Unlock
 Tipo di segnale ricevuto per la chiusura: 2.
-Max_size_reached: 36972993
+Max_size_reached: 36975615
 Max_files_reached: 10
-Replaced: 27
+Replaced: 32
 E' stata distrutta la tabella hash.

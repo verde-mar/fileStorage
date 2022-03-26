@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 199506L
 #ifndef GESTORE_H_
 #define GESTORE_H_
 
