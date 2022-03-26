@@ -170,7 +170,10 @@ static void* working(void* pool){
 
                         /* Libera la memoria associata al client in attesa */
                         free(in_wait);
-                        CHECK_OPERATION(risp == -2, break);
+                        CHECK_OPERATION(risp == -2, 
+                            free(req->request);
+                            free(req);
+                            break);
                     }
                 }
             if(!err_rem){
