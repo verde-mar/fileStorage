@@ -391,7 +391,7 @@ int writeFile(const char* pathname, const char* dirname){
         free(actual_request);
         free(buf);     
         return -1);
-
+    
     if(dirname != NULL){
         while(codice == 909){
             size_t size_old = 0, size_path = 0;
@@ -402,18 +402,13 @@ int writeFile(const char* pathname, const char* dirname){
                 fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                 free(path);
                 free(old_file);
-                free(actual_request);
                 free(buf);     
                 return -1);
 
-            int err_save = save_on_disk((char*)dirname, path, old_file, size_old);
-            CHECK_OPERATION(err_save == -1, 
-                fprintf(stderr, "Errore nel salvataggio su disco\n");
-                    free(path);
-                    free(old_file);
-                    free(actual_request);
-                    free(buf);     
-                    return -1);
+            int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
+            CHECK_OPERATION(check_save == -1,
+                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' mi sono stati inviati dei dati nulli, per via della terminazione improvvisa del server.\n", path);
+                continue);
 
             free(path);
             free(old_file);
@@ -438,10 +433,10 @@ int writeFile(const char* pathname, const char* dirname){
                 free(actual_request);
                 free(buf);     
                 return -1);
+            free(actual_request);
         }
     }
-    free(actual_request);
-    free(buf);
+    if(buf) free(buf);
 
     
     CHECK_CODICE(printer,  codice, "writeFile", byte_letti, byte_scritti);
@@ -467,13 +462,15 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
         free(actual_request);
         return -1);
     
+    errno = 0;
     byte_scritti += write_msg(fd_skt, buf, size); 
-    CHECK_OPERATION(byte_scritti == -1,
+    CHECK_OPERATION(errno == EFAULT,
         free(actual_request);
         return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
     size_t  codice = -1;
+    errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la appendToFile.\n"); 
@@ -497,11 +494,8 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             /* Salva il file su disco */
             int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
             CHECK_OPERATION(check_save == -1,
-                fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
-                free(path);
-                free(old_file);
-                free(actual_request);
-                return -1);
+                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' mi sono stati inviati dei dati nulli, per via della terminazione improvvisa del server.\n", path);
+                continue);
 
             free(path);
             free(old_file);
@@ -582,12 +576,8 @@ int readNFiles(int N, const char* dirname){
                 /* Salva il file su disco */
                 int check_save = save_on_disk((char*)dirname, path, file, size_file);
                 CHECK_OPERATION(check_save == -1,
-                    fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
-                    free(path);
-                    free(file);
-                    free(actual_request);
-                    return -1);
-                    
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' mi sono stati inviati dei dati nulli, per via della terminazione improvvisa del server.\n", path);
+                    continue);
 
                 free(file);
                 free(path);
@@ -635,11 +625,9 @@ int readNFiles(int N, const char* dirname){
                 /* Salva il file su disco */
                 int check_save = save_on_disk((char*)dirname, path, file, size_file);
                 CHECK_OPERATION(check_save == -1,
-                    fprintf(stderr, "Non e' stato possibile salvare il file su disco.\n");
-                    free(path);
-                    free(file);
-                    free(actual_request);
-                    return -1);
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' mi sono stati inviati dei dati nulli, per via della terminazione improvvisa del server.\n", path);
+                    continue);
+                
                 free(file);
                 free(path);
             } else {

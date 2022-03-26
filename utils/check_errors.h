@@ -3,7 +3,7 @@
  * @author Sara Grecu (s.grecu1@studenti.unipi.it)
  * @brief Contiene le macro necessarie alla verifica dell'esito delle operazioni
  * @version 0.1
- * TODO: sti codici di errore sono da sistemare
+ * 
  */
 #ifndef _CHECK_ERRORS_
 #define _CHECK_ERRORS_

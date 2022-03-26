@@ -27,62 +27,67 @@
 //TODO: dovrei documentare questa funzione nella relazione
 
 int open_write_append(const char* rest, const char* dirnameD){
-    int err_caller = -1, err_unlock = -1, err_close = -1;
+    int codice = -1;
     /* Richiede l'apertura e la lock sul file identificato da rest */
-    err_caller = openFile(rest, O_CREATE | O_LOCK);
-    CHECK_OPERATION(err_caller == -1, return -1);
-    int err_w = 0, was_open = -1; 
+    codice = openFile(rest, O_CREATE | O_LOCK);
+    CHECK_OPERATION(codice == -1, return -1);
+    int was_open = -1; 
     
-    if(err_caller == 101){
-        was_open = err_caller;
-        err_caller = openFile(rest, O_LOCK);
-        CHECK_OPERATION(err_caller == -1, return -1);
+    /* Se il file esiste gia' nel server, lo apre acquisendo la lock */
+    if(codice == 101){
+        was_open = codice;
+        codice = openFile(rest, O_LOCK);
+        CHECK_OPERATION(codice == -1, return -1);
     }
 
-    if(err_caller==0){
+    /* Se l'apertura o la creazione sono andate a buon fine */
+    if(codice==0){
         /* Richiede la scrittura sul file identificato da rest */
-        err_w = writeFile(rest, dirnameD);
-        CHECK_OPERATION(err_w == 444 || err_w == -1,  
-            err_unlock = unlockFile(rest);
-            CHECK_OPERATION(err_unlock == -1, return -1);
-            err_close = closeFile(rest);
-            CHECK_OPERATION(err_close == -1, return -1);
-            return -1;);
+        codice = writeFile(rest, dirnameD);
+        CHECK_OPERATION(codice == -1,  
+            codice = unlockFile(rest);
+            CHECK_OPERATION(codice == -1, return codice);
+            codice = closeFile(rest);
+            CHECK_OPERATION(codice == -1, return codice);
+            return codice;);
     }
 
-    if(was_open == 101 && err_w == 606){
+    /* Se il file esisteva gia' ed era gia' stata fatta la write */
+    if(was_open == 101 && codice == 606){
         size_t size;
         void *buf;
 
-        int err_rbuf = read_from_file((char*)rest, &buf, &size);
-        CHECK_OPERATION(err_rbuf == -1,
-            err_close = closeFile(rest);
-            CHECK_OPERATION(err_close == -1, return -1);
-            err_unlock = unlockFile(rest);
-            CHECK_OPERATION(err_unlock == -1, return -1);
-            return -1;);
+        /* Legge dal file identificato da rest e memorizza i dati in buf*/
+        codice = read_from_file((char*)rest, &buf, &size);
+        CHECK_OPERATION(codice == -1,
+            codice = closeFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
+            codice = unlockFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
+            return codice;);
         
-        int err_append = appendToFile(rest, buf, size, dirnameD);
-        CHECK_OPERATION(err_append == -1, 
-            err_close = closeFile(rest);
-            CHECK_OPERATION(err_close == -1, return -1);
-            err_unlock = unlockFile(rest);
-            CHECK_OPERATION(err_unlock == -1, return -1);
+        /* Invia la richiesta di append su rest di buf */
+        codice = appendToFile(rest, buf, size, dirnameD);
+        CHECK_OPERATION(codice == -1, 
+            codice = closeFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
+            codice = unlockFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
             return -1;);
     }
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
-    err_unlock = unlockFile(rest);
-    CHECK_OPERATION(err_unlock == -1, return -1);
+    codice = unlockFile(rest);
+    CHECK_OPERATION(codice == -1, return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
-    err_close = closeFile(rest);
-    CHECK_OPERATION(err_close == -1, 
-        err_unlock = unlockFile(rest);
-        CHECK_OPERATION(err_unlock == -1, return -1);
-        return -1;);
+    codice = closeFile(rest);
+    CHECK_OPERATION(codice == -1, 
+        codice = unlockFile(rest);
+        CHECK_OPERATION(codice == -1, return codice);
+        return codice;);
 
-    return 0;
+    return codice;
 }
 
 int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD){ 
