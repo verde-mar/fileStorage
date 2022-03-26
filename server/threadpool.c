@@ -245,7 +245,7 @@ int destroy_threadpool(threadpool_t **threadpool){
                 CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
                 
                 /* Invia il codice di notifica a tutti i client */
-                if(in_wait){
+                if(in_wait){ 
                     int code = 999;
                     int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
                     CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
