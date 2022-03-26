@@ -441,6 +441,8 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
                 void* check = memcpy(*buf, nodo->buffer, *size_buf);  
                 CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della readN e' fallita.\n"); return -1);
                 
+                fprintf(table->file_log, "Read %ld\n", nodo->size_buffer);
+
                 PTHREAD_UNLOCK(nodo->mutex);
                 success = 0;
                 break;

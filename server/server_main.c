@@ -145,7 +145,7 @@ int main(int argc, char const *argv[]) {
                     CHECK_OPERATION(err_readn == -1 , fprintf(stderr, "Errore sulla readn nella lettura del segnale arrivato."); continue);
                     fprintf(table->file_log, "Tipo di segnale ricevuto per la chiusura: %d.\n", sig);
 
-                    /* Chiude la welcoming socket */
+                    /* Chiude la welcoming socket per non accettare piu' nuove connessioni */
                     int socket_chiusa = close(fd_skt);
                     CHECK_OPERATION(socket_chiusa == -1, fprintf(stderr, "C'e' stato un errore nella chiusura della welcoming socket.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                     FD_CLR(fd_skt, &set);
@@ -154,6 +154,10 @@ int main(int argc, char const *argv[]) {
                     /* Se arriva un SIGINT o un SIGQUIT */
                     if(sig == 2 || sig == 3){
                         ended = 0;
+                        int resp_pipe = close(response_pipe[0]);
+                        CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                        FD_CLR(response_pipe[0], &set); 
+                        fd_max = aggiorna(set, fd_max);
                     } 
                     /* Se arriva un SIGHUP */
                     else { 
@@ -162,15 +166,6 @@ int main(int argc, char const *argv[]) {
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         }
                     } 
-
-                    /* Chiude la pipe delle risposte */
-                    if(!pool->end){
-                        int resp_pipe = close(response_pipe[0]);
-                        CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-                        FD_CLR(response_pipe[0], &set); 
-                        fd_max = aggiorna(set, fd_max);
-                    }
-
                     /* Chiude la pipe dei segnali in lettura e la elimina dal set */
                     int closed_pipe = close(signal_pipe[0]);
                     CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
@@ -189,13 +184,8 @@ int main(int argc, char const *argv[]) {
                     response *risp = NULL;
                     int err_resp = readn(response_pipe[0], &risp, sizeof(response*));
                     CHECK_OPERATION(err_resp <= 0,
-                        if (risp) {
-                            if(risp->buffer_file) 
-                                free(risp->buffer_file); 
-                            if(risp->path)
-                                free(risp->path);
+                        if (risp) 
                             free(risp);
-                        }
                         ended = 0;
                         break;
                     );
