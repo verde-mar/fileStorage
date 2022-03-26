@@ -26,6 +26,7 @@ typedef struct threadpool {
     lista_richieste *pending_requests;   
     int num_thread;
     int curr_threads;
+    int end;
 } threadpool_t;
 
 /**

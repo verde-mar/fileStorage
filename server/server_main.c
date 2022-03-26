@@ -154,10 +154,6 @@ int main(int argc, char const *argv[]) {
                     /* Se arriva un SIGINT o un SIGQUIT */
                     if(sig == 2 || sig == 3){
                         ended = 0;
-                        int resp_pipe = close(response_pipe[0]);
-                        CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
-                        FD_CLR(response_pipe[0], &set); 
-                        fd_max = aggiorna(set, fd_max);
                     } 
                     /* Se arriva un SIGHUP */
                     else { 
@@ -166,6 +162,15 @@ int main(int argc, char const *argv[]) {
                             CHECK_OPERATION(err_push == -1, fprintf(stderr, "Errore nell'invio di richieste NULL per la terminazione.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
                         }
                     } 
+
+                    /* Chiude la pipe delle risposte */
+                    if(!pool->end){
+                        int resp_pipe = close(response_pipe[0]);
+                        CHECK_OPERATION(resp_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe delle risposte in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
+                        FD_CLR(response_pipe[0], &set); 
+                        fd_max = aggiorna(set, fd_max);
+                    }
+
                     /* Chiude la pipe dei segnali in lettura e la elimina dal set */
                     int closed_pipe = close(signal_pipe[0]);
                     CHECK_OPERATION(closed_pipe == -1, fprintf(stderr, "Errore nella chiusura della pipe dei segnali in lettura.\n"); routine_chiusura(&pool, tid_signal); exit(-1));
