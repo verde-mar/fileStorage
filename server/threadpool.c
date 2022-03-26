@@ -139,12 +139,14 @@ static void* working(void* pool){
                     CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
                     
                     /* Invia il codice di notifica a tutti i client */
-                    int code = 888;
-                    int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                    CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+                    if(in_wait){ 
+                        int code = 888;
+                        int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
+                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
 
-                    /* Libera la memoria associata al client in attesa */
-                    free(in_wait);
+                        /* Libera la memoria associata al client in attesa */
+                        free(in_wait);
+                    }
                 }
             if(!err_rem){
                 err_rem = definitely_deleted(&deleted);
@@ -246,7 +248,6 @@ int destroy_threadpool(threadpool_t **threadpool){
                 
                 /* Invia il codice di notifica a tutti i client */
                 if(in_wait){ 
-                    
                     int code = 999;
                     int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
                     CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
