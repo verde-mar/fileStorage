@@ -224,7 +224,7 @@ int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log
 
     /* Cerca per verificare se il file esiste nella tabella */
     node* nodo = look_for_node(lista_trabocco, file_path);
-    CHECK_OPERATION(nodo == NULL, return 404);
+    CHECK_OPERATION(nodo == NULL, return 505);
     
     PTHREAD_LOCK(nodo->mutex);
 
@@ -248,7 +248,7 @@ int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
 
     /* Cerca per verificare se il file esiste gia' nella tabella */
     node* nodo = look_for_node(lista_trabocco, file_path);
-    CHECK_OPERATION(nodo == NULL, return 404);
+    CHECK_OPERATION(nodo == NULL, return 505);
     
     PTHREAD_LOCK(nodo->mutex);
 
@@ -483,7 +483,10 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     /* Se il nodo e' aperto ed e' stata acquisita la lock */
     if(FD_ISSET(fd, &(nodo->open)) && nodo->fd_c == fd){
         *size_buf = nodo->size_buffer;
-        *buf = nodo->buffer;
+        *buf = malloc(*size_buf);
+        CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+        void* check = memcpy(*buf, nodo->buffer, *size_buf);  
+        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della read e' fallita.\n"); return -1);
         
         fprintf(file_log, "Read %ld\n", nodo->size_buffer);
     } 

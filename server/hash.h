@@ -181,7 +181,6 @@ int append_hashtable(char* file_path, void* buf, size_t* size_buf, node** delete
  *              505 nel caso in cui il file non esista
  *              444 nel caso in cui i dati del file da scrivere siano troppi 
  *              909 nel caso in cui sia stato eliminato un file
- *              808 nel caso in cui sia gia' stata fatta la writeFile su quel file
  */
 int write_hashtable(char* file_path, void* buf, size_t* size_buf, node** deleted, int fd);
 

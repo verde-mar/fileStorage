@@ -197,7 +197,7 @@ int main(int argc, char const *argv[]) {
                     
                     errno = 0;
                     int err_write = write_size(risp->fd_richiesta, &(risp->errore));
-                    CHECK_OPERATION(err_write == -1, FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max);); //TODO: va bene???
+                    CHECK_OPERATION(err_write == -1, FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max); ); //TODO: va bene???
                     
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
@@ -207,6 +207,7 @@ int main(int argc, char const *argv[]) {
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
                         CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        free(risp->buffer_file);
                     } 
                     
                     if(risp->deleted){

@@ -238,7 +238,6 @@ int destroy_threadpool(threadpool_t **threadpool){
         node* curr = table->queue[i]->head;
         while(curr){
             while((curr->waiting_list)->head){
-                (curr->waiting_list)->head = ((curr->waiting_list)->head)->next;
                 client *in_wait = NULL;
                 
                 /* Preleva ogni client della lista di attesa */
@@ -246,12 +245,15 @@ int destroy_threadpool(threadpool_t **threadpool){
                 CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
                 
                 /* Invia il codice di notifica a tutti i client */
-                int code = -1;
-                int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-
-                /* Libera la memoria associata al client in attesa */
-                free(in_wait);
+                if(in_wait){
+                    int code = 999;
+                    int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
+                    CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+                    
+                    /* Libera la memoria associata al client in attesa */
+                    free(in_wait);
+                }
+                
             }
             curr = curr->next;
         }

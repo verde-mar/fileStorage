@@ -111,7 +111,7 @@ int openFile(const char *pathname, int flags){
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(byte_scritti == -1,
         fprintf(stderr, "Non e' stato possibile inviare la richiesta al server.\n"); 
@@ -151,7 +151,7 @@ int lockFile(const char* pathname){
         return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
@@ -163,7 +163,7 @@ int lockFile(const char* pathname){
     
     CHECK_CODICE(printer,  codice, "lockFile", byte_letti, byte_scritti);
 
-    return 0;
+    return codice;
 }
 
 int unlockFile(const char* pathname){
@@ -197,7 +197,7 @@ int unlockFile(const char* pathname){
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
@@ -207,7 +207,7 @@ int unlockFile(const char* pathname){
     
     CHECK_CODICE(printer,  codice, "unlockFile", byte_letti, byte_scritti);
     
-    return 0;
+    return codice;
 }
 
 int removeFile(const char* pathname){
@@ -241,7 +241,7 @@ int removeFile(const char* pathname){
     free(actual_request);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la removeFile.\n");
@@ -250,7 +250,7 @@ int removeFile(const char* pathname){
     
     CHECK_CODICE(printer,  codice, "removeFile", byte_letti, byte_scritti);
 
-    return 0;
+    return codice;
 }
 
 int closeFile(const char* pathname){
@@ -285,7 +285,7 @@ int closeFile(const char* pathname){
     free(actual_request);
     
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la closeFile.\n"); 
@@ -294,7 +294,7 @@ int closeFile(const char* pathname){
     
     CHECK_CODICE(printer,  codice, "closeFile", byte_letti, byte_scritti);
 
-    return 0;
+    return codice;
 }
 
 int readFile(const char* pathname, void** buf, size_t *size){ 
@@ -327,7 +327,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
     free(actual_request);
 
     /* Legge la risposta dal server */
-    size_t codice;
+    size_t  codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(byte_letti==-1, fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la readFile.\n"); return -1);
    
@@ -350,7 +350,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
     
     CHECK_CODICE(printer,  codice, "readFile", byte_letti, byte_scritti);
     
-    return 0;
+    return codice;
 }
 
 int writeFile(const char* pathname, const char* dirname){
@@ -379,7 +379,7 @@ int writeFile(const char* pathname, const char* dirname){
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
@@ -473,7 +473,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
         return -1);
 
     /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-    size_t codice;
+    size_t  codice = -1;
     int byte_letti = read_size(fd_skt, &codice); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la appendToFile.\n"); 
@@ -533,7 +533,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
 
     CHECK_CODICE(printer, codice, "appendToFile", byte_letti, byte_scritti);
     
-    return 0;
+    return codice;
 }
 
 int readNFiles(int N, const char* dirname){ 

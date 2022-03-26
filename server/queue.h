@@ -211,7 +211,6 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  *              505 nel caso in cui il file non esista
  *              444 nel caso in cui i dati del file da scrivere siano troppi 
  *              909 nel caso in cui sia stato eliminato un file
- *              808 nel caso in cui sia gia' stata fatta la writeFile su quel nodo
  */
 int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size,  int* max_size_reached, node** deleted, int fd, FILE* file_log);
 

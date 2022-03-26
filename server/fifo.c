@@ -293,8 +293,11 @@ int del_list_wait(client **head_client, clients_in_wait* list){
     
     curr = list->head;
     *head_client = curr;
-    list->head = curr->next; 
-    
+    if(curr){
+        list->head = curr->next; 
+    } else {
+        list->head = NULL;
+    }
     list->elements--;
 
     return 0;

@@ -433,8 +433,14 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
             if (strcmp(nodo->path, *path) == 0){
                 PTHREAD_LOCK(nodo->mutex);
                 PTHREAD_UNLOCK(table->queue[hash]->mutex);
+
+                /* Legge il buffer */
                 *size_buf = nodo->size_buffer;
-                *buf = nodo->buffer;
+                *buf = malloc(*size_buf);
+                CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+                void* check = memcpy(*buf, nodo->buffer, *size_buf);  
+                CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della readN e' fallita.\n"); return -1);
+                
                 PTHREAD_UNLOCK(nodo->mutex);
                 success = 0;
                 break;
