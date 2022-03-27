@@ -122,16 +122,21 @@ static node* node_create(list_t **queue, char* file_path, int fd){
 static int lock_acquire(node *nodo, int fd, FILE *file_log){
     CHECK_OPERATION(nodo == NULL || fd < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
-    if(nodo->fd_c == fd)
+    if(nodo->fd_c == fd) {
+        printf("IL NODO %d HA PROVATO A RICHIEDERE LA LOCK SU %s CHE AVEVA GIA'\n", fd, nodo->path);
         return 0;
+    }
 
     if(nodo->fd_c == -1){
         nodo->fd_c = fd;
+        printf("IL NODO %d HA OTTENUTO LA LOCK SU %s CHE ERA LIBERO\n", fd, nodo->path);
         return 0;
     }
     
     int add_cl = add_list_wait(fd, nodo->waiting_list);
     CHECK_OPERATION(add_cl == -1, fprintf(stderr, "Errore nella aggiunta di un file nella lista di attesa.\n"); return -1);
+    printf("IL NODO %d E' STATO MESSO IN LISTA DI ATTESA SU %s\n", fd, nodo->path);
+
 
     return 1;
 }
@@ -185,6 +190,10 @@ int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *
     CHECK_OPERATION(nodo == NULL, 
         nodo = node_create(lista_trabocco, file_path, fd);
         if(nodo == NULL) return -1);
+    /* Setta la lock */
+    nodo->fd_c = fd;
+    /* Setta il flag che indica se l'operazione immediatamente precedente e' stata la create_lock */
+    nodo->fd_create_open = fd;
     
     PTHREAD_LOCK(fifo_queue->mutex);
     PTHREAD_LOCK((*lista_trabocco)->mutex);
@@ -202,11 +211,6 @@ int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *
     /* Aggiunge effettivamente il nodo alla tabella hash */
     nodo->next = (*lista_trabocco)->head; 
     (*lista_trabocco)->head = nodo;
-
-    /* Setta la lock */
-    nodo->fd_c = fd;
-    /* Setta il flag che indica se l'operazione immediatamente precedente e' stata la create_lock */
-    nodo->fd_create_open = fd;
 
     /* Aggiorna il file di log */
     fprintf(file_log, "Create_Lock\n");
@@ -273,23 +277,25 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
     int remover = del(file_path);
     CHECK_OPERATION(remover == -1, 
+        printf("[SERVER] IL NODO CON PATH %s NON E' NELLA CODA FIFO.\n", file_path);
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return -1);
-
+    printf("[SERVER]: IL NODO CON PATH %s E' STATO TROVATO NELLA CODA FIFO.\n", file_path);
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
         fprintf(file_log, "Delete\n"); 
-        
+        printf("[SERVER] LA LISTA DI TRABOCCO E' NULL.\n");
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
 
-        return 0;
+        return -1;
     }
 
     curr = (*lista_trabocco)->head;
     if(curr){
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
+            printf("HO TROVATO IL NODO %s ED E' IL PRIMO.\n", curr->path);
             PTHREAD_LOCK(curr->mutex);
             *just_deleted = curr;
             (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
@@ -310,6 +316,8 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     curr = curr->next;
     while (curr != NULL){
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
+            printf("HO TROVATO IL NODO %s E NON E' IL PRIMO.\n", curr->path);
+
             PTHREAD_LOCK(curr->mutex);
             *just_deleted = curr;
             (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
@@ -326,9 +334,10 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
         }
         curr = curr->next;
     }
+    printf("NON HO TROVATO IL NODO.\n");
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
-
+    
     return -1;
 }
 

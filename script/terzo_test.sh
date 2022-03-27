@@ -4,7 +4,7 @@
 mkdir ./flushed ./read
 
 # Avvia il server
-valgrind -s ./smain ./files/file_config.txt ./files/log_file.txt &
+valgrind -s --leak-check=full ./smain ./files/file_config.txt ./files/log_file.txt &
 
 sleep 3
 

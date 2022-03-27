@@ -374,7 +374,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-    
+    printf(" -      HO APPENA INVIATO LA RICHIESTA DI SCRITTURA PER %s\n", actual_request);
     /* Invia il buffer */
     errno = 0;
     byte_scritti += write_msg(fd_skt, buf, size); 
@@ -384,65 +384,67 @@ int writeFile(const char* pathname, const char* dirname){
     size_t  codice = -1;
     errno = 0;
     int byte_letti = read_size(fd_skt, &codice); 
-    CHECK_OPERATION(errno == EFAULT,
+    CHECK_OPERATION(byte_letti == -1,
         fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
         free(actual_request);
         free(buf);     
         return -1);
-    
-    CHECK_OPERATION(codice == -1, fprintf(stderr, "Errore nella write. Il file non poteva essere scritto.\n");
-        free(actual_request);
-        free(buf);     
-        return -1);    
-        if(dirname != NULL){
-            while(codice == 909){
-                size_t size_old = 0, size_path = 0;
-                void *old_file;
-                char *path; 
+        
+    if(dirname != NULL){
+        int volte = 1;
+        while(codice == 909 && codice != 333 && codice != 444){
+            size_t size_old = 0, size_path = 0;
+            void *old_file = NULL;
+            char *path = NULL;
 
-                /* Riceve i dati del file espulso dal server */
-                int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
-                CHECK_OPERATION(err_receiver == -1, 
-                    fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
-                    free(path);
-                    free(old_file);
-                    free(buf);     
-                    return -1);
-
-                /* Salva il file su disco nella directory specificata */
-                int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
-                CHECK_OPERATION(check_save == -1,
-                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path));
-
+            /* Riceve i dati del file espulso dal server */
+            int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
+            CHECK_OPERATION(err_receiver == -1, 
+                fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
                 free(path);
                 free(old_file);
-                
-                /* Invia la richiesta */
-                errno = 0;
-                byte_scritti += write_msg(fd_skt, actual_request, len); 
-                CHECK_OPERATION(errno == EFAULT, free(actual_request); free(buf); return -1);
-                
-                /* Invia il buffer */
-                errno = 0;
-                byte_scritti += write_msg(fd_skt, buf, size); 
-                CHECK_OPERATION(errno == EFAULT, free(actual_request); free(buf); return -1);
+                free(buf);     
+                return -1);
+
+            /* Salva il file su disco nella directory specificata */
+            int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
+            CHECK_OPERATION(check_save == -1,
+                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
+                free(path);
+                free(old_file);
+                free(actual_request);     
+                return -1);
+
+            free(path);
+            free(old_file);
+            printf("ACTUAL REQUEST CHE STA INVIANDO IL CLIENT NELLA WRITE: %s\n", actual_request);
             
-                /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
-                errno = 0;
-                byte_letti += read_size(fd_skt, &codice); 
-                CHECK_OPERATION(errno == EFAULT,
-                    fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
-                    free(actual_request);
-                    free(buf);     
-                    return -1);
-                    CHECK_OPERATION(codice == -1, fprintf(stderr, "Errore nella write. Il file non poteva essere scritto.\n");
-                    free(actual_request);
-                    free(buf);     
-                    return -1);
-            }
+            /* Invia la richiesta */
+            errno = 0;
+            byte_scritti += write_msg(fd_skt, actual_request, len); 
+            CHECK_OPERATION(errno == EFAULT, free(actual_request); free(buf); return -1);
+            
+            /* Invia il buffer */
+            errno = 0;
+            byte_scritti += write_msg(fd_skt, buf, size); 
+            CHECK_OPERATION(errno == EFAULT, free(actual_request); free(buf); return -1);
+        
+            /* Legge la risposta e in base al suo valore stampa una stringa se printer e' uguale ad 1 */
+            errno = 0;
+            byte_letti += read_size(fd_skt, &codice); 
+            CHECK_OPERATION(errno == EFAULT,
+                fprintf(stderr, "Non e' stato possibile leggere il codice di risposta del server per la writeFile.\n"); 
+                free(actual_request);
+                free(buf);     
+                return -1);
+            volte++;
+            printf("CODICE DI RISPOSTA %d VOLTA: %ld\n", volte, codice);
+            
         }
+        printf("HO RICHIESTO LA WRITE DI %s E HO AVUTO SUCCESSO\n", pathname);
+    }
     free(actual_request); 
-    if(buf) free(buf);
+    free(buf);
 
     CHECK_CODICE(printer,  codice, "writeFile", byte_letti, byte_scritti);
 
@@ -483,10 +485,10 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
         return -1);
 
     if(dirname != NULL){
-        while(codice == 909){
+        while(codice == 909 && codice != 333 && codice != 444){
             size_t size_old, size_path = 0;
-            void *old_file;
-            char *path;
+            void *old_file = NULL;
+            char *path = NULL;
 
             /* Riceve i dati del file espulso dal server */
             int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &old_file, &size_old);
@@ -500,7 +502,11 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
             /* Salva il file su disco nella directory specificata */
             int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
             CHECK_OPERATION(check_save == -1,
-                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path));
+                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
+                free(path);
+                free(old_file);
+                free(actual_request);     
+                return -1);
 
             free(path);
             free(old_file);
@@ -539,7 +545,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
 int readNFiles(int N, const char* dirname){ 
     void* file;
     size_t codice = 0, size_path = 0, size_file = 0;
-    int byte_scritti = -1, byte_letti = -1, count = 0;
+    int byte_scritti = 0, byte_letti = 0, count = 0;
     char* actual_request, *path;
     unsigned short i=0;
     

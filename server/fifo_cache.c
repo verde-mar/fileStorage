@@ -76,7 +76,7 @@ int add_fifo(char *file_path){
 
 int del(char *file_path){
     node_c* curr, *prev;
-    
+
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
     if (strcmp(curr->path, file_path) == 0){
@@ -106,7 +106,18 @@ int del(char *file_path){
 }
 
 char* head_name(list_cache *queue){
-    char *name = (char*)(queue->head)->path;
-
+    char *name = NULL;
+    if(queue->head)
+        name = (char*)(queue->head)->path;
+    
     return name;
+}
+
+node_c* del_head(){
+    
+    node_c *tmp = fifo_queue->head;
+    if(tmp)
+        fifo_queue->head = (fifo_queue->head)->next;
+    
+    return tmp;
 }

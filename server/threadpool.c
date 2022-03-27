@@ -50,7 +50,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, void* buf, size_t size_b
     CHECK_OPERATION(err_pipe<=0, 
         fprintf(stderr, "La pipe delle risposte e' chiusa, quindi il thread deve terminare.\n");
         free(risp);
-        return -2);
+        return -1);
         
     return 0;
 }
@@ -75,89 +75,81 @@ static void* working(void* pool){
                     CHECK_OPERATION(closed == -1, fprintf(stderr, "Errore sulla chiusura della response_pipe.\n"); free(req); break;)
             }
             free(req); 
-            break);
-
+            break;);
         /* Tokenizza la richiesta */
         char *operation, *path;
         int err_token = tokenizer(req->request, &operation, &path);
-        CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); continue);
+        CHECK_OPERATION(err_token == -1, fprintf(stderr, "Errore nella tokenizzazione della stringa di richiesta.\n"); if(req->buffer){free(req->buffer);} free(req); continue);
         
         /* In base alla richiesta chiama il metodo corretto e invia la risposta al thread main */
         if(!strcmp(operation, "write")){
             node *deleted = NULL;
             int err_write = write_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd); 
-            CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"); continue);
+            CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"););
+            if(deleted) printf("[SERVER]HO ELIMINATO nella write %s\n", deleted->path);
             
             int err_invio = invia_risposta((*threadpool), err_write, req->fd, NULL, 0, NULL, deleted);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
-
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);
+            
         } else if(!strcmp(operation, "read")){
             void* buf;
             size_t size_buf;
             int err_read = read_hashtable(path, &buf, &size_buf, req->fd);
-            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore sulla read_hashtable.\n"); continue);
+            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore sulla read_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);
         } else if(!strcmp(operation, "append")){
             node *deleted = NULL;
             int err_append = append_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd);
-            CHECK_OPERATION(err_append == -1, fprintf(stderr, "Errore sulla append_hashtable.\n"); continue);
+            CHECK_OPERATION(err_append == -1, fprintf(stderr, "Errore sulla append_hashtable.\n"););
+            if(deleted) printf("\nHO ELIMINATO nella append %s\n", deleted->path);
+
             int err_invio = invia_risposta((*threadpool), err_append, req->fd, NULL, 0, NULL, deleted);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);
         } else if(!strcmp(operation, "lock")){
             int err_lock = lock_hashtable(path, req->fd);
-            CHECK_OPERATION(err_lock == -1, fprintf(stderr, "Errore sulla lock_hashtable.\n"); continue);
+            CHECK_OPERATION(err_lock == -1, fprintf(stderr, "Errore sulla lock_hashtable.\n"); );
             if(err_lock != 1){
                 int err_invio = invia_risposta((*threadpool), err_lock, req->fd, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-                CHECK_OPERATION(err_invio == -2, 
+                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
                     free(req->request);
                     free(req);
-                    break);
+                    continue);
             } 
         } else if(!strcmp(operation, "unlock")){
             int fd_next = -1;
             int err_unlock = unlock_hashtable(path, req->fd, &fd_next);
-            CHECK_OPERATION(err_unlock == -1, fprintf(stderr, "Errore sulla unlock_hashtable.\n"); continue);
+            CHECK_OPERATION(err_unlock == -1, fprintf(stderr, "Errore sulla unlock_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_unlock, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); );
             if(fd_next != -1){
                 err_invio = invia_risposta((*threadpool), err_unlock, fd_next, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-                CHECK_OPERATION(err_invio == -2, 
+                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
                     free(req->request);
                     free(req);
-                    break);
+                    continue);
             }
         } else if(!strcmp(operation, "close")){
             int err_close = close_hashtable(path, req->fd);
-            CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore sulla close_hashtable.\n"); continue);
+            CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore sulla close_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_close, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);   
         } else if(!strcmp(operation, "remove")){
             node* deleted = NULL;
             int err_rem = del_hashtable(path, &deleted, req->fd); 
-            CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"); continue);
+            CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore sulla del_hashtable.\n"););
             
             if(deleted)
                 while((deleted->waiting_list)->head){
@@ -166,95 +158,135 @@ static void* working(void* pool){
                     
                     /* Preleva ogni client della lista di attesa */
                     int deln = del_list_wait(&in_wait, deleted->waiting_list);
-                    CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
+                    CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n");  
+                        free(req->request); //TODO: questa gestione non va bene
+                        free(req);
+                        continue);
                     
                     /* Invia il codice di notifica a tutti i client */
                     if(in_wait){ 
                         int code = 888;
                         int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                            free(req->request);
+                            free(req);
+                            continue);
 
                         /* Libera la memoria associata al client in attesa */
                         free(in_wait);
-                        CHECK_OPERATION(risp == -2, 
-                            free(req->request);
-                            free(req);
-                            break);
                     }
                 }
             if(!err_rem){
                 err_rem = definitely_deleted(&deleted);
-                CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); continue);
+                CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
             }
             int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);
         } else if(!strcmp(operation, "readN")){
             void* buf;
             size_t size_buf;
             int N = strtol(path, NULL, 10);
             int err_read = readN_hashtable(N, &buf, &size_buf, req->fd, &path);
-            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella readN_hashtable.\n"); continue);
+            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella readN_hashtable.\n"););
             
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);
+        } else if(!strcmp(operation, "create_lock")){
+            node *deleted = NULL;
+            int err_clh = creates_locks_hashtable(path, req->fd, &deleted); 
+            CHECK_OPERATION(err_clh == -1, fprintf(stderr, "Errore sulla creates_locks_hashtable.\n"); );
+            if(err_clh == 909){
+                while((deleted->waiting_list)->head){
+                    (deleted->waiting_list)->head = ((deleted->waiting_list)->head)->next;
+                    client *in_wait = NULL;
+                    
+                    /* Preleva ogni client della lista di attesa */
+                    int deln = del_list_wait(&in_wait, deleted->waiting_list);
+                    CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n");  
+                        free(req->request); //TODO: questa gestione non va bene
+                        free(req);
+                        continue);
+                    
+                    /* Invia il codice di notifica a tutti i client */
+                    if(in_wait){ 
+                        int code = 888;
+                        int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
+                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                            free(req->request);
+                            free(req);
+                            continue);
+
+                        /* Libera la memoria associata al client in attesa */
+                        free(in_wait);
+                    }
+                }
+
+                int err_cd = definitely_deleted(&deleted);
+                CHECK_OPERATION(err_cd == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n");
                     free(req->request);
                     free(req);
-                    break);
-        } else if(!strcmp(operation, "create_lock")){
-            node *just_deleted = NULL;
-            int err_clh = creates_locks_hashtable(path, req->fd, &just_deleted); 
-            CHECK_OPERATION(err_clh == -1, fprintf(stderr, "Errore sulla creates_locks_hashtable.\n"); continue);
-            if(err_clh == 909){
-                int err_cd = definitely_deleted(&just_deleted);
-                CHECK_OPERATION(err_cd == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); continue);
+                    continue);
             }
             int err_invio = invia_risposta((*threadpool), err_clh, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                free(req->request);
+                free(req);
+                continue);
         } else if(!strcmp(operation, "create")){
-            node *just_deleted = NULL;
-            int err_ch = creates_hashtable(path, req->fd, &just_deleted); 
-            CHECK_OPERATION(err_ch == -1, fprintf(stderr, "Errore sulla creates.\n"); continue);
+            node *deleted = NULL;
+            int err_ch = creates_hashtable(path, req->fd, &deleted); 
+            CHECK_OPERATION(err_ch == -1, fprintf(stderr, "Errore sulla creates.\n"); );
             if(err_ch == 909){
-                int err_cdh = definitely_deleted(&just_deleted);
-                CHECK_OPERATION(err_cdh == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); continue);
+                while((deleted->waiting_list)->head){
+                    (deleted->waiting_list)->head = ((deleted->waiting_list)->head)->next;
+                    client *in_wait = NULL;
+                    
+                    /* Preleva ogni client della lista di attesa */
+                    int deln = del_list_wait(&in_wait, deleted->waiting_list);
+                    CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n");  
+                        free(req->request); //TODO: questa gestione non va bene
+                        free(req);
+                        continue);
+                    
+                    /* Invia il codice di notifica a tutti i client */
+                    if(in_wait){ 
+                        int code = 888;
+                        int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
+                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                            free(req->request);
+                            free(req);
+                            continue);
+
+                        /* Libera la memoria associata al client in attesa */
+                        free(in_wait);
+                    }
+                }
+                int err_cdh = definitely_deleted(&deleted);
+                CHECK_OPERATION(err_cdh == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); );
             }
             int err_invio = invia_risposta((*threadpool), err_ch, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);
+
         } else if(!strcmp(operation, "open")){
             int err_oh = opens_hashtable(path, req->fd); 
-            CHECK_OPERATION(err_oh == -1, fprintf(stderr, "Errore sulla opens.\n"); continue);
+            CHECK_OPERATION(err_oh == -1, fprintf(stderr, "Errore sulla opens.\n"); );
+
             int err_invio = invia_risposta((*threadpool), err_oh, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);   
-            CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);   
 
         } else if(!strcmp(operation, "open_lock")){
             int err_lh = opens_locks_hashtable(path, req->fd); 
-            CHECK_OPERATION(err_lh == -1, fprintf(stderr, "Errore sulla opens_locks_hashtable.\n"); continue);
+            CHECK_OPERATION(err_lh == -1, fprintf(stderr, "Errore sulla opens_locks_hashtable.\n"); );
             if(err_lh != 1){
                 int err_invio = invia_risposta((*threadpool), err_lh, req->fd, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);   
-                CHECK_OPERATION(err_invio == -2, 
-                    free(req->request);
-                    free(req);
-                    break);
+                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);   
+
             }
         }
+        //printf("HO APPENA ESEGUITO LA %s PER %d\n", req->request, req->fd);
         free(req->request);
         free(req);
     }
@@ -303,7 +335,7 @@ int destroy_threadpool(threadpool_t **threadpool){
                 
                 /* Preleva ogni client della lista di attesa */
                 int deln = del_list_wait(&in_wait, curr->waiting_list);
-                CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); continue);
+                CHECK_OPERATION(deln == -1, fprintf(stderr, "Errore nell'invio ad un client della eliminazione di un nodo per cui aveva fatto richiesta.\n"); break);
                 
                 /* Invia il codice di notifica a tutti i client */
                 if(in_wait){ 

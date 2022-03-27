@@ -86,7 +86,7 @@ int open_write_append(const char* rest, const char* dirnameD){
             CHECK_OPERATION(codice == -1, return codice);
             codice = closeFile(rest);
             CHECK_OPERATION(codice == -1, return codice);
-            return codice;);
+            return -1;);
     }
 
     /* Se il file esisteva gia' ed era gia' stata fatta la write */
@@ -95,13 +95,13 @@ int open_write_append(const char* rest, const char* dirnameD){
         void *buf;
 
         /* Legge dal file identificato da rest e memorizza i dati in buf*/
-        codice = read_from_file((char*)rest, &buf, &size);
-        CHECK_OPERATION(codice == -1,
-            codice = unlockFile(rest);
-            CHECK_OPERATION(codice == -1, return -1);
-            codice = closeFile(rest);
-            CHECK_OPERATION(codice == -1, return -1);
-            return codice;);
+        int err_ = read_from_file((char*)rest, &buf, &size);
+        CHECK_OPERATION(err_ == -1,
+            err_ = unlockFile(rest);
+            CHECK_OPERATION(err_ == -1, return -1);
+            err_ = closeFile(rest);
+            CHECK_OPERATION(err_ == -1, return -1);
+            return -1;);
         
         /* Invia la richiesta di append su rest di buf */
         codice = appendToFile(rest, buf, size, dirnameD);
@@ -114,16 +114,16 @@ int open_write_append(const char* rest, const char* dirnameD){
     }
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
-    codice = unlockFile(rest);
-    CHECK_OPERATION(codice == -1, 
-        codice = closeFile(rest);
-        CHECK_OPERATION(codice == -1, return codice;);
+    int cond_unlock = unlockFile(rest);
+    CHECK_OPERATION(cond_unlock == -1, 
+        cond_unlock = closeFile(rest);
+        CHECK_OPERATION(cond_unlock == -1, return -1;);
         return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
-    codice = closeFile(rest);
-    CHECK_OPERATION(codice == -1, return codice;);
-
+    int err_close = closeFile(rest);
+    CHECK_OPERATION(err_close == -1, return -1;);
+    printf("CODICE NELLA OPEN_WRITE_APPEND: %d\n", codice);
     return codice;
 }
 
@@ -140,7 +140,6 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
             path = strcpy((char*)path, pathname);
             path = strcat((char*)path, "/");
             path = strcat((char*)path, file->d_name);
-            printf("STO PER MANDARE %s\n", path);
 
             if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
                 if(is_regular_file(path)){
@@ -201,6 +200,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     CHECK_OPERATION(*old_file == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
+        
 
     /* Legge il buffe di dati che si sta per ricevere */
     errno = 0;
@@ -208,6 +208,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il file.\n"); 
                 return -1);
+
                 
     return 0;
 }

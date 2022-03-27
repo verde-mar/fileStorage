@@ -61,7 +61,7 @@ int add_list_wait(int file_d, clients_in_wait* list){
 }
 
 int del_list_wait(client **head_client, clients_in_wait* list){
-    CHECK_OPERATION(head_client == NULL || list == NULL, fprintf(stderr, "Parametri non validi.\n"); return -1;);
+    CHECK_OPERATION(list == NULL, fprintf(stderr, "Parametri non validi.\n"); return -1;);
     client* curr;
     
     curr = list->head;

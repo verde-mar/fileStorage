@@ -21,10 +21,20 @@
  */
 void routine_chiusura(threadpool_t **pool, pthread_t tid_signal){
     int err_d1 = destroy_threadpool(pool);
-    CHECK_OPERATION(err_d1 == -1, fprintf(stderr, "Errore nella distruzione del threadpool.\n"); exit(-1));
+    CHECK_OPERATION(err_d1 == -1, 
+        fprintf(stderr, "Errore nella distruzione del threadpool.\n"); 
+        int err_d2 = destroy_hashtable();
+        CHECK_OPERATION(err_d2 == -1, fprintf(stderr, "Errore nella distruzione della tabella hash.\n"); exit(-1));
+        int err_join = pthread_join(tid_signal, NULL);
+        CHECK_OPERATION(err_join != 0, fprintf(stderr, "Errore nell'attesa del gestore dei segnali.\n"); exit(-1));
+        exit(-1));
 
     int err_d2 = destroy_hashtable();
-    CHECK_OPERATION(err_d2 == -1, fprintf(stderr, "Errore nella distruzione della tabella hash.\n"); exit(-1));
+    CHECK_OPERATION(err_d2 == -1, 
+        fprintf(stderr, "Errore nella distruzione della tabella hash.\n"); 
+        int err_join = pthread_join(tid_signal, NULL);
+        CHECK_OPERATION(err_join != 0, fprintf(stderr, "Errore nell'attesa del gestore dei segnali.\n"); exit(-1));
+        exit(-1));
 
     int err_join = pthread_join(tid_signal, NULL);
     CHECK_OPERATION(err_join != 0, fprintf(stderr, "Errore nell'attesa del gestore dei segnali.\n"); exit(-1));
@@ -244,6 +254,7 @@ int main(int argc, char const *argv[]) {
                     
                     if(risp->deleted){
                         if((risp->deleted)->buffer){
+                           
                             int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
                             CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                             

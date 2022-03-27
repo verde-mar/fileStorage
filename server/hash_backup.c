@@ -25,6 +25,50 @@ unsigned long hash_function(char *str){
     return (hash%16);
 }
 
+
+static int delete_lista_trabocco(list_t* lista_trabocco, char* path, node** just_deleted) {
+    node* curr = lista_trabocco->head;
+    node* prev = NULL;
+    while (curr != NULL) {
+        if (strcmp(curr->path, path) != 0) {
+            prev = curr;
+            curr = curr->next;
+        }
+    }
+    if (curr == NULL)
+        return -1;
+    if (prev != NULL)
+        prev->next = curr->next;
+    else
+        lista_trabocco->head = curr->next;
+    *just_deleted = curr;
+    return 0;
+}
+
+static int delete_first_element_fifo(node** just_deleted){
+
+    PTHREAD_LOCK(fifo_queue->mutex);
+    node_c *head_fifo = del_head();
+    CHECK_OPERATION(head_fifo == NULL,
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+        fprintf(stderr, "Non ci sono elementi nella coda FIFO\n");
+        return 333;
+    );
+    int hash = hash_function(head_fifo->path);
+    list_t* lista_trabocco = table->queue[hash];
+    PTHREAD_LOCK(lista_trabocco->mutex);
+    int err = delete_lista_trabocco(lista_trabocco, head_fifo->path, just_deleted);
+    PTHREAD_UNLOCK(lista_trabocco->mutex);
+    CHECK_OPERATION(err == -1,
+        PTHREAD_UNLOCK(fifo_queue->mutex);
+        fprintf(stderr, "Nodo %s rimosso dalla coda FIFO ma non trovato nella tabella hash\n", head_fifo->path);
+        return -1;
+    );
+    PTHREAD_UNLOCK(fifo_queue->mutex);
+    return 0;
+
+}
+
 int create_hashtable(size_t size, int num_file, char* log_file){
     /* Inizializza la struttura dati della tabella */
     table = (hashtable*) malloc(sizeof(hashtable));
@@ -106,22 +150,8 @@ int creates_locks_hashtable(char *path, int fd, node** just_deleted){
     if((fifo_queue->elements + 1) <= table->max_file){
         success = creates_locks(&(table->queue[hash]), path, fd, &(table->max_file_reached), table->file_log);
         CHECK_OPERATION(success == -1, fprintf(stderr, "Errore nella creazione del nodo.\n"); return -1);
-    } else {
-    /* Trova l'elemento in testa alla coda cache */
-        PTHREAD_LOCK(fifo_queue->mutex);
-        fifo_queue->how_many_cache++;
-        char* to_delete = head_name(fifo_queue);
-        PTHREAD_UNLOCK(fifo_queue->mutex);
-        /* Preleva il  nodo dalla tabella hash */
-        if(to_delete){
-            int hash_del = hash_function(to_delete);
-            int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log);
-            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); return -1); 
-            
-            success = 909;   
-            printf("\n\nsto per eliminare %s\n", to_delete);
-        }
-    }
+    } else
+        success = delete_first_element_fifo(just_deleted);
     return success;
 }
 

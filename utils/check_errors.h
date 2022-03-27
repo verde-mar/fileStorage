@@ -46,6 +46,8 @@
             fprintf(stdout, "La %s non e' terminata con successo, perche' il nodo e' stato eliminato: o per conseguenza di una 'deletes' o per spegnimento del server.\n", operazione);\
         } else if(codice == -1){\
             fprintf(stdout, "E' avvenuto un errore generico dopo %s.\n",operazione);\
+        } else if(codice == 333){\
+            fprintf(stdout, "Non ci sono piu' elementi da eliminare.\n");\
         }\
     }\
     if(codice == EINVAL || codice == ENOMEM || codice == EFAULT){\
