@@ -120,29 +120,32 @@ int open_write_append(const char* rest, const char* dirnameD){
     return codice;
 }
 
-int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD){ 
+int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD, int* n){ 
     int err;
     if(is_directory(pathname)){
         DIR *dir = opendir(pathname);
         CHECK_OPERATION(dir == NULL, fprintf(stderr, "Errore sulla opendir.\n"); return -1;);
         
         struct dirent *file;
-        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL){
+        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL && *n>0){
+            printf("PRIMA COSTRIURE IL NUOVO FILE ------ %d\n", *n);
             int len = strlen(pathname) + strlen(file->d_name) + strlen("/") + 1;
             const char *path = malloc(sizeof(char)*len);
             path = strcpy((char*)path, pathname);
             path = strcat((char*)path, "/");
             path = strcat((char*)path, file->d_name);
+            
 
             if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
                 if(is_regular_file(path)){
+                    *n -= 1;
                     err = fun(path, dirnameD);
                     CHECK_OPERATION(err == -1,
                             int check = closedir(dir);
                             CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
                                 return -1;);
                 } else if(is_directory(path)){
-                    int result = caller_two(fun, path, dirnameD);
+                    int result = caller_two(fun, path, dirnameD, n);
                     CHECK_OPERATION(result == -1, 
                             int check = closedir(dir);
                             CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);

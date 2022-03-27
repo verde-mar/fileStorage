@@ -12,13 +12,13 @@ sleep 3
 pid=$!
 
 # Avvia i client
-./cl -f socket -p -t 100 -D ./flushed -W ./test_directory/prova7.txt -D ./flushed -W ./test_directory/prova.txt  -D ./flushed -W ./test_directory/prova2.txt -D ./flushed -W ./test_directory/prova2.txt &
+./cl -f socket -p -t 100 -D ./flushed -W ./test_directory/prova.txt -D ./flushed -W ./test_directory/prova.txt,./test_directory/prova2.txt -D ./flushed -W ./test_directory/prova2.txt &
 pidcl1=$!
-./cl -f socket -p -t 125 -D ./flushed -W ./test_directory/prova8.txt -D ./flushed -W ./test_directory/prova3.txt -D ./flushed -W ./test_directory/prova5.txt  -D ./flushed -W ./test_directory/prova6.txt -D ./flushed -W ./test_directory/prova.txt -D ./flushed -W ./test_directory/prova3.txt &
+./cl -f socket -p -t 125 -D ./flushed -W ./test_directory/prova8.txt,./test_directory/prova3.txt -D ./flushed -W ./test_directory/prova6.txt -D ./flushed -W ./test_directory/prova.txt &
 pidcl2=$!
-./cl -f socket -p -t 100 -D ./flushed -w ./test_directory -D ./flushed -W ./test_directory/prova4.txt -D ./flushed -W ./test_directory/prova5.txt &
+./cl -f socket -p -t 100 -D ./flushed -W ./test_directory/prova11.txt,./test_directory/prova11.txt,./test_directory/prova11.txt &
 pidcl3=$!
-./cl -f socket -p -t 125 -D ./flushed -W ./test_directory/prova3.txt -D ./flushed -W ./test_directory/prova2.txt -D ./flushed -W ./test_directory/prova9.txt -D ./flushed -W ./test_directory/prova5.txt &
+./cl -f socket -p -t 125 -D ./flushed -W ./test_directory/prova2.txt -D ./flushed -W ./test_directory/prova9.txt -D ./flushed -W ./test_directory/prova5.txt &
 pidcl4=$!
 
 wait $pidcl1 $pidcl2 $pidcl3 $pidcl4

@@ -18,9 +18,10 @@ int open_write_append(const char* rest, const char* dirnameD);
  * @param fun Funzione da chiamare
  * @param pathname Primo parametro
  * @param dirnameD Secondo parametro
+ * @param n Numero di file da scrivere
  * @return int 0 in caso di successo, -1 altrimenti
  */
-int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD);
+int caller_two(int (*fun) (const char*, const char*), const char* pathname, const char* dirnameD, int* n);
 
 /**
  * @brief Legge il file da memorizzare su disco

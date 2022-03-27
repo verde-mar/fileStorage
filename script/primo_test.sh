@@ -12,9 +12,9 @@ sleep 3
 pid=$!
 
 # Avvia i client
-./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova.txt,./test_directory/prova2.txt,./test_directory/prova4.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -w ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -R 0 -c ./test_directory/prova2.txt,./test_directory/prova8.txt &
+./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova.txt,./test_directory/prova2.txt,./test_directory/prova4.txt -d ./read -r ./test_directory/prova.txt -l ./test_directory/prova3.txt -u ./test_directory/prova3.txt -R 0 -c ./test_directory/prova2.txt,./test_directory/prova8.txt &
 pidcl1=$!
-./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova3.txt -d ./read -r ./test_directory/prova.txt,./test_directory/prova2.txt -D ./flushed -w ./test_directory/ -l ./test_directory/prova2.txt,./test_directory/prova4.txt -u ./test_directory/prova2.txt,./test_directory/prova4.txt -c ./test_directory/prova2.txt -R 2 &
+./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova3.txt -d ./read -r ./test_directory/prova5.txt,./test_directory/sea.jpg -D ./flushed -w ./test_directory/,2 -l ./test_directory/prova2.txt,./test_directory/prova4.txt -u ./test_directory/prova2.txt,./test_directory/prova4.txt -c ./test_directory/prova7.txt -R 2 &
 pidcl2=$!
 
 wait $pidcl1 $pidcl2
