@@ -24,20 +24,50 @@
 
 #include <socketIO.h>
 
-//TODO: dovrei documentare questa funzione nella relazione
+int reader(const char* rest, const char* dirnamed){
+    /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
+    int codice = openFile(rest, 0);
+    CHECK_OPERATION(codice == -1, return -1);
+
+    codice = lockFile(rest);
+    CHECK_OPERATION(codice == -1, return -1);
+
+    void *buf = NULL;
+    size_t size = 0;
+
+    /* Invia la richiesta di lettura del file identificato da rest */
+    codice = readFile(rest, &buf, &size);
+    CHECK_OPERATION(codice == -1, return -1);
+    if(!codice && buf){
+        /* Se riceve un buffer non vuoto lo salva su disco */
+        codice = save_on_disk((char*)dirnamed, (char*)rest, buf, size);
+        CHECK_OPERATION(codice == -1, return -1);
+        free(buf);
+    }
+
+    /* Richiede il rilascio della lock sul file iile identificato da rest */
+    codice = unlockFile(rest);
+    CHECK_OPERATION(codice == -1, return -1);
+
+    /* Richiede la chiusura del file identificato da rest */  
+    codice = closeFile(rest);
+    CHECK_OPERATION(codice == -1, return -1);
+
+    return codice;
+}
 
 int open_write_append(const char* rest, const char* dirnameD){
     int codice = -1;
     /* Richiede l'apertura e la lock sul file identificato da rest */
     codice = openFile(rest, O_CREATE | O_LOCK);
-    CHECK_OPERATION(codice == -1, return -1);
+    CHECK_OPERATION(codice == -1, return codice);
     int was_open = -1; 
     
     /* Se il file esiste gia' nel server, lo apre acquisendo la lock */
     if(codice == 101){
         was_open = codice;
         codice = openFile(rest, O_LOCK);
-        CHECK_OPERATION(codice == -1, return -1);
+        CHECK_OPERATION(codice == -1, return codice);
     }
 
     /* Se l'apertura o la creazione sono andate a buon fine */
@@ -107,7 +137,7 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
             if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
                 if(is_regular_file(path)){
                     err = fun(path, dirnameD);
-                    CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a fun(pathname).\n"); 
+                    CHECK_OPERATION(err == -1,
                             int check = closedir(dir);
                             CHECK_OPERATION(check == -1, fprintf(stderr, "Errore nella closedir.\n"); return -1);
                                 return -1;);
@@ -127,7 +157,6 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
         /* Gestisce la richiesta */
         err = fun(pathname, dirnameD);
         CHECK_OPERATION(err == -1, fprintf(stderr, "Errore nella chiamata a fun(pathname).\n"); return -1);
-
     }
 
     return 0;
@@ -135,22 +164,24 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
 
 int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, void** old_file, size_t *size_old){
     errno = 0;
+    /* Legge la size del path del file che si sta per ricevere */
     *byte_letti += read_size(fd_skt, &size_path); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la size del path che sta per arrivare e che sta per essere memorizzato.\n"); 
         return -1);
-                
+      
     *path = malloc(size_path);
     CHECK_OPERATION(*path == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
         return -1);
-
+    /* Legge il path del file che si sta per ricevere */ 
     errno = 0;
     *byte_letti += read_msg(fd_skt, *path, size_path);
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il buffer che sta per arrivare e che sta per essere memorizzato.\n"); 
         return -1);
-                
+
+    /* Legge la size del buffer di dati che si sta per ricevere */    
     errno = 0;
     *byte_letti += read_size(fd_skt, size_old); 
     CHECK_OPERATION(errno == EFAULT,
@@ -162,6 +193,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
             return -1);
 
+    /* Legge il buffe di dati che si sta per ricevere */
     errno = 0;
     *byte_letti += read_msg(fd_skt, *old_file, *size_old);
     CHECK_OPERATION(errno == EFAULT,

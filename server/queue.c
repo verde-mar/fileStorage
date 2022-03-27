@@ -136,7 +136,7 @@ static int lock_acquire(node *nodo, int fd, FILE *file_log){
     return 1;
 }
 
-int creates(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log){
+int creates(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_file_reached, FILE* file_log){
     CHECK_OPERATION(!(*lista_trabocco),
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -174,7 +174,7 @@ int creates(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reac
     return 0;
 }
 
-int creates_locks(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log){
+int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_file_reached, FILE* file_log){
     CHECK_OPERATION(!(*lista_trabocco),
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -263,7 +263,7 @@ int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     return 0;
 }
 
-int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int *curr_size, FILE* file_log){
+int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, atomic_int *curr_size, FILE* file_log){
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
@@ -274,17 +274,22 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
         return 505);
             
     PTHREAD_LOCK(fifo_queue->mutex);
-    PTHREAD_LOCK((*lista_trabocco)->mutex);
+
     int remover = del(file_path);
     CHECK_OPERATION(remover == -1, 
         PTHREAD_UNLOCK(fifo_queue->mutex);
-        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return -1);
         
+    PTHREAD_UNLOCK(fifo_queue->mutex);
+
+    PTHREAD_LOCK(nodo->mutex);
+    PTHREAD_LOCK((*lista_trabocco)->mutex);
+
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
-        fprintf(file_log, "Delete\n"); //TODO: specifica nella relazione
-        PTHREAD_UNLOCK(fifo_queue->mutex);
+        fprintf(file_log, "Delete\n"); 
+
+        PTHREAD_UNLOCK(nodo->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
         return 0;
@@ -293,60 +298,42 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     curr = (*lista_trabocco)->head;
     if(curr)
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
-            if(curr->fd_c == fd){
-                *just_deleted = curr;
-                (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
-                *curr_size -= curr->size_buffer;
+            *just_deleted = curr;
+            (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
+            *curr_size = *curr_size - curr->size_buffer;
 
-                FD_CLR(fd, &(curr->open));
-                fprintf(file_log, "Delete\n");
+            FD_CLR(fd, &(curr->open));
+            fprintf(file_log, "Delete\n");
 
-                PTHREAD_UNLOCK(fifo_queue->mutex);
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+            PTHREAD_UNLOCK(nodo->mutex);
+            PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
-                return 0;
-            } 
-            /* Non e' stata acquisita la lock */
-            else {
-                PTHREAD_UNLOCK(fifo_queue->mutex);
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
-
-                return 202;
-            }
-    }
+            return 0;
+        } 
+    
     
     /* Scansione della lista a partire dal secondo nodo */
     node* prev = curr;
     curr = curr->next;
     while (curr != NULL) {
         if (strcmp(curr->path, file_path) == 0) {
-            if(curr->fd_c == fd){
-                *just_deleted = curr;
-                prev->next = curr->next; /* Aggiorna il puntatore alla testa */
-                *curr_size -= curr->size_buffer;
+            *just_deleted = curr;
+            prev->next = curr->next; /* Aggiorna il puntatore alla testa */
+            *curr_size = *curr_size - curr->size_buffer;
 
-                FD_CLR(fd, &(curr->open));
+            FD_CLR(fd, &(curr->open));
 
-                fprintf(file_log, "Delete\n");
+            fprintf(file_log, "Delete\n");
 
-                PTHREAD_UNLOCK(fifo_queue->mutex);
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+            PTHREAD_UNLOCK(nodo->mutex);
+            PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
-                return 0;
-            } 
-            /* Non e' stata acquisita la lock */
-            else {
-                PTHREAD_UNLOCK(fifo_queue->mutex);
-                PTHREAD_UNLOCK((*lista_trabocco)->mutex);
-
-                return 202;
-            }
+            return 0;
         } 
         prev = curr;
         curr = curr->next;
     }
-
-    PTHREAD_UNLOCK(fifo_queue->mutex);
+    PTHREAD_UNLOCK(nodo->mutex);
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
 
     return -1;
@@ -518,7 +505,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     return 0;
 }
 
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* curr_size, int* max_size_reached, int fd, FILE* file_log){
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, atomic_int* curr_size, atomic_int* max_size_reached, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
         if(buf) free(buf);
@@ -545,13 +532,13 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
         CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); return -1);
         
         nodo->size_buffer += (size_buf); 
+        /* Aggiorna la size corrente della tabella hash */
+        *curr_size = *curr_size + size_buf;
 
         /* Aggiorna la massima size raggiunta */
         *max_size_reached = max(*curr_size, *max_size_reached);
-        fprintf(file_log, "Write %ld\n", size_buf);
 
-        /* Aggiorna la size corrente della tabella hash */
-        *curr_size = *curr_size + nodo->size_buffer;
+        fprintf(file_log, "Write %ld\n", size_buf);
 
         if(buf) free(buf);
     } 
@@ -575,7 +562,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
     return 0;
 }
 
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size, int* max_size_reached, node** deleted, int fd, FILE* file_log){
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, atomic_int* curr_size, atomic_int* max_size_reached, node** deleted, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
         if(buf) free(buf);
@@ -599,7 +586,8 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
 
             /* Aggiorna la size del nodo, quella locale e la massima raggiunta */
             nodo->size_buffer = size_buf;
-            *curr_size += size_buf;
+            *curr_size = *curr_size + size_buf;
+
             *max_size_reached = max(*curr_size, *max_size_reached);
 
             /* Aggiorna il file di log */

@@ -42,13 +42,19 @@ int write_size(int fd_skt, size_t* size){
 }
 
 int write_msg(int fd_skt, void *msg, size_t size){
+    CHECK_OPERATION(fd_skt<0, fprintf(stderr, "Parametri non validi.\n"); return -1);
+
+    /* Invia la size */
+    errno = 0;
     int byte_scritti = write_size(fd_skt, &size);
     CHECK_OPERATION(byte_scritti == -1,
         fprintf(stderr, "Errore nell'invio della size del messaggio a %d.\n", fd_skt);
             return -1);
     
-    byte_scritti = writen(fd_skt, msg, size);
-    CHECK_OPERATION(byte_scritti == -1,
+    /* Invia il messaggio */
+    errno = 0;
+    byte_scritti += writen(fd_skt, msg, size);
+    CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Errore nell'invio del messaggio.\n");
             return -1);
     
@@ -121,7 +127,7 @@ int bind_listen(int *fd_skt, fd_set *set, char* socket_name){
 
     /* Assegna un indirizzo ad un socket */
     int err_bind = bind(*fd_skt, (struct sockaddr*)&sa, sizeof(sa));
-    CHECK_OPERATION((err_bind==-1), fprintf(stderr, "Errore nella bind.\n");return -1;);
+    CHECK_OPERATION((err_bind==-1), fprintf(stderr, "Cancella la socket che hai usato in precedenza.\n");return -1;);
 
     /* Si mette in ascolto su quel socket */
     int err_listen = listen(*fd_skt, 10);

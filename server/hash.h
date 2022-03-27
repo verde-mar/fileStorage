@@ -2,21 +2,18 @@
 #define HASH_H_
 
 #include <queue.h>
-#include <fifo.h>
-
-//TODO:metti una funzione unica che prende dei puntatori a funzione --> segnalalo nella relazione
-
+#include <stdatomic.h>
 /**
  * @brief Tabella hash
  * 
  */
 typedef struct hashtable {
     list_t **queue;
-    int curr_size;
+    atomic_int curr_size;
     int max_size;
     int max_file; 
-    int max_size_reached; 
-    int max_file_reached; 
+    atomic_int max_size_reached; 
+    atomic_int max_file_reached; 
     FILE *file_log;
 } hashtable;
 
@@ -66,7 +63,6 @@ int destroy_hashtable ();
  * @return int 0 in caso di successo,
  *             -1 in caso di generico fallimento
  *             101 nel caso in cui il file sia gia' presente
-
  */
 int creates_locks_hashtable(char *path, int fd, node **just_deleted);
 

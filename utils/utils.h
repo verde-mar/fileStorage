@@ -72,4 +72,14 @@ float to_Mbytes(int bytes);
  */
 int msleep(long msec);
 
+/**
+ * @brief Tokenizza to_token e inserisce i due token rilevati in file1 e file2
+ * 
+ * @param to_token Stringa da tokenizzare
+ * @param file1 File su cui operare
+ * @param file2 File su cui operare
+ * @return int 0 in caso di successo, -1 altrimenti
+ */
+int tokens(char *to_token, char **file1, char** file2);
+
 #endif

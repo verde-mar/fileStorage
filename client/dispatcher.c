@@ -64,19 +64,19 @@ int dispatcher(int argc, char *argv[]){
                 break;
 
             /* Effettua la richiesta di scrittura di un file al server */
-            case 'w':
+            case 'W':
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
                 int err_ = open_write_append(rest, dirnameD);
-                CHECK_OPERATION(err_ == -1, fprintf(stderr, "L'operazione di write/append e' fallita.\n"); free((char*) rest); break);
+                CHECK_OPERATION(err_ == -1, free((char*) rest); break);
                 
                 free((char*)rest);
                 
                 break;
             
             /* Effettua la richiesta di scrittura dei file di una directory al server */
-            case 'W': 
+            case 'w': 
                 write_ops = 1;
                 rest = realpath(optarg, NULL);
                 CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);

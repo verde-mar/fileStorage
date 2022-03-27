@@ -4,7 +4,12 @@
 #include <pthread.h>
 #include <sys/select.h>
 #include <stdio.h>
-#include <fifo.h>
+
+#include <fifo_req.h>
+#include <fifo_cache.h>
+#include <fifo_wait.h>
+
+#include <stdatomic.h>
 
 /**
  * @brief Nodo di ciascuna lista di trabocco
@@ -61,7 +66,7 @@ int destroy_list(list_t **lista_trabocco);
  *              0 in caso di successo
  *              
  */
-int creates(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log);
+int creates(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_file_reached, FILE* file_log);
 
 /**
  * @brief Crea un nodo all'interno del server e ne acquisisce la lock
@@ -75,7 +80,7 @@ int creates(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reac
  *              101 nel caso in cui il nodo sia gia' presente
  *              0 in caso di successo
  */
-int creates_locks(list_t **lista_trabocco, char* file_path, int fd, int *max_file_reached, FILE* file_log);
+int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_file_reached, FILE* file_log);
 
 /**
  * @brief Apre e acquisisce la lock di un nodo
@@ -117,7 +122,7 @@ int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, int* curr_size, FILE* file_log);
+int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, atomic_int* curr_size, FILE* file_log);
 
 /**
  * @brief Ricerca un nodo
@@ -190,7 +195,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  */
-int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int* curr_size,  int* max_size_reached, int fd, FILE* file_log);
+int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, atomic_int* curr_size, atomic_int* max_size_reached, int fd, FILE* file_log);
 
 /**
  * @brief Effettua la write sul buffer del nodo identificato da file_path
@@ -212,7 +217,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  *              444 nel caso in cui i dati del file da scrivere siano troppi 
  *              909 nel caso in cui sia stato eliminato un file
  */
-int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, int* curr_size,  int* max_size_reached, node** deleted, int fd, FILE* file_log);
+int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, atomic_int* curr_size, atomic_int* max_size_reached, node** deleted, int fd, FILE* file_log);
 
 /**
  * @brief Legge il file identificato da file_path

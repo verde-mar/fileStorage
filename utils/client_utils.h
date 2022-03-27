@@ -1,12 +1,14 @@
 #ifndef CLIENT_UTILS_H_
 #define CLIENT_UTILS_H_
 
+int reader(const char* rest, const char *dirname);
+
 /**
- * @brief Operazione che svolge le operazioni di open, write e append
+ * @brief Funzione che svolge le operazioni di open, write e append
  * 
  * @param rest Path del file su cui effettuare le operazioni
  * @param dirnameD Directory in cui memorizzare eventuali file espulsi
- * @return int 0 in caso di successo, -1 altrimenti
+ * @return int 0 in caso di successo, -1 in caso di generico fallimenti, altrimenti un codice di errore in base all'errore avvenuto nel server
  */
 int open_write_append(const char* rest, const char* dirnameD);
 

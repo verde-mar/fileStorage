@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# Creo le directory in cui memorizzare i file letti e quelli eliminati dal server
+mkdir ./flushed ./read
+
 # Avvia il server
-valgrind --leak-check=full ./smain ./file_config.txt ./log_file.txt &
+valgrind --leak-check=full ./smain ./files/file_config.txt ./files/log_file.txt &
 
 sleep 3
 
@@ -9,9 +12,9 @@ sleep 3
 pid=$!
 
 # Avvia i client
-./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -R 0 -c ./test_directory/prova2.txt &
+./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -w ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -R 0 -c ./test_directory/prova2.txt &
 pidcl1=$!
-./cl -f socket -p -t 200 -D ./flushed -w ./test_directory/prova3.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -W ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -l ./test_directory/prova7.txt -u ./test_directory/prova7.txt -c ./test_directory/prova2.txt &
+./cl -f socket -p -t 200 -D ./flushed -W ./test_directory/prova3.txt -d ./read -r ./test_directory/prova.txt -D ./flushed -w ./test_directory/ -l ./test_directory/prova2.txt -u ./test_directory/prova2.txt -c ./test_directory/prova2.txt -R 2 &
 pidcl2=$!
 
 wait $pidcl1 $pidcl2

@@ -1,4 +1,12 @@
-#include <gestore.h>
+/**
+ * @file gestore.c
+ * @author Sara Grecu (s.grecu1@studenti.unipi.it)
+ * @brief Contiene il codice del thread gestore dei segnali
+ * @version 0.1
+ * @date 2022-03-26
+ * 
+ */
+#include <gestore_segnali.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,13 +23,20 @@ void *gestore_segnali(void *arg) {
     
     while (1) {
         CHECK_OPERATION(sigwait(set, &sig), fprintf(stderr, "Errore nella sigwait.\n"); return (void*)NULL);
+        /* Se arriva un SIGINT o una SIGQUIT */
         if(sig == 2 || sig == 3){
             int err_write = writen(fd_pipe, &sig, sizeof(int));
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nell'invio del tipo di segnale.\n"); return (void*)NULL);
+            
+            /* Si autospegne */
             return (void*)NULL;	 
-        } else if(sig == 1){
+        } 
+        /* Se arriva un SIGHUP */
+        else if(sig == 1){
             int err_write = writen(fd_pipe, &sig, sizeof(int));
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore nell'invio del tipo di segnale.\n"); return (void*)NULL);
+            
+            /* Si autospegne */
             return (void*)NULL;	 
         }
     }

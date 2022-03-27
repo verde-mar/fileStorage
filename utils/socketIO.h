@@ -8,6 +8,7 @@
 /**
  * @brief Legge la size del messaggio che sta per arrivare
  * 
+ * @param fd_skt File descriptor della socket da cui ricevere il messaggio
  * @param size Parametro in cui memorizzare la size inviata dal destinatario
  * @return int Numero di byte letti (>=0 in caso di successo, -1 in caso di errore)
  */
@@ -16,6 +17,7 @@ int read_size(int fd_skt, size_t* size);
 /**
  * @brief Legge un messaggio dal server
  * 
+ * @param fd_skt File descriptor della socket da cui ricevere il messaggio
  * @param msg Parametro in cui memorizzare il messaggio
  * @param size Size del messaggio da leggere
  * @return int Numero di byte letti (>=0 in caso di successo, -1 in caso di errore)
@@ -25,12 +27,20 @@ int read_msg(int fd_skt, void *msg, size_t size);
 /**
  * @brief Scrive un messaggio al server
  * 
+ * @param fd_skt File descriptor della socket a cui inviare il messaggio
  * @param msg Messaggio da inviare al server
  * @param size Size del messaggio da inviare
  * @return int Numero di byte scritti (>=0 in caso di successo, -1 in caso di errore)
  */
 int write_msg(int fd_skt, void *msg, size_t size);
 
+/**
+ * @brief Scrive la size del messaggio da inviare
+ * 
+ * @param fd_skt File descriptor della socket a cui inviare la size del messaggio
+ * @param size Size del messaggio
+ * @return int Numero di byte scritti (>=0 in caso di successo, -1 in caso di errore)
+ */
 int write_size(int fd_skt, size_t* size);
 
 /**
@@ -39,7 +49,7 @@ int write_size(int fd_skt, size_t* size);
  * @param fd File descriptor su cui effettuare la lettura
  * @param ptr Indica dove salvare i byte letti
  * @param n Numero di byte da leggere
- * @return ssize_t Byte letti
+ * @return ssize_t Numero di byte letti (>=0 in caso di successo, -1 in caso di errore)
  */
 ssize_t readn(int fd, void *ptr, size_t n);
 
@@ -49,12 +59,12 @@ ssize_t readn(int fd, void *ptr, size_t n);
  * @param fd File descriptor su cui effettuare la scrttura
  * @param ptr Indica dove salvare i byte letti
  * @param n Numero di byte da scrivere
- * @return ssize_t Il numero di byte scritti
+ * @return ssize_t Numero di byte scritti (>=0 in caso di successo, -1 in caso di errore)
  */
 ssize_t  writen(int fd, void *ptr, size_t n);
 
 /**
- * @brief Definisce la maschera dei segnali
+ * @brief Setta la maschera dei segnali
  * 
  * @param mask Maschera
  * @return int 0 in caso di successo, -1 altrimenti

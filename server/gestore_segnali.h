@@ -1,5 +1,5 @@
-#ifndef GESTORE_H_
-#define GESTORE_H_
+#ifndef GESTORE_SEGNALI_H_
+#define GESTORE_SEGNALI_H_
 
 #include <signal.h>
 

@@ -115,14 +115,10 @@ int creates_locks_hashtable(char *path, int fd, node** just_deleted){
         /* Preleva il  nodo dalla tabella hash */
         if(to_delete){
             int hash_del = hash_function(to_delete);
-            int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-            CHECK_OPERATION(open ==-1,  return -1);
-
-            if(!open){
-                int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
-                CHECK_OPERATION(del == -1, return -1); 
-                success = 909;
-            }
+            int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
+            CHECK_OPERATION(del == -1, return -1); 
+            success = 909;   
+            printf("\n\nsto per eliminare %s\n", to_delete);
         }
     }
     return success;
@@ -150,14 +146,11 @@ int creates_hashtable(char *path, int fd, node** just_deleted){
         /* Preleva il  nodo dalla tabella hash */
         if(to_delete){
             int hash_del = hash_function(to_delete);
-            int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-            CHECK_OPERATION(open ==-1,  return -1);
+            int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
+            CHECK_OPERATION(del == -1, return -1); 
+            success = 909;  
+            printf("\n\nsto per eliminare %s\n", to_delete);
 
-            if(!open){
-                int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
-                CHECK_OPERATION(del == -1, return -1); 
-                success = 909;
-            }
         }
     }
     return success;
@@ -299,14 +292,10 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
                 int hash_del = hash_function(to_delete);
-                int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-                CHECK_OPERATION(open ==-1,  return -1);
-                if(!open){
-                    int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
-                    CHECK_OPERATION(del == -1, return -1); 
-                    if(buf) free(buf);
-                    been_deleted = 1;
-                }
+                int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
+                CHECK_OPERATION(del == -1, return -1); 
+                if(buf) free(buf);
+                been_deleted = 1;
             }
         }
     } else {
@@ -346,17 +335,11 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
 
             PTHREAD_UNLOCK(fifo_queue->mutex);
             if(to_delete){
-                /* Elimina l'elemento dalla tabella hash */
                 int hash_del = hash_function(to_delete);
-                int open =  opens_locks(&(table->queue[hash_del]), to_delete, fd, table->file_log);
-                CHECK_OPERATION(open ==-1, return -1);
-                if(!open){
-                    int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
-                    CHECK_OPERATION(del == -1, return -1); 
-                    been_deleted = 1;
-                    if(buf) free(buf);
-                }
-            
+                int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); CHECK_OPERATION(del == -1, return -1;);
+                CHECK_OPERATION(del == -1, return -1); 
+                if(buf) free(buf);
+                been_deleted = 1;
             }
 
         } 
@@ -434,6 +417,8 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
                 PTHREAD_LOCK(nodo->mutex);
                 PTHREAD_UNLOCK(table->queue[hash]->mutex);
 
+                *path = (char*)nodo->path;
+
                 /* Legge il buffer */
                 *size_buf = nodo->size_buffer;
                 *buf = malloc(*size_buf);
@@ -444,6 +429,7 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
                 fprintf(table->file_log, "Read %ld\n", nodo->size_buffer);
 
                 PTHREAD_UNLOCK(nodo->mutex);
+
                 success = 0;
                 break;
             }

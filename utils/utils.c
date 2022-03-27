@@ -79,15 +79,24 @@ int read_from_file(char *pathname, void** buf, size_t *size){
     /* Apre il file */
     FILE* file_toread = fopen(pathname, "rb");
     CHECK_OPERATION(file_toread == NULL, fprintf(stderr, "Non e' stato possibile aprire il file.\n"); return -1);
+
+    /* Calcola la size del file */
     struct stat st;
     stat(pathname, &st);
     *size = (st.st_size);
+    
     *buf = malloc(*size);
-    CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+    CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+        int err_close = fclose(file_toread);
+        CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);
+        return -1);
    
     /* Legge il file */
     size_t err_fread = fread(*buf, *size, 1, file_toread);
-    CHECK_OPERATION(err_fread == 0, fprintf(stderr, "Byte letti: %ld\nErrore nella lettura del file.\n", err_fread); return -1);
+    CHECK_OPERATION(err_fread == 0, 
+        int err_close = fclose(file_toread);
+        CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore nella chiusura del file.\n"); return -1);
+        return -1);
 
     /* Chiude il file */
     int err_close = fclose(file_toread);
