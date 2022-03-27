@@ -25,7 +25,7 @@
 #include <client_utils.h>
 
 int dispatcher(int argc, char *argv[]){
-    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, err_close = 0, R = -1;
+    int opt, flagf = 0, flagp = 0, time = 0, write_ops = 0, read_ops = 0, err_conn = 0, err_caller = 0, err_lock = 0, err_unlock = 0, R = -1;
     char *socketname = NULL, *dirnameD = NULL, *dirnamed = NULL, *rest = NULL;
     
     
@@ -66,12 +66,17 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di scrittura di un file al server */
             case 'W':
                 write_ops = 1;
-                rest = realpath(optarg, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-                int err_ = open_write_append(rest, dirnameD);
-                CHECK_OPERATION(err_ == -1, free((char*) rest); break);
-                
-                free((char*)rest);
+                char* str=NULL;
+                char* token = strtok_r(optarg, ",", &str);
+
+                while(token){
+                    rest = realpath(optarg, NULL);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    int err_ = open_write_append(rest, dirnameD);
+                    CHECK_OPERATION(err_ == -1, free((char*) rest); break);
+                    free((char*)rest);
+                    token = strtok_r(NULL, ",", &str);
+                }
                 
                 break;
             
@@ -100,37 +105,19 @@ int dispatcher(int argc, char *argv[]){
             /* Effettua la richiesta di lettura di un file al server */
             case 'r': 
                 read_ops = 1;
-                rest = realpath(optarg, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-            
-                /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, 0);
-                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
+                str = NULL;
+                token = strtok_r(optarg, ",", &str);
 
-                err_lock = lockFile(rest);
-                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
-
-                void *buf = NULL;
-                size_t size = 0;
-
-                /* Invia la richiesta di lettura del file identificato da rest */
-                int err_r = readFile(rest, &buf, &size);
-                CHECK_OPERATION(err_r == -1, free((char*)rest); break);
-                if(!err_r && buf){
-                    /* Se riceve un buffer non vuoto lo salva su disco */
-                    int err_save = save_on_disk(dirnamed, rest, buf, size);
-                    CHECK_OPERATION(err_save == -1, free((char*)rest); break);
-                    free(buf);
+                while(token){
+                    rest = realpath(optarg, NULL);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    
+                    int err_read = reader(rest, dirnamed);
+                    CHECK_OPERATION(err_read == -1, free((char*) rest); break);
+                    
+                    free((char*)rest);
+                    token = strtok_r(NULL, ",", &str);
                 }
-
-                /* Richiede il rilascio della lock sul file iile identificato da rest */
-                err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1, free((char*)rest); break);
-
-                /* Richiede la chiusura del file identificato da rest */  
-                err_close = closeFile(rest);
-                CHECK_OPERATION(err_close == -1, free((char*)rest); break);
-                free((char*)rest);
 
                 break;
 
@@ -160,46 +147,66 @@ int dispatcher(int argc, char *argv[]){
 
             /* Effettua la richiesta di acquisire la lock su un file al server */
             case 'l':
-                rest = realpath(optarg, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                str = NULL;
+                token = strtok_r(optarg, ",", &str);
 
-                /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-                err_caller = openFile(rest, 0);
-                CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
+                while(token){
+                    rest = realpath(optarg, NULL);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    
+                    /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
+                    err_caller = openFile(rest, 0);
+                    CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
 
-                err_lock = lockFile(rest);
-                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
-                free((char*)rest);
+                    err_lock = lockFile(rest);
+                    CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
+
+                    free((char*)rest);
+                    token = strtok_r(NULL, ",", &str);
+                }
 
                 break;
             
             /* Effettua la richiesta di rilasciare la lock su un file al server */
             case 'u':
-                rest = realpath(optarg, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                str = NULL;
+                token = strtok_r(optarg, ",", &str);
 
-                /* Invia la richiesta di rilascio della lock sul file identificato da rest */
-                err_unlock = unlockFile(rest);
-                CHECK_OPERATION(err_unlock == -1, free((char*)rest); break);
-                free((char*)rest);
+                while(token){
+                    rest = realpath(optarg, NULL);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    
+                    /* Invia la richiesta di rilascio della lock sul file identificato da rest */
+                    err_unlock = unlockFile(rest);
+                    CHECK_OPERATION(err_unlock == -1, free((char*)rest); break);
+
+                    free((char*)rest);
+                    token = strtok_r(NULL, ",", &str);
+                }
                 
                 break;
             
             /* Richiede di cancellare un file al server */
             case 'c':
-                rest = realpath(optarg, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                str = NULL;
+                token = strtok_r(optarg, ",", &str);
 
-                /* Invia la richiesta di acquisizione della lock sul file */
-                int err_lock = lockFile(rest);
-                CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
+                while(token){
+                    rest = realpath(optarg, NULL);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    
+                    /* Invia la richiesta di acquisizione della lock sul file */
+                    int err_lock = lockFile(rest);
+                    CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
 
-                /* Invia la richiesta di rimozione del file identificato da rest */
-                int err_rem = removeFile(rest);
-                CHECK_OPERATION(err_rem == -1, free((char*)rest); break);
-                
-                free((char*)rest);
-                
+                    /* Invia la richiesta di rimozione del file identificato da rest */
+                    int err_rem = removeFile(rest);
+                    CHECK_OPERATION(err_rem == -1, free((char*)rest); break);
+
+                    free((char*)rest);
+                    token = strtok_r(NULL, ",", &str);
+                }
+            
                 break;
             
             /* Abilita le stampe sulle operazioni */

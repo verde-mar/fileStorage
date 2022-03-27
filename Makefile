@@ -1,5 +1,5 @@
 CC = gcc -std=c99 -O3 -g 
-CFLAGS = -Wall -pthread -D_POSIX_C_SOURCE=200112L -fsanitize=address -fno-omit-frame-pointer
+CFLAGS = -Wall -pthread -D_POSIX_C_SOURCE=200112L 
 
 CLIENT = ./client
 SERVER = ./server

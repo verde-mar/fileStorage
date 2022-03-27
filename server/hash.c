@@ -372,6 +372,7 @@ int definitely_deleted(node** just_deleted){
         free((*just_deleted)->buffer);
     /* Libera la memoria associata al path del nodo */
     free((char*)(*just_deleted)->path);
+    (*just_deleted)->path = NULL;
 
     /* Elimina la lista di attesa */
     int err_del_wl = delete_list_wait(&(*just_deleted)->waiting_list);

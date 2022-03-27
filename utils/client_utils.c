@@ -26,34 +26,34 @@
 
 int reader(const char* rest, const char* dirnamed){
     /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
-    int codice = openFile(rest, 0);
-    CHECK_OPERATION(codice == -1, return -1);
+    int err_caller = openFile(rest, 0);
+    CHECK_OPERATION(err_caller == -1, return -1);
 
-    codice = lockFile(rest);
-    CHECK_OPERATION(codice == -1, return -1);
+    int err_lock = lockFile(rest);
+    CHECK_OPERATION(err_lock == -1, return -1);
 
     void *buf = NULL;
     size_t size = 0;
 
     /* Invia la richiesta di lettura del file identificato da rest */
-    codice = readFile(rest, &buf, &size);
-    CHECK_OPERATION(codice == -1, return -1);
-    if(!codice && buf){
+    int err_r = readFile(rest, &buf, &size);
+    CHECK_OPERATION(err_r == -1, return -1);
+    if(!err_r && buf){
         /* Se riceve un buffer non vuoto lo salva su disco */
-        codice = save_on_disk((char*)dirnamed, (char*)rest, buf, size);
-        CHECK_OPERATION(codice == -1, return -1);
+        int err_save = save_on_disk((char*)dirnamed, (char*)rest, buf, size);
+        CHECK_OPERATION(err_save == -1, return -1);
         free(buf);
     }
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
-    codice = unlockFile(rest);
-    CHECK_OPERATION(codice == -1, return -1);
+    int err_unlock = unlockFile(rest);
+    CHECK_OPERATION(err_unlock == -1, return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
-    codice = closeFile(rest);
-    CHECK_OPERATION(codice == -1, return -1);
+    int err_close = closeFile(rest);
+    CHECK_OPERATION(err_close == -1, return -1);
 
-    return codice;
+    return 0;
 }
 
 int open_write_append(const char* rest, const char* dirnameD){

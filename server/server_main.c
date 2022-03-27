@@ -228,7 +228,7 @@ int main(int argc, char const *argv[]) {
                     
                     errno = 0;
                     int err_write = write_size(risp->fd_richiesta, &(risp->errore));
-                    CHECK_OPERATION(err_write == -1, FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max); ); //TODO: va bene???
+                    CHECK_OPERATION(err_write == -1, FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max); ); 
                     
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
