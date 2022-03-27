@@ -233,6 +233,7 @@ int main(int argc, char const *argv[]) {
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
                         CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        free(risp->path);
                     }
                     
                     if(risp->buffer_file){

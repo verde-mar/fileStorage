@@ -332,7 +332,6 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
             PTHREAD_LOCK(fifo_queue->mutex);
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
-
             PTHREAD_UNLOCK(fifo_queue->mutex);
             if(to_delete){
                 int hash_del = hash_function(to_delete);
@@ -417,14 +416,15 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
             if (strcmp(nodo->path, *path) == 0){
                 PTHREAD_UNLOCK(table->queue[hash]->mutex);
                 PTHREAD_LOCK(nodo->mutex);
-                *path = (char*)nodo->path;
+                *path = malloc(sizeof(char)*(strlen(nodo->path)+1));
+                strcpy(*path, nodo->path);
 
                 /* Legge il buffer */
                 *size_buf = nodo->size_buffer;
                 *buf = malloc(*size_buf);
-                CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+                CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); free(path); path = NULL; free(buf); buf = NULL; *size_buf=0; PTHREAD_UNLOCK(nodo->mutex); return -1);
                 void* check = memcpy(*buf, nodo->buffer, *size_buf);  
-                CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della readN e' fallita.\n"); return -1);
+                CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della readN e' fallita.\n");free(path); path = NULL; free(buf); buf = NULL; *size_buf=0; PTHREAD_UNLOCK(nodo->mutex); return -1);
                 
                 fprintf(table->file_log, "Read %ld\n", nodo->size_buffer);
 

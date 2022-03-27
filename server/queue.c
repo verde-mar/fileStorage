@@ -147,15 +147,15 @@ int creates(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_fi
     CHECK_OPERATION(nodo == NULL, 
         nodo = node_create(lista_trabocco, file_path, fd);
         if(nodo == NULL) return -1);
-    
+
     PTHREAD_LOCK(fifo_queue->mutex);
     PTHREAD_LOCK((*lista_trabocco)->mutex);
     
     /* Inserisci il file nella coda cache */
     int adder = add_fifo((char*)nodo->path);
     CHECK_OPERATION(adder == -1, 
-        PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex);
         return -1);
     
     /* Aggiorna il numero di file presenti nella tabella hash */
@@ -168,8 +168,8 @@ int creates(list_t **lista_trabocco, char* file_path, int fd, atomic_int *max_fi
     /* Aggiorna il file di log */
     fprintf(file_log, "Create\n");
 
-    PTHREAD_UNLOCK(fifo_queue->mutex);
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return 0;
 }
@@ -192,8 +192,8 @@ int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *
     /* Inserisci il file nella coda cache */
     int adder = add_fifo((char*)nodo->path);
     CHECK_OPERATION(adder == -1, 
-        PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex);
         return -1);
     
     /* Aggiorna il numero di file presenti nella tabella hash */
@@ -211,8 +211,8 @@ int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *
     /* Aggiorna il file di log */
     fprintf(file_log, "Create_Lock\n");
 
-    PTHREAD_UNLOCK(fifo_queue->mutex);
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return 0;
 }
@@ -267,37 +267,30 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
-    
-    /* Ricerca il nodo */
-    node* nodo = look_for_node(lista_trabocco, file_path);
-    CHECK_OPERATION(nodo == NULL,
-        return 505);
             
     PTHREAD_LOCK(fifo_queue->mutex);
+    PTHREAD_LOCK((*lista_trabocco)->mutex);
 
     int remover = del(file_path);
     CHECK_OPERATION(remover == -1, 
         PTHREAD_UNLOCK(fifo_queue->mutex);
+        PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return -1);
-        
-    PTHREAD_UNLOCK(fifo_queue->mutex);
-
-    PTHREAD_LOCK(nodo->mutex);
-    PTHREAD_LOCK((*lista_trabocco)->mutex);
 
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
         fprintf(file_log, "Delete\n"); 
-
-        PTHREAD_UNLOCK(nodo->mutex);
+        
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+        PTHREAD_UNLOCK(fifo_queue->mutex);
 
         return 0;
     }
 
     curr = (*lista_trabocco)->head;
-    if(curr)
+    if(curr){
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
+            PTHREAD_LOCK(curr->mutex);
             *just_deleted = curr;
             (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
             *curr_size = *curr_size - curr->size_buffer;
@@ -305,36 +298,36 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
             FD_CLR(fd, &(curr->open));
             fprintf(file_log, "Delete\n");
 
-            PTHREAD_UNLOCK(nodo->mutex);
+            PTHREAD_UNLOCK(curr->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+            PTHREAD_UNLOCK(fifo_queue->mutex);
 
             return 0;
         } 
-    
+    }
     
     /* Scansione della lista a partire dal secondo nodo */
-    node* prev = curr;
     curr = curr->next;
-    while (curr != NULL) {
-        if (strcmp(curr->path, file_path) == 0) {
+    while (curr != NULL){
+        if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
+            PTHREAD_LOCK(curr->mutex);
             *just_deleted = curr;
-            prev->next = curr->next; /* Aggiorna il puntatore alla testa */
+            (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
             *curr_size = *curr_size - curr->size_buffer;
 
             FD_CLR(fd, &(curr->open));
-
             fprintf(file_log, "Delete\n");
 
-            PTHREAD_UNLOCK(nodo->mutex);
+            PTHREAD_UNLOCK(curr->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+            PTHREAD_UNLOCK(fifo_queue->mutex);
 
             return 0;
-        } 
-        prev = curr;
+        }
         curr = curr->next;
     }
-    PTHREAD_UNLOCK(nodo->mutex);
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
+    PTHREAD_UNLOCK(fifo_queue->mutex);
 
     return -1;
 }
@@ -471,9 +464,9 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
     if(FD_ISSET(fd, &(nodo->open)) && nodo->fd_c == fd){
         *size_buf = nodo->size_buffer;
         *buf = malloc(*size_buf);
-        CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
+        CHECK_OPERATION(*buf == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); PTHREAD_UNLOCK(nodo->mutex); return -1);
         void* check = memcpy(*buf, nodo->buffer, *size_buf);  
-        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della read e' fallita.\n"); return -1);
+        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della read e' fallita.\n"); PTHREAD_UNLOCK(nodo->mutex); return -1);
         
         fprintf(file_log, "Read %ld\n", nodo->size_buffer);
     } 
@@ -529,7 +522,7 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
             return -1);
 
         void *check = memcpy(nodo->buffer + nodo->size_buffer, buf, size_buf);
-        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); return -1);
+        CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); PTHREAD_UNLOCK(nodo->mutex); return -1);
         
         nodo->size_buffer += (size_buf); 
         /* Aggiorna la size corrente della tabella hash */
@@ -580,9 +573,9 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
         if(buf){
             /* Alloca la dimensione per il buffer da scrivere e lo scrive*/
             nodo->buffer = malloc(size_buf);
-            CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); free(buf); return -1);
+            CHECK_OPERATION(nodo->buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); free(buf); PTHREAD_UNLOCK(nodo->mutex); return -1);
             void* check = memcpy(nodo->buffer, buf, size_buf);  
-            CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); return -1);
+            CHECK_OPERATION(check == NULL, fprintf(stderr, "La memcpy della append e' fallita.\n"); free(buf); PTHREAD_UNLOCK(nodo->mutex); return -1);
 
             /* Aggiorna la size del nodo, quella locale e la massima raggiunta */
             nodo->size_buffer = size_buf;
