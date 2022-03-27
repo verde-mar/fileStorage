@@ -2,56 +2,1443 @@ E' stata creata la tabella hash.
 Accept
 Accept
 Create_Lock
+Accept
+Accept
 Create_Lock
-Write 26
+Accept
 Write 15
+Accept
+Accept
+Write 34
+Accept
+Unlock
+Accept
+Open_Lock
+Accept
+Accept
+Open_Lock
+Accept
+Unlock
+Accept
+Accept
+Close
+Accept
+Open_Lock
+Accept
+Open_Lock
+Accept
+Accept
+Open_Lock
+Accept
+Accept
+Close
+Accept
+Accept
+Open_Lock
+Accept
+Accept
+Open_Lock
+Accept
+Create_Lock
+Accept
+Open_Lock
+Accept
+Open_Lock
+Accept
+Accept
+Open_Lock
+Accept
+Accept
+Accept
+Accept
+Accept
+Open_Lock
+Accept
+Create_Lock
+Accept
+Open_Lock
+Accept
+Write 34
+Accept
+Accept
+Open_Lock
+Accept
+Accept
+Open_Lock
+Accept
+Open_Lock
+Accept
+Write 61
+Accept
+Accept
+Write 15
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Write 75316
+Unlock
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Open_Lock
 Unlock
 Unlock
 Close
+Close
+Close
+Close
+Write 34
+Write 15
+Create_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Write 192102
+Close
+Close
+Open_Lock
+Unlock
+Write 75316
+Write 34
+Read 45
+Write 15
+Write 61
+Close
+Unlock
+Open_Lock
+Unlock
+Read 136
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Create_Lock
+Close
+Close
+Read 122
+Close
+Close
+Open_Lock
+Open_Lock
+Write 26
+Write 75316
+Write 34
+Read 225948
+Open_Lock
+Open_Lock
+Open_Lock
+Write 15
+Write 61
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 192102
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Close
+Close
+Close
+Close
+Read 26
 Close
 Create_Lock
+Write 192102
+Write 75316
+Write 34
+Read 75
+Read 0
+Write 15
+Write 61
+Open_Lock
+Write 84
+Unlock
+Unlock
+Open_Lock
+Unlock
+Read 204
+Open_Lock
+Unlock
+Unlock
+Unlock
+Close
+Close
+Close
+Read 244
+Close
+Close
+Close
+Write 192102
+Write 75316
+Write 34
+Read 376580
+Read 90
+Write 15
+Create_Lock
+Write 61
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Read 238
+Unlock
+Write 1000000
+Close
+Read 576306
+Close
+Close
+Close
+Close
+Read 305
+Write 26
+Unlock
+Write 192102
+Read 52
+Write 75316
+Write 34
+Read 105
+Write 15
+Read 451896
 Write 61
 Unlock
 Close
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Read 84
+Open_Lock
+Unlock
+Read 272
+Unlock
+Open_Lock
+Close
+Unlock
 Create_Lock
+Close
+Read 768408
+Close
+Read 1000000
+Close
+Read 366
+Close
+Close
+Write 26
+Write 192102
+Read 78
+Read 0
+Read 451896
+Write 75316
+Write 34
+Write 15
+Open_Lock
+Read 135
+Write 61
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 84
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Read 960510
+Write 45126
+Read 306
+Unlock
+Close
+Close
+Close
+Read 1000000
+Close
+Close
+Write 84
+Unlock
+Close
+Read 427
+Write 26
+Read 104
+Write 75316
+Write 34
+Unlock
+Read 45126
+Write 192102
+Write 15
+Close
+Write 61
+Read 602528
+Open_Lock
+Read 150
+Unlock
+Read 168
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Close
+Unlock
+Read 45126
+Open_Lock
+Unlock
+Create_Lock
+Unlock
+Close
+Read 340
+Read 1000000
+Read 1152612
+Close
+Close
+Close
+Read 0
+Close
+Close
+Write 84
+Write 1024
+Read 488
+Write 26
+Read 45126
+Write 75316
+Read 130
+Open_Lock
+Write 34
+Write 192102
+Write 15
+Read 165
+Write 61
+Unlock
+Open_Lock
+Unlock
+Unlock
+Read 677844
+Read 1024
+Open_Lock
+Unlock
+Open_Lock
+Read 252
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Read 374
+Unlock
+Close
+Close
+Close
+Close
+Read 1344714
+Read 1024
+Read 1000000
+Close
+Close
+Close
+Write 1000000
+Read 549
+Close
+Write 84
+Create_Lock
+Write 75316
+Read 0
+Read 130
+Write 34
+Write 26
+Write 192102
+Unlock
+Read 45126
+Read 753160
+Write 15
+Read 180
+Open_Lock
+Open
+Write 61
+Unlock
+Write 1024
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Read 336
+Unlock
+Unlock
+Open_Lock
+Unlock
+Close
+Open_Lock
+Read 1024
+Unlock
+Read 408
+Lock
+Unlock
+Close
+Read 1536816
+Unlock
+Close
+Read 2000000
+Close
+Close
+Close
+Read 1024
+Close
+Close
+Read 610
+Write 1000000
+Close
+Read 156
+Unlock
+Write 84
+Write 75316
+Write 34
+Read 45126
+Write 26
+Open_Lock
+Write 192102
+Read 1024
+Write 15
+Open
+Write 61
+Open_Lock
+Read 828476
+Unlock
+Unlock
+Read 420
+Read 195
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 1024
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Lock
+Unlock
+Unlock
+Close
+Open_Lock
+Close
+Read 1728918
+Read 3000000
+Read 442
+Close
+Close
+Read 1024
+Close
+Write 45126
+Close
+Unlock
+Close
+Close
+Write 1000000
+Read 182
+Read 90252
+Read 671
+Write 75316
+Write 84
+Write 34
+Read 1024
+Unlock
+Write 26
+Write 192102
+Read 195
+Write 15
+Open
+Write 61
+Open_Lock
+Open_Lock
+Unlock
+Read 504
+Read 1024
+Read 903792
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Unlock
+Close
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Read 476
+Open_Lock
+Unlock
+Lock
+Unlock
+Close
+Read 1024
+Read 4000000
+Read 1921020
+Close
+Close
+Close
+Close
+Close
+Read 732
+Close
+Unlock
+Close
+Write 45126
+Write 1000000
+Read 1024
+Read 135378
+Read 208
+Write 75316
+Write 34
+Open_Lock
+Write 84
+Write 26
+Write 192102
+Read 979108
+Write 15
+Read 225
+Open
+Write 61
+Unlock
+Open_Lock
+Unlock
+Read 588
+Open_Lock
+Read 1024
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Lock
+Read 510
+Unlock
+Close
+Close
+Read 2113122
+Close
+Read 5000000
+Read 1024
+Close
+Write 1024
+Close
+Close
+Close
+Close
+Unlock
+Close
+Read 793
+Write 45126
+Read 234
+Write 1000000
+Read 1024
+Read 180504
+Write 75316
+Write 34
+Unlock
+Write 84
+Write 26
+Write 192102
+Write 15
+Read 240
+Open
+Write 61
+Open_Lock
+Read 1054424
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Read 672
+Unlock
+Unlock
+Open_Lock
+Close
+Open_Lock
+Unlock
+Read 2048
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Lock
+Unlock
+Read 544
+Close
+Close
+Close
+Close
+Read 6000000
+Read 2305224
+Close
+Read 1024
+Close
+Close
+Close
+Unlock
+Close
+Read 854
+Write 1024
+Write 45126
+Write 34
+Open_Lock
+Write 75316
+Read 1024
+Read 225630
+Write 84
+Read 260
+Write 26
+Write 1000000
+Write 192102
+Read 240
+Open
+Write 61
+Unlock
+Open_Lock
+Read 1129740
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Read 3072
+Unlock
+Open_Lock
+Read 756
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Read 578
+Lock
+Unlock
+Close
+Close
+Close
+Write 1024
+Close
+Close
+Read 2048
+Close
+Close
+Read 7000000
+Read 2497326
+Close
+Read 915
+Close
+Write 1024
+Write 45126
+Write 34
+Unlock
+Write 84
+Read 2048
+Write 26
+Write 1000000
+Read 270756
+Read 312
+Write 192102
+Read 1129740
+Open
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Close
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Read 4096
+Read 840
+Lock
+Close
+Close
+Close
+Read 240
+Close
+Close
+Read 2689428
+Close
+Close
+Read 2048
+Read 8000000
+Write 1024
+Open_Lock
+Write 34
+Write 1024
+Read 646
+Write 26
+Write 45126
+Write 84
+Write 1000000
+Read 338
+Write 192102
+Read 3072
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Read 915
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 924
+Unlock
+Close
+Write 15
+Close
+Close
+Close
+Unlock
+Close
+Close
+Read 1129740
+Close
+Close
+Unlock
+Write 1024
+Write 34
+Create_Lock
+Read 255
+Write 26
+Write 84
+Write 45126
+Open_Lock
+Close
+Unlock
+Unlock
+Open_Lock
+Write 61
+Write 1000000
+Write 1024
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Open_Lock
+Close
+Close
+Unlock
+Unlock
+Unlock
+Close
+Close
+Close
+Open_Lock
+Write 34
+Close
+Write 15
+Close
+Close
+Write 26
+Write 1024
+Write 45126
+Open_Lock
+Unlock
+Create_Lock
+Unlock
+Write 1024
+Unlock
+Unlock
+Write 1000000
+Open_Lock
+Open_Lock
+Open_Lock
+Read 0
+Read 406134
+Read 11000000
+Read 2881530
+Read 714
+Unlock
+Close
+Write 53
+Close
+Open_Lock
+Open_Lock
+Unlock
+Close
+Close
+Unlock
+Read 7168
+Read 915
+Close
+Unlock
+Write 34
+Close
+Write 26
+Close
+Write 84
+Write 1024
+Close
+Unlock
+Open_Lock
+Write 45126
+Write 15
+Write 1024
+Unlock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Open_Lock
+Close
+Write 1000000
+Unlock
+Unlock
+Open_Lock
+Unlock
+Close
+Open_Lock
+Close
+Close
+Open_Lock
+Write 34
+Unlock
+Close
+Close
+Close
+Write 26
+Write 84
+Write 1024
+Unlock
+Close
+Write 15
+Write 1024
+Unlock
+Open_Lock
+Write 45126
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 61
+Close
+Open_Lock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Close
+Unlock
+Close
+Close
+Unlock
+Write 34
+Open_Lock
+Close
+Close
+Write 26
+Close
+Write 84
+Close
+Unlock
+Write 1024
+Write 15
+Write 1000000
+Write 1024
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Create_Lock
+Open_Lock
+Close
+Write 45126
+Unlock
+Open_Lock
+Unlock
+Unlock
+Unlock
+Open_Lock
+Close
+Open_Lock
+Close
+Write 34
+Unlock
+Close
+Close
+Close
+Close
+Write 61
+Write 26
+Unlock
+Close
+Write 1024
+Write 15
+Unlock
+Open_Lock
+Unlock
+Write 1024
+Open_Lock
+Close
+Write 1000000
+Open_Lock
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Unlock
+Close
+Close
+Unlock
+Read 9216
+Read 1129740
+Write 34
+Read 541512
+Unlock
+Open_Lock
+Close
+Close
+Write 61
+Write 26
+Close
+Unlock
+Close
+Write 45126
+Write 58
+Write 1024
+Read 183
+Read 11264
+Read 520
+Read 2881530
+Write 15
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Close
+Write 1024
+Unlock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 53
+Read 10240
+Read 1260
+Write 1000000
+Unlock
+Read 520
+Close
+Close
+Open_Lock
+Write 34
+Open_Lock
+Unlock
+Close
+Close
+Close
+Read 58
+Read 183
+Read 15000000
+Unlock
+Close
+Write 53
+Write 61
+Read 1260
+Write 26
+Unlock
+Close
+Create_Lock
+Read 0
+Read 106
+Close
+Write 15
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 15000000
+Unlock
+Write 1024
+Close
+Write 45126
+Write 1024
+Open_Lock
+Open_Lock
+Open_Lock
+Unlock
+Close
+Close
+Close
+Unlock
+Write 34
+Unlock
+Unlock
+Open_Lock
+Open_Lock
+Close
+Write 53
+Write 61
+Write 26
+Close
+Unlock
+Close
+Close
+Write 1024
+Write 15
+Open_Lock
+Read 58
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Read 631764
+Unlock
+Close
+Open
+Write 1024
+Unlock
+Write 45126
+Open_Lock
+Unlock
+Close
+Read 1024
+Close
+Close
+Open_Lock
+Write 34
+Lock
+Read 13312
+Open_Lock
+Unlock
+Close
+Unlock
+Close
+Write 61
+Write 53
+Read 1024
+Write 61
+Write 26
+Unlock
+Unlock
+Close
+Read 12288
+Close
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 15
+Close
+Write 1024
+Open_Lock
+Open_Lock
+Close
+Read 366
+Close
+Close
+Close
+Unlock
+Unlock
+Write 34
+Open_Lock
+Open_Lock
+Read 212
+Write 61
+Write 53
+Write 61
+Write 26
+Close
+Close
+Unlock
+Write 1024
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Close
+Write 15
+Unlock
+Write 1024
+Close
+Close
+Close
+Close
+Open_Lock
+Open_Lock
+Unlock
+Close
+Unlock
+Write 58
+Write 61
+Write 53
+Write 61
+Write 26
+Close
+Close
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 1024
+Open_Lock
+Close
+Close
+Close
+Close
+Close
+Unlock
+Open_Lock
+Open_Lock
+Write 58
+Write 61
+Write 53
+Write 61
+Write 26
+Close
+Write 15
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Unlock
+Write 1024
+Close
+Close
+Close
+Close
+Close
+Open_Lock
+Close
+Unlock
+Write 1024
+Write 58
+Write 61
+Write 53
+Write 61
+Write 26
+Close
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Write 15
+Close
+Close
+Close
+Close
+Close
+Close
+Unlock
+Open_Lock
+Open
+Write 1024
+Write 58
+Write 61
+Write 53
+Write 61
+Write 26
+Close
+Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 15
+Close
+Close
+Unlock
+Close
+Close
+Close
+Close
+Open_Lock
+Unlock
+Open
+Write 1024
+Write 61
+Write 53
+Write 61
+Close
+Lock
+Unlock
+Open_Lock
+Write 58
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Write 26
+Close
+Unlock
+Close
+Close
+Close
+Unlock
+Open_Lock
+Open
+Write 1024
+Close
+Unlock
+Write 61
+Write 53
+Write 61
+Close
+Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 26
+Close
+Open_Lock
+Write 58
+Close
+Close
+Close
+Open_Lock
+Unlock
+Open
+Unlock
+Write 61
+Write 53
+Close
+Lock
+Write 1024
+Close
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Write 61
+Unlock
+Close
+Close
+Unlock
+Open_Lock
+Close
+Open_Lock
+Write 58
+Write 61
+Write 53
+Close
+Open
+Unlock
+Open_Lock
+Unlock
+Open_Lock
+Unlock
+Write 61
+Lock
+Write 1024
+Close
+Unlock
+Close
+Close
+Open_Lock
+Unlock
+Unlock
+Write 61
+Close
+Close
+Open_Lock
+Write 58
+Open_Lock
+Unlock
+Open_Lock
+Write 53
+Open
+Unlock
+Close
+Unlock
+Open_Lock
+Write 1024
+Lock
+Close
+Write 61
+Close
+Unlock
+Write 58
+Open_Lock
+Unlock
+Write 53
+Close
+Open_Lock
+Unlock
+Close
+Open_Lock
+Unlock
+Open
+Close
+Unlock
+Close
+Lock
+Write 1024
+Open_Lock
+Write 61
+Unlock
+Open_Lock
+Write 58
+Unlock
+Open_Lock
+Close
+Unlock
+Close
+Open
+Write 1024
+Close
+Unlock
+Write 61
+Lock
+Unlock
+Open_Lock
+Unlock
+Close
+Open_Lock
+Write 58
+Close
+Open
+Unlock
+Lock
+Write 1024
+Close
+Unlock
+Open_Lock
+Unlock
+Read 696
+Close
+Open_Lock
+Read 11264
+Write 58
+Open
+Read 11264
+Unlock
+Lock
+Write 1024
+Close
+Unlock
+Unlock
+Close
+Open_Lock
+Write 58
+Open
+Unlock
+Lock
+Write 1024
+Close
+Unlock
+Unlock
+Close
+Open_Lock
+Open
+Write 58
+Lock
+Unlock
+Write 1024
+Close
+Unlock
+Unlock
+Close
+Unlock
+Open_Lock
+Open
+Unlock
+Lock
+Unlock
 Write 1024
 Unlock
 Close
 Open
 Lock
-Read 26
-Open
-Lock
 Unlock
-Create_Lock
-Write 84
-Unlock
-Close
-Create_Lock
-Write 1000000
-Unlock
-Close
-Read 26
-Read 15
-Read 61
-Read 1024
-Read 84
-Read 1000000
-Open
-Lock
-Open
-Lock
-Read 1000000
-Unlock
-Unlock
-Lock
-Delete
-Lock
-Delete
-Read 26
-Read 15
-Tipo di segnale ricevuto per la chiusura: 1.
-Max_size_reached: 1001210
-Max_files_reached: 6
+Read 676890
+Read 15360
+Read 15360
+Read 915
+Read 795
+Read 870
+Read 15360
+Read 15360
+Tipo di segnale ricevuto per la chiusura: 2.
+Max_size_reached: 19742160
+Max_files_reached: 15
 Replaced: 0
 E' stata distrutta la tabella hash.

@@ -415,9 +415,8 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
 
         for (nodo=table->queue[hash]->head; nodo != NULL; nodo=nodo->next)
             if (strcmp(nodo->path, *path) == 0){
-                PTHREAD_LOCK(nodo->mutex);
                 PTHREAD_UNLOCK(table->queue[hash]->mutex);
-
+                PTHREAD_LOCK(nodo->mutex);
                 *path = (char*)nodo->path;
 
                 /* Legge il buffer */

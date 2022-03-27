@@ -71,7 +71,7 @@ int dispatcher(int argc, char *argv[]){
 
                 while(token){
                     rest = realpath(token, NULL);
-                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
 
                     int err_ = open_write_append(rest, dirnameD);
                     CHECK_OPERATION(err_ == -1, free((char*) rest); break);
@@ -89,7 +89,7 @@ int dispatcher(int argc, char *argv[]){
                 token = strtok_r(optarg, ",", &str);
 
                 rest = realpath(token, NULL);
-                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
 
                 char *token2 = strtok_r(NULL, ",", &str);
                 int n = -1;
@@ -97,6 +97,7 @@ int dispatcher(int argc, char *argv[]){
                     n = strtol(token2, NULL, 10);
                 if(n==0)
                     n = -1;
+                
                 int err_mixed = caller_two(open_write_append, rest, dirnameD, &n);
                 CHECK_OPERATION(err_mixed == -1, free((char*)rest); break);
                 
@@ -121,7 +122,8 @@ int dispatcher(int argc, char *argv[]){
 
                 while(token){
                     rest = realpath(token, NULL);
-                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
+
                     
                     int err_read = reader(rest, dirnamed);
                     CHECK_OPERATION(err_read == -1, free((char*) rest); break);
@@ -163,8 +165,8 @@ int dispatcher(int argc, char *argv[]){
 
                 while(token){
                     rest = realpath(token, NULL);
-                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-                    
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
+
                     /* Richiede l'apertura e la lock sulla directory o sul file identificato da rest */
                     err_caller = openFile(rest, 0);
                     CHECK_OPERATION(err_caller == -1, free((char*)rest); break);
@@ -185,7 +187,8 @@ int dispatcher(int argc, char *argv[]){
 
                 while(token){
                     rest = realpath(token, NULL);
-                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
+
                     
                     /* Invia la richiesta di rilascio della lock sul file identificato da rest */
                     err_unlock = unlockFile(rest);
@@ -204,11 +207,7 @@ int dispatcher(int argc, char *argv[]){
 
                 while(token){
                     rest = realpath(token, NULL);
-                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato.\n"); break);
-                    
-                    /* Invia la richiesta di acquisizione della lock sul file */
-                    int err_lock = lockFile(rest);
-                    CHECK_OPERATION(err_lock == -1, free((char*)rest); break);
+                    CHECK_OPERATION(rest == NULL, fprintf(stderr, "File non trovato: %s.\n", token); break);
 
                     /* Invia la richiesta di rimozione del file identificato da rest */
                     int err_rem = removeFile(rest);

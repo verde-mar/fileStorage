@@ -34,6 +34,7 @@ int reader(const char* rest, const char* dirnamed){
 
     void *buf = NULL;
     size_t size = 0;
+    int err_unlock, err_close;
 
     /* Invia la richiesta di lettura del file identificato da rest */
     int err_r = readFile(rest, &buf, &size);
@@ -41,16 +42,22 @@ int reader(const char* rest, const char* dirnamed){
     if(!err_r && buf){
         /* Se riceve un buffer non vuoto lo salva su disco */
         int err_save = save_on_disk((char*)dirnamed, (char*)rest, buf, size);
-        CHECK_OPERATION(err_save == -1, return -1);
+        CHECK_OPERATION(err_save == -1, 
+            err_unlock = unlockFile(rest);
+            CHECK_OPERATION(err_unlock == -1, return -1);
+
+            err_close = closeFile(rest);
+            CHECK_OPERATION(err_close == -1, return -1);
+            return -1);
         free(buf);
     }
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
-    int err_unlock = unlockFile(rest);
+    err_unlock = unlockFile(rest);
     CHECK_OPERATION(err_unlock == -1, return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
-    int err_close = closeFile(rest);
+    err_close = closeFile(rest);
     CHECK_OPERATION(err_close == -1, return -1);
 
     return 0;
@@ -90,32 +97,32 @@ int open_write_append(const char* rest, const char* dirnameD){
         /* Legge dal file identificato da rest e memorizza i dati in buf*/
         codice = read_from_file((char*)rest, &buf, &size);
         CHECK_OPERATION(codice == -1,
-            codice = closeFile(rest);
-            CHECK_OPERATION(codice == -1, return -1);
             codice = unlockFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
+            codice = closeFile(rest);
             CHECK_OPERATION(codice == -1, return -1);
             return codice;);
         
         /* Invia la richiesta di append su rest di buf */
         codice = appendToFile(rest, buf, size, dirnameD);
         CHECK_OPERATION(codice == -1, 
-            codice = closeFile(rest);
-            CHECK_OPERATION(codice == -1, return -1);
             codice = unlockFile(rest);
+            CHECK_OPERATION(codice == -1, return -1);
+            codice = closeFile(rest);
             CHECK_OPERATION(codice == -1, return -1);
             return -1;);
     }
 
     /* Richiede il rilascio della lock sul file iile identificato da rest */
     codice = unlockFile(rest);
-    CHECK_OPERATION(codice == -1, return -1);
+    CHECK_OPERATION(codice == -1, 
+        codice = closeFile(rest);
+        CHECK_OPERATION(codice == -1, return codice;);
+        return -1);
 
     /* Richiede la chiusura del file identificato da rest */  
     codice = closeFile(rest);
-    CHECK_OPERATION(codice == -1, 
-        codice = unlockFile(rest);
-        CHECK_OPERATION(codice == -1, return codice);
-        return codice;);
+    CHECK_OPERATION(codice == -1, return codice;);
 
     return codice;
 }
@@ -127,14 +134,13 @@ int caller_two(int (*fun) (const char*, const char*), const char* pathname, cons
         CHECK_OPERATION(dir == NULL, fprintf(stderr, "Errore sulla opendir.\n"); return -1;);
         
         struct dirent *file;
-        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL && *n>0){
-            printf("PRIMA COSTRIURE IL NUOVO FILE ------ %d\n", *n);
+        while((errno=0, file = readdir(dir))!=NULL && pathname != NULL && (*n != 0 || *n != -1)){
             int len = strlen(pathname) + strlen(file->d_name) + strlen("/") + 1;
             const char *path = malloc(sizeof(char)*len);
             path = strcpy((char*)path, pathname);
             path = strcat((char*)path, "/");
             path = strcat((char*)path, file->d_name);
-            
+            printf("STO PER MANDARE %s\n", path);
 
             if(strcmp(file->d_name, "..")!=0 && strcmp(file->d_name, ".")!=0){
                 if(is_regular_file(path)){
