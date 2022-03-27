@@ -1,291 +1,57 @@
 E' stata creata la tabella hash.
 Accept
 Accept
-Accept
 Create_Lock
-Accept
-Accept
-Accept
-Write 26
 Create_Lock
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Unlock
-Accept
-Write 15
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Close
-Accept
-Accept
-Unlock
-Accept
-Open_Lock
-Accept
-Open_Lock
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Open_Lock
-Accept
-Accept
 Write 26
-Accept
-Open_Lock
-Accept
-Close
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Accept
-Open_Lock
-Accept
-Accept
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
+Write 15
 Unlock
-Open_Lock
+Unlock
+Close
+Close
 Create_Lock
-Write 15
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Open_Lock
-Close
 Write 61
 Unlock
-Write 26
+Close
+Create_Lock
+Write 1024
 Unlock
 Close
+Open
+Lock
+Read 26
+Open
+Lock
+Unlock
+Create_Lock
+Write 84
 Unlock
 Close
-Write 15
-Close
-Open_Lock
-Unlock
-Write 26
-Close
-Unlock
-Write 61
-Write 15
-Read 104
-Close
-Unlock
-Open_Lock
-Unlock
-Read 60
-Write 26
-Close
-Close
-Unlock
-Read 122
-Write 61
-Write 15
-Close
-Read 183
-Unlock
-Open_Lock
+Create_Lock
+Write 1000000
 Unlock
 Close
-Write 26
-Close
-Unlock
-Write 61
-Read 156
-Write 15
-Close
-Unlock
-Open_Lock
-Read 90
-Unlock
-Write 26
-Close
-Read 244
-Close
-Read 182
-Unlock
-Write 61
-Read 305
-Write 15
-Read 105
-Close
+Read 26
+Read 15
+Read 61
+Read 1024
+Read 84
+Read 1000000
+Open
+Lock
+Open
+Lock
+Read 1000000
 Unlock
 Unlock
-Open_Lock
-Read 305
-Write 26
-Close
-Close
-Read 305
-Unlock
-Read 208
-Write 61
-Write 15
-Close
-Read 120
-Open_Lock
-Unlock
-Unlock
-Write 26
-Close
-Read 366
-Close
-Unlock
-Read 234
-Read 366
-Write 61
-Write 15
-Close
-Read 135
-Unlock
-Open_Lock
-Unlock
-Write 26
-Read 427
-Close
-Close
-Unlock
-Read 427
-Read 260
-Write 61
-Write 15
-Close
-Read 150
-Unlock
-Open_Lock
-Unlock
-Write 26
-Read 488
-Close
-Close
-Unlock
-Read 488
-Read 286
-Write 61
-Close
-Write 15
-Read 165
-Unlock
-Open_Lock
-Unlock
-Write 26
-Read 549
-Close
-Close
-Unlock
-Read 549
-Read 312
-Write 61
-Write 15
-Close
-Unlock
-Read 180
-Open_Lock
-Unlock
-Write 26
-Close
-Read 610
-Close
-Unlock
-Read 610
-Write 61
-Read 338
-Write 15
-Close
-Unlock
-Read 195
-Open_Lock
-Unlock
-Write 26
-Close
-Read 671
-Close
-Unlock
-Read 364
-Write 61
-Read 732
-Write 15
-Close
-Read 210
-Unlock
-Open_Lock
-Unlock
-Write 26
-Read 732
-Close
-Close
-Unlock
-Read 732
-Read 390
-Write 61
-Write 15
-Close
-Read 225
-Unlock
-Open_Lock
-Unlock
-Close
-Read 793
-Close
-Read 390
-Write 61
-Read 854
-Unlock
-Read 225
-Open_Lock
-Close
-Read 854
-Read 390
-Read 854
-Write 61
-Read 225
-Unlock
-Read 915
-Close
-Read 390
-Read 915
-Read 225
-Read 915
-Read 390
-Read 915
-Read 225
-Read 915
-Read 915
-Tipo di segnale ricevuto per la chiusura: 2.
-Max_size_reached: 1530
-Max_files_reached: 3
+Lock
+Delete
+Lock
+Delete
+Read 26
+Read 15
+Tipo di segnale ricevuto per la chiusura: 1.
+Max_size_reached: 1001210
+Max_files_reached: 6
 Replaced: 0
 E' stata distrutta la tabella hash.
