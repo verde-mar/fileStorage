@@ -330,7 +330,7 @@ int main(int argc, char const *argv[]) {
                             fd_max = aggiorna(set, fd_max);
                         );
 
-                        size_t size_buffer;
+                        size_t size_buffer = 0;
                         err_read = read_size(fd, &size_buffer);
                         CHECK_OPERATION(err_read==-1, 
                             fprintf(stderr, "Errore nella lettura della size.\n");
