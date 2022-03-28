@@ -411,7 +411,7 @@ int writeFile(const char* pathname, const char* dirname){
                 /* Salva il file su disco nella directory specificata */
                 int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
                 CHECK_OPERATION(check_save == -1,
-                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %d\n", path, size_old);
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %ld\n", path, size_old);
                     free(path);
                     free(old_file);
                     free(actual_request);     
@@ -500,7 +500,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
                 /* Salva il file su disco nella directory specificata */
                 int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
                 CHECK_OPERATION(check_save == -1,
-                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %d\n", path, size_old);
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %ld\n", path, size_old);
                     free(path);
                     free(old_file);
                     free(actual_request);     
@@ -591,7 +591,7 @@ int readNFiles(int N, const char* dirname){
                     /* Salva il file su disco nella directory specificata */
                     int check_save = save_on_disk((char*)dirname, path, file, size_file);
                     CHECK_OPERATION(check_save == -1,
-                        fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %d\n", path, size_file);
+                        fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %ld\n", path, size_file);
                         free(path);
                         free(file);
                         free(actual_request);     
@@ -645,12 +645,12 @@ int readNFiles(int N, const char* dirname){
                     /* Salva il file su disco nella directory specificata */
                     int check_save = save_on_disk((char*)dirname, path, file, size_file);
                     CHECK_OPERATION(check_save == -1,
-                        fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %d\n", path, size_file);
+                        fprintf(stderr, "Non e' stato possibile salvare il file %s su disco perche' %ld\n", path, size_file);
                         free(path);
                         free(file);
                         free(actual_request);     
                         return -1);
-                }
+                
                 }
                 free(path);
                 free(file);

@@ -177,7 +177,6 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la size del path che sta per arrivare e che sta per essere memorizzato.\n"); 
         return -1);
-      
     *path = malloc(size_path);
     CHECK_OPERATION(*path == NULL,
         fprintf(stderr, "Allocazione non andata a buon fine.\n");
@@ -196,7 +195,9 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la size del file che stavo per memorizzare.\n"); 
                 return -1);
-    if(size_old > 0){
+    printf("SIZE FILE IN RECEIVER: %ld\n", *size_old);
+    
+    if(*size_old > 0){
         *old_file = malloc(*size_old);
         CHECK_OPERATION(*old_file == NULL,
             fprintf(stderr, "Allocazione non andata a buon fine.\n");
