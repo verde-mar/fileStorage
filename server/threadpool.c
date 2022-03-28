@@ -57,7 +57,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, void* buf, size_t size_b
     /* Scrive il puntatore della response sulla pipe delle risposte */
     err_pipe = writen(pool->response_pipe, &risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe<=0, 
-        fprintf(stderr, "La pipe delle risposte e' chiusa, quindi il thread deve terminare.\n");
+        fprintf(stderr, "O c'e' stato un errore nella scrittura sulla pipe o la pipe delle risposte e' stata chiusa improvvisamente a seguito di un SIGINT.\n"); //TODO: lo devo specificare nella relazione?
         free(risp);
         return -1);
         
@@ -99,7 +99,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"););
             
             int err_invio = invia_risposta((*threadpool), err_write, req->fd, NULL, 0, NULL, deleted);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);
@@ -112,7 +112,7 @@ static void* working(void* pool){
             int err_read = read_hashtable(path, &buf, &size_buf, req->fd);
             CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore sulla read_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);
@@ -124,7 +124,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_append == -1, fprintf(stderr, "Errore sulla append_hashtable.\n"););
 
             int err_invio = invia_risposta((*threadpool), err_append, req->fd, NULL, 0, NULL, deleted);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);
@@ -135,7 +135,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_lock == -1, fprintf(stderr, "Errore sulla lock_hashtable.\n"); );
             if(err_lock != 1){
                 int err_invio = invia_risposta((*threadpool), err_lock, req->fd, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                CHECK_OPERATION(err_invio == -1,
                     free(req->request);
                     free(req);
                     continue);
@@ -147,10 +147,10 @@ static void* working(void* pool){
             int err_unlock = unlock_hashtable(path, req->fd, &fd_next);
             CHECK_OPERATION(err_unlock == -1, fprintf(stderr, "Errore sulla unlock_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_unlock, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); );
+            CHECK_OPERATION(err_invio == -1,);
             if(fd_next != -1){
                 err_invio = invia_risposta((*threadpool), err_unlock, fd_next, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+                CHECK_OPERATION(err_invio == -1,
                     free(req->request);
                     free(req);
                     continue);
@@ -161,7 +161,7 @@ static void* working(void* pool){
             int err_close = close_hashtable(path, req->fd);
             CHECK_OPERATION(err_close == -1, fprintf(stderr, "Errore sulla close_hashtable.\n"););
             int err_invio = invia_risposta((*threadpool), err_close, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);   
@@ -185,7 +185,7 @@ static void* working(void* pool){
                     if(in_wait){ 
                         int code = 888;
                         int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                        CHECK_OPERATION(risp == -1,
                             free(req->request);
                             free(req);
                             continue);
@@ -199,7 +199,7 @@ static void* working(void* pool){
                 CHECK_OPERATION(err_rem == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"););
             }
             int err_invio = invia_risposta((*threadpool), err_rem, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);
+            CHECK_OPERATION(err_invio == -1,free(req->request); free(req); continue);
         } 
         /* E' stata richiesta una operazione di readN */
         else if(!strcmp(operation, "readN")){
@@ -210,7 +210,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella readN_hashtable.\n"););
             
             int err_invio = invia_risposta((*threadpool), err_read, req->fd, buf, size_buf, path, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);
@@ -234,7 +234,7 @@ static void* working(void* pool){
                     if(in_wait){ 
                         int code = 888;
                         int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                        CHECK_OPERATION(risp == -1,
                             free(req->request);
                             free(req);
                             continue);
@@ -251,7 +251,7 @@ static void* working(void* pool){
                     continue);
             }
             int err_invio = invia_risposta((*threadpool), err_clh, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); 
+            CHECK_OPERATION(err_invio == -1,
                 free(req->request);
                 free(req);
                 continue);
@@ -274,7 +274,7 @@ static void* working(void* pool){
                     if(in_wait){ 
                         int code = 888;
                         int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                        CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n");
+                        CHECK_OPERATION(risp == -1,
                             free(req->request);
                             free(req);
                             continue);
@@ -289,7 +289,7 @@ static void* working(void* pool){
             }
             
             int err_invio = invia_risposta((*threadpool), err_ch, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);
+            CHECK_OPERATION(err_invio == -1,free(req->request); free(req); continue);
 
         }
         /* E' stata richiesta una operazione di apertura */
@@ -298,7 +298,7 @@ static void* working(void* pool){
             CHECK_OPERATION(err_oh == -1, fprintf(stderr, "Errore sulla opens.\n"); );
 
             int err_invio = invia_risposta((*threadpool), err_oh, req->fd, NULL, 0, NULL, NULL);
-            CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);   
+            CHECK_OPERATION(err_invio == -1,free(req->request); free(req); continue);   
 
         } 
         /* E' stata richiesta una operazione di apertura con acquisizione della lock */
@@ -309,7 +309,7 @@ static void* working(void* pool){
             /* Se non e' stata acquisita la lock non viene mandato niente al client */
             if(err_lh != 1){
                 int err_invio = invia_risposta((*threadpool), err_lh, req->fd, NULL, 0, NULL, NULL);
-                CHECK_OPERATION(err_invio == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); free(req->request); free(req); continue);   
+                CHECK_OPERATION(err_invio == -1,free(req->request); free(req); continue);   
 
             }
         }
@@ -367,7 +367,7 @@ int destroy_threadpool(threadpool_t **threadpool){
                 if(in_wait){ 
                     int code = 999;
                     int risp = invia_risposta((*threadpool), code, in_wait->file_descriptor, NULL, 0, NULL, NULL);
-                    CHECK_OPERATION(risp == -1, fprintf(stderr, "Errore nell'invio della risposta.\n"); continue);
+                    CHECK_OPERATION(risp == -1,continue);
                     
                     /* Libera la memoria associata al client in attesa */
                     free(in_wait);
