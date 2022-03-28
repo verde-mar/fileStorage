@@ -44,7 +44,7 @@ int del_req(lista_richieste ** queue);
 /**
  * @brief Aggiunge un elemento alla coda condivisa tra il thread main e gli worker, in mutua esclusione
  * 
- * @param request Richiesta da aggiungere
+ * @param req_path Richiesta da aggiungere
  * @param fd_c File descriptor del client che ha richiesto l'operazione
  * @param buffer Buffer associato alla richiesta se diverso da NULL
  * @param size_buffer Size di buffer
@@ -56,7 +56,7 @@ int push_queue(char* req_path, int fd_c, void* buffer, size_t size_buffer, lista
 /**
  * @brief Preleva un elemento in testa alla lista delle richieste
  * 
- * @param queue Coda da cui prelevare l'elemento
+ * @param queue Lista richieste da cui prelevare l'elemento
  * @return request* Elemento prelevato
  */
 request* pop_queue(lista_richieste *queue);

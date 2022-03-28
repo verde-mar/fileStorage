@@ -59,13 +59,10 @@ request* pop_queue(lista_richieste *queue){
     temp = queue->head;
     request *current = queue->head;
     queue->head = current->next;
-
-    /* Restituisce il path del nodo appena eliminato */
-    
     queue->elements--;
 
     PTHREAD_UNLOCK(queue->mutex);
-    
+
     return temp;
 }
 

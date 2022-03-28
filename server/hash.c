@@ -117,9 +117,9 @@ int creates_locks_hashtable(char *path, int fd, node** just_deleted){
             int hash_del = hash_function(to_delete);
             int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log);
             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); return -1); 
+            CHECK_OPERATION(del == 333, fprintf(stderr, "Non ci sono piu' elementi da eliminare.\n"); *just_deleted = NULL; return 333);
             
             success = 909;   
-            printf("\n\nsto per eliminare %s\n", to_delete);
         }
     }
     return success;
@@ -148,7 +148,9 @@ int creates_hashtable(char *path, int fd, node** just_deleted){
         if(to_delete){
             int hash_del = hash_function(to_delete);
             int del = deletes(&(table->queue[hash_del]), to_delete, just_deleted, fd, &(table->curr_size), table->file_log); 
-            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); return -1); 
+            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); return -1);
+            CHECK_OPERATION(del == 333, fprintf(stderr, "Non ci sono piu' elementi da eliminare.\n"); *just_deleted = NULL; return 333);
+
             success = 909;  
 
         }
@@ -289,6 +291,7 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
+            
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
                 int hash_del = hash_function(to_delete);
@@ -296,15 +299,19 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
                 CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); if(buf) free(buf); return -1); 
                 CHECK_OPERATION(del == 333, fprintf(stderr, "Non ci sono piu' elementi da eliminare.\n"); *deleted = NULL; if(buf) free(buf); return 333);
                 if(buf) free(buf);
-            } else {
+            } 
+            /* Se non ci sono elementi nella coda cache */
+            else {
                 if(buf) free(buf);
                 return 333;
             }
         }
-    } else {
+    } 
+    /* L'elemento da inserire e' troppo grande */
+    else {
         if(buf) free(buf);
         return 444;
-    }   
+    }    
     if(been_deleted) return 909;
 
     int hash = hash_function(path);
@@ -338,15 +345,15 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
             PTHREAD_UNLOCK(fifo_queue->mutex);
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
-                printf("[SERVER] devo eliminare il nodo con nome: %s\n", to_delete);
                 int hash_del = hash_function(to_delete);
                 int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); 
                 CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); if(buf) free(buf); return -1); 
                 CHECK_OPERATION(del == 333, fprintf(stderr, "Il thread e' stato deschedulato prima di poter eliminare %s, e ha trovato la lista a NULL.\n", to_delete); *deleted = NULL; if(buf) {free(buf);}  return 333);
-                printf("[SERVER]Ho eliminato il nodo con path: %s\n", (*deleted)->path);
                 if(buf) free(buf);
                 if(deleted) been_deleted = 1;
-            } else {
+            } 
+            /* Se non ci sono elementi nella coda cache */
+            else {
                 if(buf) free(buf);
                 return 333;
             }
@@ -414,6 +421,7 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
             curr = curr->next;
             N--;
         }
+        if(curr==NULL) return 505;
         /* Acquisisce la lock sull'elemento */
         int hash = hash_function((char*)curr->path); 
         *path = (char*)curr->path;
@@ -421,6 +429,7 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
         node *nodo = NULL;
         PTHREAD_LOCK(table->queue[hash]->mutex);
 
+        /* Cerca il nodo nella lista di trabocco */
         for (nodo=table->queue[hash]->head; nodo != NULL; nodo=nodo->next)
             if (strcmp(nodo->path, *path) == 0){
                 PTHREAD_UNLOCK(table->queue[hash]->mutex);
@@ -442,7 +451,8 @@ int readN_hashtable(int N, void** buf, size_t *size_buf, int fd, char** path){
                 success = 0;
                 break;
             }
-
+        
+        /* Se il nodo non e' stato trovato */
         if(nodo == NULL){
             PTHREAD_UNLOCK(table->queue[hash]->mutex);
             *path = NULL;

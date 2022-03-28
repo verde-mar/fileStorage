@@ -6,8 +6,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-//TODO: per usare una sola funzione si puo' fare la malloc da un'altra parte, ma poi incasinerei il binomio malloc/destroy ---> metti nella relazione
-
 int create_fifo(){
     fifo_queue = malloc(sizeof(list_cache));
     CHECK_OPERATION(fifo_queue == NULL,
@@ -113,13 +111,4 @@ char* head_name(list_cache *queue){
         name = (char*)(queue->head)->path;
     
     return name;
-}
-
-node_c* del_head(){
-    
-    node_c *tmp = fifo_queue->head;
-    if(tmp)
-        fifo_queue->head = (fifo_queue->head)->next;
-    
-    return tmp;
 }

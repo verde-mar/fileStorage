@@ -64,6 +64,7 @@ int del_list_wait(client **head_client, clients_in_wait* list){
     CHECK_OPERATION(list == NULL, fprintf(stderr, "Parametri non validi.\n"); return -1;);
     client* curr;
     
+    /* Elimina la testa della lista */
     curr = list->head;
     *head_client = curr;
     if(curr){

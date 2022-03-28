@@ -177,7 +177,7 @@ int main(int argc, char const *argv[]) {
                     
                     /* Aggiorna il file di log */
                     fprintf(table->file_log, "Accept\n");
-                    fprintf(stdout, "E' stato accettato il client: %d\n", fd_c);
+                    fprintf(table->file_log, "E' stato accettato il client: %d\n", fd_c);
 
                     /* Inserisce il fd del client tra quelli in ascolto */
                     FD_SET(fd_c, &set);
@@ -306,7 +306,7 @@ int main(int argc, char const *argv[]) {
                     size_t size;
                     int err_read = read_size(fd, &size);
                     if(err_read == 0 || err_read == -1){
-                        fprintf(stderr, "Il client %d ha chiuso la connessione.\n", fd);
+                        fprintf(table->file_log, "Il client %d ha chiuso la connessione.\n", fd);
                         FD_CLR(fd, &set); 
                         fd_max = aggiorna(set, fd_max);
                     } else {  
@@ -377,8 +377,6 @@ int main(int argc, char const *argv[]) {
     routine_chiusura(&pool, tid_signal);
     
     free(socketname);
-    //TODO: mancano: - n. di richieste servite da ogni worker thread      
-    // - massimo n. di connessioni contemporanee.
 
     return 0;
 }

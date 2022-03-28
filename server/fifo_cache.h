@@ -65,6 +65,4 @@ int del(char *file_path);
  */
 char* head_name(list_cache *queue);
 
-node_c* del_head();
-
 #endif

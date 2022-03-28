@@ -72,7 +72,7 @@ int destroy_list(list_t **lista_trabocco){
  * @param queue Lista di trabocco in cui aggiungere il nodo
  * @param file_path Path del file da associare al nodo da creare
  * @param fd file descriptor di chi ha creato e acquisito la lock sul nodo
- * @return node* Nodo creato
+ * @return node* Nodo creato o NULL
  */
 static node* node_create(list_t **queue, char* file_path, int fd){
     CHECK_OPERATION(!(*queue),
@@ -122,15 +122,17 @@ static node* node_create(list_t **queue, char* file_path, int fd){
 static int lock_acquire(node *nodo, int fd, FILE *file_log){
     CHECK_OPERATION(nodo == NULL || fd < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
+    /* Se possiede gia' la lock */
     if(nodo->fd_c == fd) {
         return 0;
     }
 
+    /* Se la lock e' libera */
     if(nodo->fd_c == -1){
         nodo->fd_c = fd;
         return 0;
     }
-    
+    /* Altrimenti, il client viene messo in lista d'attesa */
     int add_cl = add_list_wait(fd, nodo->waiting_list);
     CHECK_OPERATION(add_cl == -1, fprintf(stderr, "Errore nella aggiunta di un file nella lista di attesa.\n"); return -1);
 
@@ -271,7 +273,11 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
     PTHREAD_LOCK(fifo_queue->mutex);
     PTHREAD_LOCK((*lista_trabocco)->mutex);
+
+    /* Rimuove l'elemento dalla coda fifo */
     int remover = del(file_path);
+
+    /* Se non c'erano elementi da eliminare */
     CHECK_OPERATION(remover == -1, 
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -295,6 +301,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
             *curr_size = *curr_size - curr->size_buffer;
 
             FD_CLR(fd, &(curr->open));
+            fprintf(file_log, "Delete\n");
 
             PTHREAD_UNLOCK(curr->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -348,7 +355,7 @@ node* look_for_node(list_t **lista_trabocco, char* file_path){
 int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1);
+        return -1);
     
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, file_path);
@@ -389,8 +396,9 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE*
         return 505);
 
     PTHREAD_LOCK(nodo->mutex);
-    /* Se ha acquisito la lock e il nodo e' aperto */
+    /* Se ha acquisito la lock */
     if(nodo->fd_c == fd){
+        /* Risveglia il primo client in attesa */
         if(nodo->waiting_list->head){
             client *in_wait;
             int err_del = del_list_wait(&in_wait, nodo->waiting_list);
@@ -399,10 +407,14 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE*
                 PTHREAD_UNLOCK(nodo->mutex);
                 return -1
             );
+            /* Viene data la lock al thread appena risvegliato */
             nodo->fd_c = in_wait->file_descriptor;
-            *fd_next = in_wait->file_descriptor;
+
+            *fd_next = in_wait->file_descriptor; //TODO: devi dire come funziona il risveglio
             free(in_wait);
-        } else {
+        } 
+        /* Se non c'erano thread da risvegliare */
+        else {
             nodo->fd_c = -1;
             *fd_next = -1;
         }
@@ -429,7 +441,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE*
 int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log){
     CHECK_OPERATION(!*lista_trabocco,
         fprintf(stderr, "Parametri non validi.\n");
-            return -1);
+        return -1);
     
     /* Ricerca il nodo */
     node* nodo = look_for_node(lista_trabocco, file_path);
@@ -471,6 +483,7 @@ int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t *size_buf
         
         fprintf(file_log, "Read %ld\n", nodo->size_buffer);
     } 
+    /* Se la lock non e' stata acquisita da nessuno */
     else if(nodo->fd_c==-1){
         *buf = NULL;
         *size_buf = 0;

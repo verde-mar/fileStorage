@@ -350,7 +350,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
     }
 
     
-    CHECK_CODICE(printer,  codice, "readFile", byte_letti, byte_scritti);
+    CHECK_CODICE(printer, codice, "readFile", byte_letti, byte_scritti);
     
     return codice;
 }
@@ -578,7 +578,8 @@ int readNFiles(int N, const char* dirname){
                     free(actual_request);
                     return -1);
 
-            if(codice == 0) {            
+            if(codice == 0) {    
+                /* Riceve path e buffer del file espulso dal server */        
                 int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
                 CHECK_OPERATION(err_receiver == -1, 
                     fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");
@@ -634,6 +635,7 @@ int readNFiles(int N, const char* dirname){
                 return -1;);
 
             if(codice == 0){
+                /* Riceve path e buffer del file espulso dal server */        
                 int err_receiver = receiver(&byte_letti, &byte_scritti, size_path, &path, &file, &size_file);
                 CHECK_OPERATION(err_receiver == -1, 
                     fprintf(stderr, "Errore nella ricezione degli elementi inviati dal server.\n");

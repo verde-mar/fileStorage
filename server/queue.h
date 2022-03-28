@@ -90,8 +90,9 @@ int creates_locks(list_t **lista_trabocco, char* file_path, int fd, atomic_int *
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param file_log File di log
  * @return int, -1 in caso di generico fallimento
- *              404 nel caso in cui il nodo non esista
+ *              505 nel caso in cui il nodo non esista
  *              0 in caso di successo
+ *              1 nel caso il client fd finisca in lista d'attesa
  */
 int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
 
@@ -103,7 +104,7 @@ int opens_locks(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @param file_log File di log
  * @return int, -1 in caso di generico fallimento
- *              404 nel caso in cui il nodo non esista
+ *              505 nel caso in cui il nodo non esista
  *              0 in caso di successo
  */
 int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
@@ -119,8 +120,7 @@ int opens(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si si cerchi di fare la removeFile dopo la closeFile
- *             505 nel caso in cui il file non esista
+ *             333 nel caso in cui il nodo cercato non esista, quindi la lista di trabocco sia null
  */
 int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int fd, atomic_int* curr_size, FILE* file_log);
 
@@ -142,7 +142,7 @@ node* look_for_node(list_t **lista_trabocco, char* file_path);
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si riprovi a fare la closeFile dopo averla gia' fatta
+ *             303 nel caso in cui il nodo non sia aperto
  *             505 nel caso in cui il file non esista
  */
 int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
@@ -157,6 +157,7 @@ int closes(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
+ *             202 nel caso in cui la lock non sia stata acquisita
  *             303 nel caso in cui si provi a fare la unlockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
  *             555 nel caso in cui la lock non sia stata acquisita da nessuno
@@ -172,7 +173,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE*
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si provi a fare la lockFile dopo la closeFile
+ *             1 nel caso in cui la lock sia gia' occupata e il client fd venga messo in lista d'attesa
  *             505 nel caso in cui il file non esista
  */
 int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
@@ -194,6 +195,7 @@ int lock(list_t **lista_trabocco, char* file_path, int fd, FILE* file_log);
  *            -1 in caso di generico fallimento
  *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
  *             505 nel caso in cui il file non esista
+ *             202 nel caso in cui la lock non sia stata acquisita
  */
 int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, atomic_int* curr_size, atomic_int* max_size_reached, int fd, FILE* file_log);
 
@@ -212,10 +214,8 @@ int append_buffer(list_t **lista_trabocco, char* file_path, void* buf, size_t si
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *              303 nel caso in cui si provi a fare la append dopo la close
- *              505 nel caso in cui il file non esista
- *              444 nel caso in cui i dati del file da scrivere siano troppi 
- *              909 nel caso in cui sia stato eliminato un file
+ *             505 nel caso in cui il file non esista
+ *             606 nel caso in cui non sia stata fatta la openFile(O_CREATE | O_LOCK)
  */
 int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf, int *max_size, atomic_int* curr_size, atomic_int* max_size_reached, node** deleted, int fd, FILE* file_log);
 
@@ -230,8 +230,10 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
  * @param file_log File di log
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si provi a fare la writeFile dopo la closeFile
+ *             303 nel caso in cui il nodo sia chiuso
  *             505 nel caso in cui il file non esista
+ *             202 nel caso in cui la lock non sia stata acquisita
+ *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
 int reads(list_t **lista_trabocco, char* file_path, void** buf, size_t* size_buf, int fd, FILE* file_log);
 

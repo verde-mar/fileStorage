@@ -84,8 +84,9 @@ int creates_hashtable(char *path, int fd, node **just_deleted);
  * @param path Path del file da aprire e su cui acquisire la lock
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int -1 in caso di generico fallimento
- *              404 nel caso in cui il file non esista
+ *              505 nel caso in cui il nodo non esista
  *              0 in caso di successo
+ *              1 nel caso il client fd finisca in lista d'attesa
  */
 int opens_locks_hashtable(char *path, int fd);
 
@@ -95,7 +96,7 @@ int opens_locks_hashtable(char *path, int fd);
  * @param path Path del file da aprire
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int -1 in caso di generico fallimento
- *              404 nel caso in cui il nodo non esista
+ *              505 nel caso in cui il nodo non esista
  *              0 in caso di successo
  */
 int opens_hashtable(char *path, int fd);
@@ -108,8 +109,7 @@ int opens_hashtable(char *path, int fd);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si si cerchi  di effettuare l'operazione ma il file e' chiuso
- *             505 nel caso in cui il file non esista
+ *             333 nel caso in cui il nodo cercato non esista, quindi la lista di trabocco sia null
  */
 int del_hashtable(char *file_path, node **just_deleted, int fd);
 
@@ -133,8 +133,10 @@ int close_hashtable(char *file_path, int fd);
  * @param fd_next File descriptor del client risvegliato dalla lista di attesa a cui e' stata appena data la lock
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
+ *             202 nel caso in cui la lock non sia stata acquisita
+ *             303 nel caso in cui si provi a fare la unlockFile dopo la closeFile
  *             505 nel caso in cui il file non esista
- *             555 nel caso in cui la lock non e' stata acquisita da nessuno
+ *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
 int unlock_hashtable(char *path, int fd, int* fd_next);
 
@@ -145,7 +147,7 @@ int unlock_hashtable(char *path, int fd, int* fd_next);
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
  *            -1 in caso di generico fallimento
- *             303 nel caso in cui si provi a fare la lock dopo la close
+ *             1 nel caso in cui la lock sia gia' occupata e il client fd venga messo in lista d'attesa
  *             505 nel caso in cui il file non esista
  */
 int lock_hashtable(char *file_path, int fd);
@@ -158,9 +160,10 @@ int lock_hashtable(char *file_path, int fd);
  * @param deleted Nodo in cui memorizzare un file eventualmente eliminato per fare spazio a buf
  * @param fd File descriptor del client che ha richiesto l'operazione 
  * @return int 0 in caso di successo
- *             -1 in caso di generico fallimento
- *              303 nel caso in cui si provi a fare la append dopo la close
- *              505 nel caso in cui il file non esista
+ *            -1 in caso di generico fallimento
+ *             303 nel caso in cui si provi a fare la appendFile dopo la closeFile
+ *             505 nel caso in cui il file non esista
+ *             202 nel caso in cui la lock non sia stata acquisita
  */
 int append_hashtable(char* file_path, void* buf, size_t* size_buf, node** deleted, int fd);
 
@@ -172,11 +175,9 @@ int append_hashtable(char* file_path, void* buf, size_t* size_buf, node** delete
  * @param deleted Nodo in cui memorizzare un file eventualmente eliminato per fare spazio a buf
  * @param fd File descriptor del client che ha richiesto l'operazione 
  * @return int 0 in caso di successo
- *             -1 in caso di generico fallimento
- *              303 nel caso in cui si provi a fare la append dopo la close
- *              505 nel caso in cui il file non esista
- *              444 nel caso in cui i dati del file da scrivere siano troppi 
- *              909 nel caso in cui sia stato eliminato un file
+ *            -1 in caso di generico fallimento
+ *             505 nel caso in cui il file non esista
+ *             606 nel caso in cui non sia stata fatta la openFile(O_CREATE | O_LOCK)
  */
 int write_hashtable(char* file_path, void* buf, size_t* size_buf, node** deleted, int fd);
 
@@ -188,9 +189,11 @@ int write_hashtable(char* file_path, void* buf, size_t* size_buf, node** deleted
  * @param size_buf Size di buf
  * @param fd File descriptor del client che ha effettuato la richiesta
  * @return int 0 in caso di successo
- *             -1 in caso di generico fallimento
- *              303 nel caso in cui si provi a fare la read dopo la close
- *              505 nel caso in cui il file non esista
+ *            -1 in caso di generico fallimento
+ *             303 nel caso in cui il nodo sia chiuso
+ *             505 nel caso in cui il file non esista
+ *             202 nel caso in cui la lock non sia stata acquisita
+ *             555 nel caso in cui la lock non sia stata acquisita da nessuno
  */
 int read_hashtable(char *file_path, void** buf, size_t* size_buf, int fd);
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Ripulisce le directory utilizzate ed elimina gli eseguibili
 
 if [ -d "./read" ]
 then
