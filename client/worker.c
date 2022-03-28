@@ -346,6 +346,7 @@ int readFile(const char* pathname, void** buf, size_t *size){
         }
     } else {
         *buf = NULL;
+        *size = 0;
     }
 
     
