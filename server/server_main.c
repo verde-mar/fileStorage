@@ -253,17 +253,18 @@ int main(int argc, char const *argv[]) {
                     } 
                     
                     if(risp->deleted){
-                        if((risp->deleted)->buffer){
-                           
-                            int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
-                            CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
-                            
-                            int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
-                            CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
-                            printf("STO PER ELIMINARE nel main %s\n", risp->deleted->path);
-                            int del = definitely_deleted(&(risp->deleted));
-                            CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
-                        } 
+                         int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
+                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        
+                        if((risp->deleted)->buffer == NULL){
+                            risp->deleted->size_buffer = 0;
+                        }
+                        int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
+                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                       
+                       int del = definitely_deleted(&(risp->deleted));
+                        CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                    
                     }
 
                     free(risp);

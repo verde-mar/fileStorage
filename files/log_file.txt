@@ -12,8 +12,8 @@ Unlock
 Close
 Close
 Create_Lock
-Create_Lock
 Write 15
+Create_Lock
 Unlock
 Write 44
 Close

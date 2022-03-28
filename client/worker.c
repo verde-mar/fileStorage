@@ -374,7 +374,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-
+    printf(" -      HO APPENA INVIATO LA RICHIESTA DI SCRITTURA PER %s\n", actual_request);
     /* Invia il buffer */
     errno = 0;
     byte_scritti += write_msg(fd_skt, buf, size); 
@@ -405,18 +405,22 @@ int writeFile(const char* pathname, const char* dirname){
                 free(old_file);
                 free(buf);     
                 return -1);
+            
+            /* Se il buffer del file inviato dal server non e' NULL */
+            if(err_receiver != -2){
+                /* Salva il file su disco nella directory specificata */
+                int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
+                CHECK_OPERATION(check_save == -1,
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
+                    free(path);
+                    free(old_file);
+                    free(actual_request);     
+                    return -1);
 
-            /* Salva il file su disco nella directory specificata */
-            int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
-            CHECK_OPERATION(check_save == -1,
-                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
                 free(path);
                 free(old_file);
-                free(actual_request);     
-                return -1);
-
-            free(path);
-            free(old_file);
+            }
+            printf("ACTUAL REQUEST CHE STA INVIANDO IL CLIENT NELLA WRITE: %s\n", actual_request);
             
             /* Invia la richiesta */
             errno = 0;
@@ -437,8 +441,10 @@ int writeFile(const char* pathname, const char* dirname){
                 free(buf);     
                 return -1);
             volte++;
+            printf("CODICE DI RISPOSTA %d VOLTA: %ld\n", volte, codice);
             
         }
+        printf("HO RICHIESTO LA WRITE DI %s E HO AVUTO SUCCESSO\n", pathname);
     }
     free(actual_request); 
     free(buf);

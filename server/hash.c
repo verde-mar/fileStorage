@@ -283,12 +283,15 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
     
     int been_deleted = 0;
     if(*size_buf<=table->max_size){
+        printf("STO PER CONTROLLARE SE LA SIZE DELL'ELEMENTO CHE VOGLIO INSERIRE VA BENE %s\n", path);
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla coda cache */
             PTHREAD_LOCK(fifo_queue->mutex);
+            printf("HO APPENA PRESO LA LOCK DELLA CODA FIFO\n");
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
+            printf("HO RILASCIATO LA LOCK DELLA CODA FIFO, E SO CHI VOGLIO ELIMINARE: %s\n", to_delete);
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
                 int hash_del = hash_function(to_delete);
@@ -330,21 +333,25 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
     /* Vengono fatti controlli sulla size dell'elemento da inserire */
     int been_deleted = 0;
     if(*size_buf<=table->max_size){
+       //printf("STO PER CONTROLLARE SE LA SIZE DELL'ELEMENTO CHE VOGLIO INSERIRE VA BENE %s\n", path);
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla coda cache */
             PTHREAD_LOCK(fifo_queue->mutex);
+            //printf("HO APPENA PRESO LA LOCK DELLA CODA FIFO\n");
             fifo_queue->how_many_cache++;
             char* to_delete = head_name(fifo_queue);
             PTHREAD_UNLOCK(fifo_queue->mutex);
+            //printf("HO RILASCIATO LA LOCK DELLA CODA FIFO, E SO CHI VOGLIO ELIMINARE: %s\n", to_delete);
             /* Preleva il  nodo dalla tabella hash */
             if(to_delete){
-                //printf("[SERVER] devo eliminare il nodo con nome: %s\n", to_delete);
+                printf("[SERVER] devo eliminare il nodo con nome: %s\n", to_delete);
                 int hash_del = hash_function(to_delete);
                 int del = deletes(&(table->queue[hash_del]), to_delete, deleted, fd, &(table->curr_size), table->file_log); 
                 CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella deletes di %s\n", to_delete); if(buf) free(buf); return -1); 
                 CHECK_OPERATION(del == 333, fprintf(stderr, "Il thread e' stato deschedulato prima di poter eliminare %s, e ha trovato la lista a NULL.\n", to_delete); *deleted = NULL; if(buf) {free(buf);}  return 333);
+                printf("[SERVER]Ho eliminato il nodo con path: %s\n", (*deleted)->path);
                 if(buf) free(buf);
-                been_deleted = 1;
+                if(deleted) been_deleted = 1;
             } else {
                 if(buf) free(buf);
                 return 333;
