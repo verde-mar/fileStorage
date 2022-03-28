@@ -1,4 +1,4 @@
 socketname: socket
-size: 1000000
-numero di workers: 4
-numero massimo di file accettabili: 10
+size: 128000000
+numero di workers: 1
+numero massimo di file accettabili: 10000

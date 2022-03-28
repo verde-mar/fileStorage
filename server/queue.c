@@ -271,38 +271,33 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     CHECK_OPERATION(*lista_trabocco==NULL,
         fprintf(stderr, "Parametri non validi.\n");
         return -1);
-            
+
     PTHREAD_LOCK(fifo_queue->mutex);
     PTHREAD_LOCK((*lista_trabocco)->mutex);
-
     int remover = del(file_path);
     CHECK_OPERATION(remover == -1, 
-        printf("[SERVER] IL NODO CON PATH %s NON E' NELLA CODA FIFO.\n", file_path);
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         return -1);
-    printf("[SERVER]: IL NODO CON PATH %s E' STATO TROVATO NELLA CODA FIFO.\n", file_path);
+    
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
         fprintf(file_log, "Delete\n"); 
-        printf("[SERVER] LA LISTA DI TRABOCCO E' NULL.\n");
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
         PTHREAD_UNLOCK(fifo_queue->mutex);
 
-        return -1;
+        return 333;
     }
 
     curr = (*lista_trabocco)->head;
     if(curr){
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
-            printf("HO TROVATO IL NODO %s ED E' IL PRIMO.\n", curr->path);
             PTHREAD_LOCK(curr->mutex);
             *just_deleted = curr;
             (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
             *curr_size = *curr_size - curr->size_buffer;
 
             FD_CLR(fd, &(curr->open));
-            fprintf(file_log, "Delete\n");
 
             PTHREAD_UNLOCK(curr->mutex);
             PTHREAD_UNLOCK((*lista_trabocco)->mutex);
@@ -313,15 +308,15 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     }
     
     /* Scansione della lista a partire dal secondo nodo */
+    node* prev = curr;
     curr = curr->next;
     while (curr != NULL){
         if (strcmp(curr->path, file_path) == 0) { /* Cancellazione del primo nodo */
-            printf("HO TROVATO IL NODO %s E NON E' IL PRIMO.\n", curr->path);
 
             PTHREAD_LOCK(curr->mutex);
-            *just_deleted = curr;
-            (*lista_trabocco)->head = curr->next; /* Aggiorna il puntatore alla testa */
+            *just_deleted = curr;/* Aggiorna il puntatore alla testa */
             *curr_size = *curr_size - curr->size_buffer;
+            prev->next = curr->next;
 
             FD_CLR(fd, &(curr->open));
             fprintf(file_log, "Delete\n");
@@ -332,9 +327,9 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
 
             return 0;
         }
+        prev = curr;
         curr = curr->next;
     }
-    printf("NON HO TROVATO IL NODO.\n");
     PTHREAD_UNLOCK((*lista_trabocco)->mutex);
     PTHREAD_UNLOCK(fifo_queue->mutex);
     

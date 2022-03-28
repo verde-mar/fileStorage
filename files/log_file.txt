@@ -1,58 +1,57 @@
 E' stata creata la tabella hash.
 Accept
 Accept
-Accept
-Accept
-Create_Lock
-Create_Lock
-Write 45126
-Write 1024
-Unlock
-Unlock
-Close
-Close
-Create_Lock
-Create_Lock
-Write 15
-Write 34
-Unlock
-Unlock
-Close
-Close
 Create_Lock
 Create_Lock
 Write 26
-Write 58
+Write 15
 Unlock
 Unlock
 Close
 Close
-Create_Lock
-Create_Lock
-Write 1024
-Write 75316
-Unlock
-Unlock
-Close
-Close
-Create_Lock
 Create_Lock
 Write 61
 Unlock
 Close
-Delete
-Delete
-Delete
-Delete
-Delete
-Delete
-Delete
+Create_Lock
+Write 1024
+Unlock
+Close
+Open
+Lock
+Read 26
+Open
+Lock
+Unlock
+Create_Lock
+Write 44
+Unlock
+Close
+Create_Lock
+Write 75316
+Unlock
+Close
 Create_Lock
 Write 192102
 Unlock
 Close
+Read 26
+Read 15
+Read 61
+Read 1024
+Read 44
+Read 75316
+Read 192102
+Read 192102
+Open
+Lock
+Open
+Lock
+Unlock
+Read 26
+Read 15
 Tipo di segnale ricevuto per la chiusura: 1.
-Max_size_reached: 268503
-Max_files_reached: 10
-Replaced: 7
+Max_size_reached: 268588
+Max_files_reached: 7
+Replaced: 0
 E' stata distrutta la tabella hash.

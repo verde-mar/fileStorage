@@ -4,7 +4,7 @@
 mkdir ./flushed ./read
 
 # Avvia il server
-valgrind -s --leak-check=full --show-leak-kinds=all ./smain ./files/file_config.txt ./files/log_file.txt &
+./smain ./files/file_config.txt ./files/log_file.txt &
 
 sleep 2
 
@@ -16,7 +16,7 @@ pid=$!
 pidcl1=$!
 ./cl -f socket -p -t 125 -D ./flushed -W ./test_dir1/prova3.txt -D ./flushed -W ./test_dir1/prova4.txt -D ./flushed -W ./test_dir2/sea2.jpg &
 pidcl2=$!
-./cl -f socket -p -t 100 -D ./flushed -W ./test_dir1/prova5.txt -D ./flushed -W ./test_dir1/prova10.txt -D ./flushed -W ./test_dir1/prova11.txt &
+./cl -f socket -p -t 100 -D ./flushed -W ./test_dir1/prova5.txt -D ./flushed -W ./test_dir1/prova11.txt -D ./flushed -W ./test_dir1/prova11.txt &
 pidcl3=$!
 ./cl -f socket -p -t 125 -D ./flushed -W ./test_dir2/prova12.txt -D ./flushed -W ./test_dir2/sea1.jpg  &
 pidcl4=$!

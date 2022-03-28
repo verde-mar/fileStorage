@@ -1,0 +1,529 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.2.1
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2016 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Mon Mar 28 10:06:36 2022
+
+# Variables
+
+# 'override' directive
+GNUMAKEFLAGS := 
+# makefile (from 'Makefile', line 6)
+UTILS = ./utils
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+DESKTOP_SESSION = ubuntu
+# default
+.SHELLFLAGS := -c
+# makefile (from 'Makefile', line 5)
+SERVER = ./server
+# environment
+XDG_SESSION_CLASS = user
+# environment
+SNAP_COMMON = /var/snap/code/common
+# environment
+XDG_SESSION_TYPE = x11
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+IM_CONFIG_PHASE = 1
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+XAUTHORITY = /run/user/1000/gdm/Xauthority
+# environment
+GDMSESSION = ubuntu
+# environment
+XMODIFIERS = @im=ibus
+# makefile
+CURDIR := /home/verdemar/Documenti/uni/SOL/newFileStorage
+# makefile
+SHELL = /bin/sh
+# environment
+SNAP_DATA = /var/snap/code/91
+# environment
+VSCODE_NLS_CONFIG = {"locale":"it","availableLanguages":{"*":"it"},"_languagePackId":"d1d25c7f7d2034a833b54c6d4a618d2c.it","_translationsConfigFile":"/home/verdemar/.config/Code/clp/d1d25c7f7d2034a833b54c6d4a618d2c.it/tcf.json","_cacheRoot":"/home/verdemar/.config/Code/clp/d1d25c7f7d2034a833b54c6d4a618d2c.it","_resolvedLanguagePackCoreLocation":"/home/verdemar/.config/Code/clp/d1d25c7f7d2034a833b54c6d4a618d2c.it/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1","_corruptedFile":"/home/verdemar/.config/Code/clp/d1d25c7f7d2034a833b54c6d4a618d2c.it/corrupted.info","_languagePackSupport":true}
+# environment
+JOURNAL_STREAM = 8:49991
+# makefile (from 'Makefile', line 2)
+CFLAGS = -Wall -pthread -D_POSIX_C_SOURCE=200112L 
+# environment
+XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
+# environment
+SNAP_INSTANCE_NAME = code
+# environment
+SNAP_ARCH = amd64
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# automatic
+@F = $(notdir $@)
+# environment
+GIO_LAUNCHED_DESKTOP_FILE = /var/lib/snapd/desktop/applications/code_code.desktop
+# environment
+USERNAME = verdemar
+# environment
+XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+_ = /snap/code/91/usr/share/code/code
+# environment
+MANAGERPID = 1308
+# environment
+LESSOPEN = | /usr/bin/lesspipe %s
+# environment
+VSCODE_CWD = /home/verdemar
+# environment
+GSETTINGS_SCHEMA_DIR = /snap/code/91/usr/share/glib-2.0/schemas
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# environment
+PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+# environment
+GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
+# environment
+SESSION_MANAGER = local/verdemarthinkpad:@/tmp/.ICE-unix/1760,unix/verdemarthinkpad:/tmp/.ICE-unix/1760
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+GDK_PIXBUF_MODULE_FILE = /home/verdemar/snap/code/common/.cache/gdk-pixbuf-loaders.cache
+# environment
+SNAP = /snap/code/91
+# environment
+SNAP_VERSION = c722ca6c
+# environment
+XDG_MENU_PREFIX = gnome-
+# environment
+VSCODE_LOG_STACK = false
+# environment
+DISABLE_WAYLAND = 1
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+INVOCATION_ID = accd61a44d2c46069705787b7cb7b4dd
+# environment
+GDK_PIXBUF_MODULEDIR = /snap/code/91/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
+# environment
+LS_COLORS = 
+# environment
+XDG_SESSION_DESKTOP = ubuntu
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 63151
+# automatic
+%F = $(notdir $%)
+# environment
+DISPLAY = :0
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+SNAP_INSTANCE_KEY = 
+# environment
+PWD = /home/verdemar/Documenti/uni/SOL/newFileStorage
+# default
+.LOADED := 
+# environment
+SSH_AGENT_PID = 1702
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
+# environment
+GTK_MODULES = gail:atk-bridge
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/verdemar
+# environment
+LESSCLOSE = /usr/bin/lesspipe %s %s
+# environment
+VSCODE_CLI = 1
+# environment
+VSCODE_CODE_CACHE_PATH = /home/verdemar/.config/Code/CachedData/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1
+# environment
+LOGNAME = verdemar
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# environment
+SNAP_LIBRARY_PATH = /var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void
+# environment
+SNAP_CONTEXT = Em1rPJymbjFfry7B3zoLmxUTwVgTV08UmqWL_idmwC6BNGUI0nPh
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# environment
+SNAP_USER_COMMON = /home/verdemar/snap/code/common
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# environment
+GNOME_DESKTOP_SESSION_ID = this-is-deprecated
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+MAKELEVEL := 0
+# environment
+SNAP_REAL_HOME = /home/verdemar
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+QT_IM_MODULE = ibus
+# environment
+SNAP_USER_DATA = /home/verdemar/snap/code/91
+# environment
+SHLVL = 0
+# makefile (from 'Makefile', line 4)
+CLIENT = ./client
+# makefile (from 'Makefile', line 1)
+CC = gcc -std=c99 -O3 -g 
+# environment
+GNOME_SHELL_SESSION_MODE = ubuntu
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-f6c8dbae-6ffd-4a18-be28-f3ecf25b359a.sock
+# default
+MAKE_VERSION := 4.2.1
+# environment
+USER = verdemar
+# environment
+SNAP_REVISION = 91
+# makefile
+.DEFAULT_GOAL := all
+# environment
+XDG_CURRENT_DESKTOP = Unity
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# default
+MAKE_COMMAND := make
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-d7a44307-1.65.2-main.sock
+# environment
+BAMF_DESKTOP_FILE_HINT = /var/lib/snapd/desktop/applications/code_code.desktop
+# makefile
+MAKEFLAGS = pqrR
+# environment
+MFLAGS = -pqrR
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+GDK_BACKEND = x11
+# automatic
++F = $(notdir $+)
+# environment
+QT_ACCESSIBILITY = 1
+# default
+MAKEFILES := 
+# environment
+SNAP_COOKIE = Em1rPJymbjFfry7B3zoLmxUTwVgTV08UmqWL_idmwC6BNGUI0nPh
+# automatic
+<F = $(notdir $<)
+# environment
+SNAP_NAME = code
+# environment
+LC_ALL = C
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+# automatic
+^F = $(notdir $^)
+# default
+SUFFIXES := 
+# environment
+SNAP_REEXEC = 
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+WINDOWPATH = 2
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# environment
+GJS_DEBUG_OUTPUT = stderr
+# default
+.RECIPEPREFIX := 
+# environment
+LANG = C
+# environment
+VSCODE_PID = 63200
+# variable set hash-table stats:
+# Load=125/1024=12%, Rehash=0, Collisions=18/180=10%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 2053, inode 13763180): 16 files, no impossibilities.
+# server (device 2053, inode 13762650): 16 files, no impossibilities so far.
+
+# 32 files, no impossibilities in 2 directories.
+
+# Implicit Rules
+
+%.o: %.c %.h
+#  recipe to execute (from 'Makefile', line 28):
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(CLIENT) -I $(UTILS) -c -o $@ $<
+
+# 1 implicit rules, 0 (0.0%) terminal.
+
+# Files
+
+server/libserver.so: server/fifo_cache.o server/fifo_wait.o server/fifo_req.o server/queue.o server/hash.o server/threadpool.o server/gestore_segnali.o utils/utils.o utils/socketIO.o
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+#  recipe to execute (from 'Makefile', line 13):
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -shared -o $@ $^
+
+# Not a target:
+server/fifo_wait.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+all: smain cl
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+
+ 
+.PHONY: clean test1 test2 test3
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+server/gestore_segnali.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+test3: all
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 42):
+	./script/create_config.sh socket 100 32000000 8 ./files/file_config.txt
+	./script/terzo_test.sh
+	
+
+# Not a target:
+client/main.c:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-03-27 13:37:20.00098852
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+server/queue.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+test1: all
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 34):
+	./script/create_config.sh socket 10000 128000000 1 ./files/file_config.txt
+	./script/primo_test.sh
+
+server/fifo_cache.o: server/fifo_cache.c server/fifo_cache.h
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: 'server/fifo_cache'
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := server/fifo_cache.o
+# automatic
+# % := 
+# automatic
+# * := server/fifo_cache
+# automatic
+# + := server/fifo_cache.c server/fifo_cache.h
+# automatic
+# | := 
+# automatic
+# < := server/fifo_cache.c
+# automatic
+# ^ := server/fifo_cache.c server/fifo_cache.h
+# automatic
+# ? := server/fifo_cache.c server/fifo_cache.h
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/18=6%
+#  recipe to execute (from 'Makefile', line 28):
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(CLIENT) -I $(UTILS) -c -o $@ $<
+
+# Not a target:
+client/worker.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+client/libcaller.so: client/dispatcher.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 22):
+	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -shared -o $@ $^
+
+client/libclient.so: client/worker.o utils/utils.o utils/socketIO.o utils/client_utils.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 19):
+	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -shared -o $@ $^
+
+clean:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 31):
+	./script/cleaner.sh
+	
+
+test2: all
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 38):
+	./script/create_config.sh socket 10 1000000 4 ./files/file_config.txt
+	./script/secondo_test.sh
+
+cl: client/main.c client/libcaller.so client/libclient.so
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 25):
+	$(CC) $(CFLAGS) -fPIC -I $(CLIENT) -I $(UTILS) -o $@ $^
+
+# Not a target:
+server/hash.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+utils/client_utils.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+client/dispatcher.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+server/threadpool.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+smain: server/server_main.c server/libserver.so
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+#  recipe to execute (from 'Makefile', line 16):
+	$(CC) $(CFLAGS) -fPIC -I $(SERVER) -I $(UTILS) -o $@ $^
+
+# Not a target:
+server/fifo_cache.c:
+#  Implicit rule search has been done.
+#  Last modified 2022-03-27 23:09:11.950053843
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+utils/utils.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+server/server_main.c:
+#  Implicit rule search has been done.
+#  Last modified 2022-03-28 00:26:20.714492056
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+server/fifo_req.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+utils/socketIO.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+server/fifo_cache.h:
+#  Implicit rule search has been done.
+#  Last modified 2022-03-27 23:07:02.125970698
+#  File has been updated.
+#  Successfully updated.
+
+# files hash-table stats:
+# Load=30/1024=3%, Rehash=0, Collisions=5/80=6%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 65 / storage = 773 B / avg = 11 B
+# current buf: size = 8162 B / used = 773 B / count = 65 / avg = 11 B
+
+# strcache performance: lookups = 100 / hit rate = 35%
+# hash-table stats:
+# Load=65/8192=1%, Rehash=0, Collisions=5/100=5%
+# Finished Make data base on Mon Mar 28 10:06:36 2022
+
+ 

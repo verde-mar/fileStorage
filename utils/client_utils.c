@@ -123,7 +123,7 @@ int open_write_append(const char* rest, const char* dirnameD){
     /* Richiede la chiusura del file identificato da rest */  
     int err_close = closeFile(rest);
     CHECK_OPERATION(err_close == -1, return -1;);
-    printf("CODICE NELLA OPEN_WRITE_APPEND: %d\n", codice);
+   
     return codice;
 }
 

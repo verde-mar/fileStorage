@@ -260,7 +260,7 @@ int main(int argc, char const *argv[]) {
                             
                             int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
                             CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
-                            
+                            printf("STO PER ELIMINARE nel main %s\n", risp->deleted->path);
                             int del = definitely_deleted(&(risp->deleted));
                             CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
                         } 
