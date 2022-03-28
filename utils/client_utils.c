@@ -216,6 +216,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
                 return -1);
     } else {
         if(*path) free(*path);
+        *path = NULL;
         return -2;
     }
                 

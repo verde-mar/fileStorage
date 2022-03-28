@@ -417,7 +417,7 @@ int writeFile(const char* pathname, const char* dirname){
                     free(actual_request);     
                     return -1);
             }
-            free(path);
+            if(path) free(path);
             free(old_file);
              /* Invia la richiesta */
             errno = 0;
@@ -506,7 +506,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
                     free(actual_request);     
                     return -1);
             }
-            free(path);
+            if(path) free(path);
             free(old_file);
 
             /* Invia i dati del file */
@@ -597,7 +597,7 @@ int readNFiles(int N, const char* dirname){
                         free(actual_request);     
                         return -1);
                     }
-                free(path);
+                if(path) free(path);
                 free(file);
                 i++; 
             }
@@ -652,7 +652,7 @@ int readNFiles(int N, const char* dirname){
                         return -1);
                 
                 }
-                free(path);
+                if(path) free(path);
                 free(file);
             } else {
                 break;
