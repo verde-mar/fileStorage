@@ -215,7 +215,7 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
                 free(old_file);
                 return -1);
     } else {
-        if(path)free(path);
+        if(*path) free(*path);
         return -2;
     }
                 
