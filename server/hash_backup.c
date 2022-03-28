@@ -313,7 +313,6 @@ int append_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, in
     
     int been_deleted = 0;
     if(*size_buf<=table->max_size){
-        printf("STO PER CONTROLLARE SE LA SIZE DELL'ELEMENTO CHE VOGLIO INSERIRE VA BENE %s\n", path);
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla coda cache */
             PTHREAD_LOCK(fifo_queue->mutex);
@@ -366,7 +365,6 @@ int write_hashtable(char* path, void* buf, size_t* size_buf, node** deleted, int
     /* Vengono fatti controlli sulla size dell'elemento da inserire */
     int been_deleted = 0;
     if(*size_buf<=table->max_size){
-       //printf("STO PER CONTROLLARE SE LA SIZE DELL'ELEMENTO CHE VOGLIO INSERIRE VA BENE %s\n", path);
         if((table->curr_size + *size_buf) > table->max_size){
             /* Trova l'elemento in testa alla coda cache */
             PTHREAD_LOCK(fifo_queue->mutex);
