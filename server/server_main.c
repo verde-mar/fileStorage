@@ -242,28 +242,62 @@ int main(int argc, char const *argv[]) {
                     
                     if(risp->path){
                         int err_path = write_msg(risp->fd_richiesta, risp->path, (strlen(risp->path)+1)*sizeof(char));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_path == -1, 
+                            fprintf(stderr, "Errore nell'invio del path a %d.\n", risp->fd_richiesta); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                         free(risp->path);
                     }
                     
                     if(risp->buffer_file){
                         int err_buff = write_msg(risp->fd_richiesta, risp->buffer_file, (risp->size_buffer));
-                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_buff == -1, 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                         free(risp->buffer_file);
                     } 
                     
                     if(risp->deleted){
                          int err_path = write_msg(risp->fd_richiesta, (char*)(risp->deleted)->path, (strlen((char*)(risp->deleted)->path) + 1)*sizeof(char));
-                        CHECK_OPERATION(err_path == -1, fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_path == -1, 
+                            fprintf(stderr, "Errore nell'invio del path del file rimosso a %d.\n", risp->fd_richiesta); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                         
                         if((risp->deleted)->buffer == NULL){
                             risp->deleted->size_buffer = 0;
                         }
                         int err_buff = write_msg(risp->fd_richiesta, (risp->deleted)->buffer, risp->deleted->size_buffer);
-                        CHECK_OPERATION(err_buff == -1, fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_buff == -1, 
+                            fprintf(stderr, "Errore nell'invio del file rimosso a %d.\n", risp->fd_richiesta); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                        
                        int del = definitely_deleted(&(risp->deleted));
-                        CHECK_OPERATION(del == -1, fprintf(stderr, "Errore nella eliminazione definitiva del nodo.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(del == -1, 
+                            fprintf(stderr, "Errore nell'eliminazione definitiva del file.\n"); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                     
                     }
 
@@ -277,25 +311,60 @@ int main(int argc, char const *argv[]) {
                         fd_max = aggiorna(set, fd_max);
                     } else {  
                         char* request = malloc(size); 
-                        CHECK_OPERATION(request == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(request == NULL, 
+                            fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
                         
                         err_read = read_msg(fd, request, size);
-                        CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max);); 
+                        CHECK_OPERATION(err_read == -1, 
+                            fprintf(stderr, "Errore nella lettura della richiesta.\n"); 
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
 
                         size_t size_buffer;
                         err_read = read_size(fd, &size_buffer);
-                        CHECK_OPERATION(err_read==-1, fprintf(stderr, "Errore nella lettura della size.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                        CHECK_OPERATION(err_read==-1, 
+                            fprintf(stderr, "Errore nella lettura della size.\n");
+                            int err_close = close(fd); 
+                            if(err_close == -1) 
+                                perror("Errore nella chiusura di un file descriptor");
+                            FD_CLR(fd, &set); 
+                            fd_max = aggiorna(set, fd_max);
+                        );
 
                         void* buffer = NULL;
                         if(size_buffer > 0){
                             buffer = malloc(size_buffer);
-                            CHECK_OPERATION(buffer == NULL, fprintf(stderr, "Allocazione non andata a buon fine.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                            CHECK_OPERATION(buffer == NULL, 
+                                fprintf(stderr, "Allocazione non andata a buon fine.\n"); 
+                                int err_close = close(fd); 
+                                if(err_close == -1) 
+                                    perror("Errore nella chiusura di un file descriptor");
+                                FD_CLR(fd, &set); 
+                                fd_max = aggiorna(set, fd_max);
+                            );
 
                             err_read = read_msg(fd, buffer, size_buffer);
-                            CHECK_OPERATION(err_read == -1, fprintf(stderr, "Errore nella lettura della richiesta.\n"); FD_CLR(fd, &set); fd_max = aggiorna(set, fd_max););
+                            CHECK_OPERATION(err_read == -1, 
+                                fprintf(stderr, "Errore nella lettura della richiesta.\n"); 
+                                int err_close = close(fd); 
+                                if(err_close == -1) 
+                                    perror("Errore nella chiusura di un file descriptor");
+                                FD_CLR(fd, &set); 
+                                fd_max = aggiorna(set, fd_max);
+                            );
                         } 
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
-                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n");  free(request); if(buffer){free(buffer);} routine_chiusura(&pool, tid_signal); exit(-1));
+                        CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n");  free(request); if(buffer){free(buffer);} continue);
                     }
                 }
             }
@@ -309,7 +378,6 @@ int main(int argc, char const *argv[]) {
     free(socketname);
     //TODO: mancano: - n. di richieste servite da ogni worker thread      
     // - massimo n. di connessioni contemporanee.
-    //TODO: manca la n di -w dirname[,n=0]
 
     return 0;
 }

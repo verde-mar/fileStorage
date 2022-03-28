@@ -123,19 +123,16 @@ static int lock_acquire(node *nodo, int fd, FILE *file_log){
     CHECK_OPERATION(nodo == NULL || fd < 0, fprintf(stderr, "Parametri non validi.\n"); return -1);
 
     if(nodo->fd_c == fd) {
-        printf("IL NODO %d HA PROVATO A RICHIEDERE LA LOCK SU %s CHE AVEVA GIA'\n", fd, nodo->path);
         return 0;
     }
 
     if(nodo->fd_c == -1){
         nodo->fd_c = fd;
-        printf("IL NODO %d HA OTTENUTO LA LOCK SU %s CHE ERA LIBERO\n", fd, nodo->path);
         return 0;
     }
     
     int add_cl = add_list_wait(fd, nodo->waiting_list);
     CHECK_OPERATION(add_cl == -1, fprintf(stderr, "Errore nella aggiunta di un file nella lista di attesa.\n"); return -1);
-    printf("IL NODO %d E' STATO MESSO IN LISTA DI ATTESA SU %s\n", fd, nodo->path);
 
 
     return 1;
