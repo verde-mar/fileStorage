@@ -392,7 +392,7 @@ int writeFile(const char* pathname, const char* dirname){
         return -1);
         
     if(dirname != NULL){
-        while(codice == 909 && codice != 333 && codice != 444){
+        while((codice == 909 && codice != 333) && (codice != 444 && codice != 888)){
             size_t size_old = 0, size_path = 0;
             void *old_file = NULL;
             char *path = NULL;
@@ -482,7 +482,7 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
         return -1);
 
     if(dirname != NULL){
-        while(codice == 909 && codice != 333 && codice != 444){
+        while((codice == 909 && codice != 333) && (codice != 444 && codice != 888)){
             size_t size_old, size_path = 0;
             void *old_file = NULL;
             char *path = NULL;

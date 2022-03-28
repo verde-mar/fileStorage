@@ -57,7 +57,7 @@ int invia_risposta(threadpool_t *pool, int err, int fd, void* buf, size_t size_b
     /* Scrive il puntatore della response sulla pipe delle risposte */
     err_pipe = writen(pool->response_pipe, &risp, sizeof(response*)); 
     CHECK_OPERATION(err_pipe<=0, 
-        fprintf(stderr, "O c'e' stato un errore nella scrittura sulla pipe o la pipe delle risposte e' stata chiusa improvvisamente a seguito di un SIGINT.\n"); //TODO: lo devo specificare nella relazione?
+        fprintf(stderr, "La pipe delle risposte e' stata chiusa improvvisamente a seguito di un SIGINT/SIGQUIT.\n"); 
         free(risp);
         return -1);
         
@@ -94,7 +94,7 @@ static void* working(void* pool){
 
         /* Se e' stata richiesta una operazione di write */
         if(!strcmp(operation, "write")){
-            node *deleted = NULL; //TODO: devo dire che in caso di espulsione il nodo viene messo in un altro?
+            node *deleted = NULL;
             int err_write = write_hashtable(path, req->buffer, &(req->size_buffer), &deleted, req->fd); 
             CHECK_OPERATION(err_write == -1, fprintf(stderr, "Errore sulla write_hashtable.\n"););
             
@@ -352,7 +352,7 @@ int destroy_threadpool(threadpool_t **threadpool){
     CHECK_OPERATION(!(*threadpool), fprintf(stderr, "Parametri non validi.\n"); return -1);
     int del = 0;
 
-    /* Verifica se ci siano client in attesa su ciascun nodo gli manda un errore */ //TODO: segnala nella relazione
+    /* Verifica se ci siano client in attesa su ciascun nodo gli manda un errore */ 
     for (int i = 0; i < 16; i++) {
         node* curr = table->queue[i]->head;
         while(curr){

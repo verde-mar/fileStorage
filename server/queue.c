@@ -410,7 +410,7 @@ int unlock(list_t **lista_trabocco, char* file_path, int fd, int *fd_next, FILE*
             /* Viene data la lock al thread appena risvegliato */
             nodo->fd_c = in_wait->file_descriptor;
 
-            *fd_next = in_wait->file_descriptor; //TODO: devi dire come funziona il risveglio
+            *fd_next = in_wait->file_descriptor;
             free(in_wait);
         } 
         /* Se non c'erano thread da risvegliare */
@@ -583,7 +583,7 @@ int writes(list_t **lista_trabocco, char* file_path, void* buf, size_t size_buf,
         return 505);
     
     PTHREAD_LOCK(nodo->mutex);
-    if(nodo->fd_create_open == fd){ //TODO: specificare nella relazione che solo chi crea puo' fare la write
+    if(nodo->fd_create_open == fd){ 
         if(buf){
             /* Alloca la dimensione per il buffer da scrivere e lo scrive*/
             nodo->buffer = malloc(size_buf);
