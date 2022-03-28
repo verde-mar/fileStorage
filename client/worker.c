@@ -374,7 +374,7 @@ int writeFile(const char* pathname, const char* dirname){
     /* Invia la richiesta */
     int byte_scritti = write_msg(fd_skt, actual_request, len); 
     CHECK_OPERATION(byte_scritti == -1, free(actual_request); free(buf); return -1);
-    printf(" -      HO APPENA INVIATO LA RICHIESTA DI SCRITTURA PER %s\n", actual_request);
+   
     /* Invia il buffer */
     errno = 0;
     byte_scritti += write_msg(fd_skt, buf, size); 
@@ -391,7 +391,6 @@ int writeFile(const char* pathname, const char* dirname){
         return -1);
         
     if(dirname != NULL){
-        int volte = 1;
         while(codice == 909 && codice != 333 && codice != 444){
             size_t size_old = 0, size_path = 0;
             void *old_file = NULL;
@@ -420,9 +419,7 @@ int writeFile(const char* pathname, const char* dirname){
                 free(path);
                 free(old_file);
             }
-            printf("ACTUAL REQUEST CHE STA INVIANDO IL CLIENT NELLA WRITE: %s\n", actual_request);
-            
-            /* Invia la richiesta */
+             /* Invia la richiesta */
             errno = 0;
             byte_scritti += write_msg(fd_skt, actual_request, len); 
             CHECK_OPERATION(errno == EFAULT, free(actual_request); free(buf); return -1);
@@ -440,11 +437,8 @@ int writeFile(const char* pathname, const char* dirname){
                 free(actual_request);
                 free(buf);     
                 return -1);
-            volte++;
-            printf("CODICE DI RISPOSTA %d VOLTA: %ld\n", volte, codice);
             
         }
-        printf("HO RICHIESTO LA WRITE DI %s E HO AVUTO SUCCESSO\n", pathname);
     }
     free(actual_request); 
     free(buf);
