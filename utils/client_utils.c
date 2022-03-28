@@ -187,7 +187,6 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     *byte_letti += read_msg(fd_skt, *path, size_path);
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere il buffer che sta per arrivare e che sta per essere memorizzato.\n"); 
-        free(path);
         return -1);
 
     /* Legge la size del buffer di dati che si sta per ricevere */    
@@ -195,28 +194,19 @@ int receiver(int *byte_letti, int *byte_scritti, size_t size_path, char** path, 
     *byte_letti += read_size(fd_skt, size_old); 
     CHECK_OPERATION(errno == EFAULT,
         fprintf(stderr, "Non e' stato possibile leggere la size del file che stavo per memorizzare.\n"); 
-        free(path);    
         return -1);
     
     if(*size_old > 0){
         *old_file = malloc(*size_old);
         CHECK_OPERATION(*old_file == NULL,
-            fprintf(stderr, "Allocazione non andata a buon fine.\n");
-            free(path);
-            return -1);
-            
+            fprintf(stderr, "Allocazione non andata a buon fine.\n"); return -1);
 
         /* Legge il buffe di dati che si sta per ricevere */
         errno = 0;
         *byte_letti += read_msg(fd_skt, *old_file, *size_old);
         CHECK_OPERATION(errno == EFAULT,
-            fprintf(stderr, "Non e' stato possibile leggere il file.\n"); 
-                free(path);
-                free(old_file);
-                return -1);
+            fprintf(stderr, "Non e' stato possibile leggere il file.\n"); return -1);
     } else {
-        if(*path) free(*path);
-        *path = NULL;
         return -2;
     }
                 

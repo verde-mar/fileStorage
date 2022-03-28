@@ -541,10 +541,10 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
 }
 
 int readNFiles(int N, const char* dirname){ 
-    void* file;
+    void* file = NULL;
     size_t codice = 0, size_path = 0, size_file = 0;
     int byte_scritti = 0, byte_letti = 0, count = 0;
-    char* actual_request, *path;
+    char* actual_request = NULL, *path = NULL;
     unsigned short i=0;
     
     if(dirname && N<=0){
@@ -596,9 +596,10 @@ int readNFiles(int N, const char* dirname){
                         free(file);
                         free(actual_request);     
                         return -1);
+                        free(file);
                     }
-                if(path) free(path);
-                free(file);
+                free(path);
+                
                 i++; 
             }
             free(actual_request);
@@ -652,7 +653,7 @@ int readNFiles(int N, const char* dirname){
                         return -1);
                 
                 }
-                if(path) free(path);
+                free(path);
                 free(file);
             } else {
                 break;

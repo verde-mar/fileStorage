@@ -79,6 +79,8 @@ int del(char *file_path){
 
     /* Verifica se il nodo cercato e' il primo, se e' cosi' lo elimina subito */
     curr = fifo_queue->head;
+    if(curr == NULL)
+        return 333;
     if (strcmp(curr->path, file_path) == 0){
         fifo_queue->head = curr->next; 
         free(curr);
