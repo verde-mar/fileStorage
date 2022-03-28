@@ -364,6 +364,7 @@ int main(int argc, char const *argv[]) {
                             );
                         } 
                         int push_req = push_queue(request, fd, buffer, size_buffer, &(pool)->pending_requests);
+                        /* Se c'e' un errore sulla push_queue la richiesta viene persa */
                         CHECK_OPERATION(push_req == -1, fprintf(stderr, "Errore nella push della coda.\n");  free(request); if(buffer){free(buffer);} continue);
                     }
                 }

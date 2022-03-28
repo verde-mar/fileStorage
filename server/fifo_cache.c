@@ -102,7 +102,7 @@ int del(char *file_path){
         curr = curr->next;
     }   
 
-    return -1;
+    return 333;
 }
 
 char* head_name(list_cache *queue){

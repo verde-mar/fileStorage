@@ -275,7 +275,7 @@ int deletes(list_t **lista_trabocco, char* file_path, node** just_deleted, int f
     CHECK_OPERATION(remover == -1, 
         PTHREAD_UNLOCK(fifo_queue->mutex);
         PTHREAD_UNLOCK((*lista_trabocco)->mutex);
-        return -1);
+        return 333);
     
     node* curr; /* Puntatore al nodo corrente */
     if ((*lista_trabocco)->head == NULL){ /* Lista vuota */
