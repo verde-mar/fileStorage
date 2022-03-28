@@ -415,10 +415,9 @@ int writeFile(const char* pathname, const char* dirname){
                     free(old_file);
                     free(actual_request);     
                     return -1);
-
-                free(path);
-                free(old_file);
             }
+            free(path);
+            free(old_file);
              /* Invia la richiesta */
             errno = 0;
             byte_scritti += write_msg(fd_skt, actual_request, len); 
@@ -496,15 +495,16 @@ int appendToFile(const char* pathname, void* buf, size_t size, const char* dirna
                 free(actual_request);     
                 return -1);
 
-            /* Salva il file su disco nella directory specificata */
-            int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
-            CHECK_OPERATION(check_save == -1,
-                fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
-                free(path);
-                free(old_file);
-                free(actual_request);     
-                return -1);
-
+            if(err_receiver != -2){
+                /* Salva il file su disco nella directory specificata */
+                int check_save = save_on_disk((char*)dirname, path, old_file, size_old);
+                CHECK_OPERATION(check_save == -1,
+                    fprintf(stderr, "Non e' stato possibile salvare il file %s su disco\n", path);
+                    free(path);
+                    free(old_file);
+                    free(actual_request);     
+                    return -1);
+            }
             free(path);
             free(old_file);
 
